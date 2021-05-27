@@ -19,6 +19,7 @@ import com.hypertrack.android.ui.common.NotificationUtils
 import com.hypertrack.android.ui.common.SimplePageChangedListener
 import com.hypertrack.android.ui.common.SnackbarUtil
 import com.hypertrack.android.ui.common.Tab
+import com.hypertrack.android.ui.screens.visits_management.tabs.current_trip.CurrentTripFragment
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.MapViewFragment
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.MapViewFragmentOld
 import com.hypertrack.android.ui.screens.visits_management.tabs.livemap.LiveMapFragment
@@ -42,8 +43,7 @@ class VisitsManagementFragment : ProgressDialogFragment(R.layout.fragment_visits
     private val args: VisitsManagementFragmentArgs by navArgs()
 
     private val tabsMap = mapOf(
-        Tab.MAP to Injector.getCustomFragmentFactory(MyApplication.context)
-            .instantiate(ClassLoader.getSystemClassLoader(), LiveMapFragment::class.java.name),
+        Tab.MAP to CurrentTripFragment(),
         Tab.HISTORY to MapViewFragment(),
         Tab.ORDERS to OrdersFragment.newInstance(),
         Tab.VISITS to VisitsListFragment.newInstance(),

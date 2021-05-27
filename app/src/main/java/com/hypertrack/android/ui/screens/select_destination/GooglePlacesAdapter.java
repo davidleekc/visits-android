@@ -1,4 +1,4 @@
-package com.hypertrack.android.ui.screens.add_place;
+package com.hypertrack.android.ui.screens.select_destination;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,10 +15,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class PlacesAdapter extends RecyclerView.Adapter<PlacesAdapter.MyViewHolder> {
+public class GooglePlacesAdapter extends RecyclerView.Adapter<GooglePlacesAdapter.MyViewHolder> {
 
 
-    private List<PlaceModel> dataset = new ArrayList<>();
+    private List<GooglePlaceModel> dataset = new ArrayList<>();
     private OnItemClickListener onItemClickListener;
 
     public void setOnItemClickListener(OnItemClickListener onItemClickListener) {
@@ -40,8 +40,8 @@ public class PlacesAdapter extends RecyclerView.Adapter<PlacesAdapter.MyViewHold
     }
 
     @Override
-    public PlacesAdapter.MyViewHolder onCreateViewHolder(ViewGroup parent,
-                                                         int viewType) {
+    public GooglePlacesAdapter.MyViewHolder onCreateViewHolder(ViewGroup parent,
+                                                               int viewType) {
         // create a new view
         View v = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.adapter_place_item, parent, false);
@@ -53,7 +53,7 @@ public class PlacesAdapter extends RecyclerView.Adapter<PlacesAdapter.MyViewHold
     public void onBindViewHolder(MyViewHolder holder, final int position) {
         // - get element from your dataset at this position
         // - replace the contents of the view with that element
-        final PlaceModel item = dataset.get(position);
+        final GooglePlaceModel item = dataset.get(position);
 
 //        holder.icon.setImageResource(item.isRecent ? R.drawable.history : R.drawable.ic_place);
         holder.name.setText(item.primaryText);
@@ -63,7 +63,7 @@ public class PlacesAdapter extends RecyclerView.Adapter<PlacesAdapter.MyViewHold
             @Override
             public void onClick(View view) {
                 if (onItemClickListener != null) {
-                    onItemClickListener.onItemClick(PlacesAdapter.this, view, position);
+                    onItemClickListener.onItemClick(GooglePlacesAdapter.this, view, position);
                 }
             }
         });
@@ -75,11 +75,11 @@ public class PlacesAdapter extends RecyclerView.Adapter<PlacesAdapter.MyViewHold
         return dataset.size();
     }
 
-    public PlaceModel getItem(int position) {
+    public GooglePlaceModel getItem(int position) {
         return dataset.isEmpty() ? null : dataset.get(position);
     }
 
-    public void addAll(Collection<PlaceModel> items) {
+    public void addAll(Collection<GooglePlaceModel> items) {
         dataset.addAll(items);
     }
 

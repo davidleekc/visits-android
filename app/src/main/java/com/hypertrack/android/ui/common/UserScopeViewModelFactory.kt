@@ -16,6 +16,7 @@ import com.hypertrack.android.utils.CrashReportsProvider
 import com.hypertrack.android.utils.HyperTrackService
 import com.hypertrack.android.ui.screens.driver_id_input.DriverLoginViewModel
 import com.hypertrack.android.ui.screens.permission_request.PermissionRequestViewModel
+import com.hypertrack.android.ui.screens.select_destination.SelectDestinationViewModel
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
 import com.hypertrack.android.ui.screens.visits_management.tabs.orders.OrdersListViewModel
 import com.hypertrack.android.ui.screens.visits_management.tabs.places.PlacesViewModel
@@ -53,6 +54,11 @@ class UserScopeViewModelFactory(
                 integrationsRepository
             ) as T
             AddPlaceViewModel::class.java -> AddPlaceViewModel(
+                osUtilsProvider,
+                placesClient,
+                deviceLocationProvider
+            ) as T
+            SelectDestinationViewModel::class.java -> SelectDestinationViewModel(
                 osUtilsProvider,
                 placesClient,
                 deviceLocationProvider
