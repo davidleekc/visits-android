@@ -217,6 +217,7 @@ object Injector {
             )
 
             val tripsInteractor = TripsInteractorImpl(
+                getTripsRepository(),
                 getVisitsApiClient(MyApplication.context),
                 getMyPreferences(MyApplication.context),
                 getAccountRepo(MyApplication.context),
@@ -276,6 +277,13 @@ object Injector {
 
     private val placesClient: PlacesClient by lazy {
         Places.createClient(MyApplication.context)
+    }
+
+    private fun getTripsRepository(): TripsRepository {
+        return TripsRepositoryImpl(
+            getVisitsApiClient(MyApplication.context),
+            getHyperTrackService(MyApplication.context)
+        )
     }
 
     private fun getFileRepository(): FileRepository {

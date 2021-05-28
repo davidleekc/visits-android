@@ -37,7 +37,7 @@ open class SelectDestinationViewModel(
     val error = SingleLiveEvent<String>()
     val closeKeyboard = SingleLiveEvent<Boolean>()
 
-    val goBackEvent = SingleLiveEvent<String>()
+    val goBackEvent = SingleLiveEvent<DestinationData>()
 
     protected var currentPlace: Place? = null
 
@@ -143,7 +143,13 @@ open class SelectDestinationViewModel(
     }
 
     fun onConfirmClicked(address: String) {
-        proceed(map.value!!.cameraPosition.target, address)
+        proceed(
+            DestinationData(
+                map.value!!.cameraPosition.target,
+                address = address,
+                name = currentPlace?.name
+            )
+        )
     }
 
     fun onPlaceItemClick(item: GooglePlaceModel) {
@@ -174,8 +180,8 @@ open class SelectDestinationViewModel(
             }
     }
 
-    protected open fun proceed(latLng: LatLng, address: String?) {
-        goBackEvent.postValue(address.toString())
+    protected open fun proceed(destinationData: DestinationData) {
+        goBackEvent.postValue(destinationData)
     }
 
     protected open fun onCameraMoved(map: GoogleMap) {}

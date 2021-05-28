@@ -1,19 +1,22 @@
 package com.hypertrack.android.interactors
 
+import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
+import com.google.android.gms.maps.model.LatLng
 import com.hypertrack.android.api.*
 import com.hypertrack.android.models.*
 import com.hypertrack.android.models.local.LocalOrder
 import com.hypertrack.android.models.local.LocalTrip
 import com.hypertrack.android.models.local.OrderStatus
 import com.hypertrack.android.models.local.TripStatus
-import com.hypertrack.android.repository.AccountRepository
-import com.hypertrack.android.repository.TripsStorage
+import com.hypertrack.android.repository.*
 import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.common.toHotTransformation
 import com.hypertrack.android.ui.common.toMap
+import com.hypertrack.android.ui.screens.visits_management.tabs.livemap.SearchPlacePresenter
 import com.hypertrack.android.utils.HyperTrackService
 import com.hypertrack.android.utils.ImageDecoder
 import com.hypertrack.android.utils.OsUtilsProvider
@@ -39,9 +42,11 @@ interface TripsInteractor {
     suspend fun setOrderPickedUp(orderId: String)
     suspend fun addPhotoToOrder(orderId: String, path: String)
     fun retryPhotoUpload(orderId: String, photoId: String)
+    suspend fun createTrip(latLng: LatLng): TripCreationResult
 }
 
 class TripsInteractorImpl(
+    private val tripsRepository: TripsRepository,
     private val apiClient: ApiClient,
     private val tripsStorage: TripsStorage,
     private val accountRepository: AccountRepository,
@@ -212,6 +217,10 @@ class TripsInteractorImpl(
 
     override fun retryPhotoUpload(orderId: String, photoId: String) {
         photoUploadInteractor.retry(photoId)
+    }
+
+    override suspend fun createTrip(latLng: LatLng): TripCreationResult {
+        return tripsRepository.createTrip(latLng)
     }
 
     private suspend fun setOrderCompletionStatus(
@@ -459,6 +468,7 @@ class TripsInteractorImpl(
     }
 
 }
+
 
 interface LocalOrderFactory {
     suspend fun create(order: Order, localOrder: LocalOrder?): LocalOrder
