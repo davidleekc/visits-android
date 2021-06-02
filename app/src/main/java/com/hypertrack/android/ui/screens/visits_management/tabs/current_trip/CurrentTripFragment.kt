@@ -9,6 +9,7 @@ import com.hypertrack.android.models.local.LocalTrip
 import com.hypertrack.android.ui.base.ProgressDialogFragment
 import com.hypertrack.android.ui.common.*
 import com.hypertrack.android.ui.screens.select_destination.DestinationData
+import com.hypertrack.android.ui.screens.visits_management.tabs.orders.OrdersAdapter
 import com.hypertrack.android.utils.Injector
 import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.android.utils.stringFromResource
@@ -26,6 +27,11 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
     }
     private val timeDistanceFormatter = Injector.getTimeDistanceFormatter()
 
+    private val ordersAdapter = OrdersAdapter(
+        timeDistanceFormatter,
+        showStatus = false
+    )
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -41,23 +47,7 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
         bottom_holder.show()
         val bottomHolder = bottom_holder
         recycler_view.setLinearLayoutManager(requireContext())
-        recycler_view.adapter = KeyValueAdapter().apply {
-            updateItems(
-                listOf(
-                    KeyValueItem("a", "b"),
-                    KeyValueItem("a", "b"),
-                    KeyValueItem("a", "b"),
-//                    KeyValueItem("a", "b"),
-//                    KeyValueItem("a", "b"),
-//                    KeyValueItem("a", "b"),
-//                    KeyValueItem("a", "b"),
-//                    KeyValueItem("a", "b"),
-//                    KeyValueItem("a", "b"),
-//                    KeyValueItem("a", "b"),
-//                    KeyValueItem("a", "b"),
-                )
-            )
-        }
+        recycler_view.adapter = ordersAdapter
 
         bottomHolder.setOnClickListener {
             if (bottomHolderSheetBehavior.state != BottomSheetBehavior.STATE_EXPANDED) {
@@ -107,6 +97,16 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
             }
         }
 
+        trip.ongoingOrgers.let { orders ->
+            trips_count.setGoneState(orders.isEmpty())
+            recycler_view.setGoneState(orders.isEmpty())
+            if (orders.size > 0) {
+                val text = getString(R.string.you_have_ongoing_orders)
+                val plural = resources.getQuantityString(R.plurals.order, orders.size)
+                trips_count!!.text = String.format(text, orders.size, plural)
+            }
+            ordersAdapter.updateItems(orders)
+        }
     }
 
     companion object {
