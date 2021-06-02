@@ -38,7 +38,6 @@ interface TripsInteractor {
     suspend fun completeOrder(orderId: String): OrderCompletionResponse
     fun getOrder(orderId: String): LocalOrder?
     suspend fun updateOrderNote(orderId: String, orderNote: String)
-    suspend fun persistOrderNote(orderId: String, orderNote: String?)
     suspend fun setOrderPickedUp(orderId: String)
     suspend fun addPhotoToOrder(orderId: String, path: String)
     fun retryPhotoUpload(orderId: String, photoId: String)
@@ -48,41 +47,18 @@ interface TripsInteractor {
 class TripsInteractorImpl(
     private val tripsRepository: TripsRepository,
     private val apiClient: ApiClient,
-    private val tripsStorage: TripsStorage,
-    private val accountRepository: AccountRepository,
-    private val moshi: Moshi,
     private val hyperTrackService: HyperTrackService,
-    private val coroutineScope: CoroutineScope,
     private val photoUploadInteractor: PhotoUploadQueueInteractor,
     private val imageDecoder: ImageDecoder,
     private val osUtilsProvider: OsUtilsProvider,
     private val ioDispatcher: CoroutineDispatcher
 ) : TripsInteractor {
 
-    private val orderFactory = OrderFactory()
-    private val legacyOrderFactory = LegacyOrderFactory()
-
-    private var tripsInitialized = false
-    private val trips = MutableLiveData<List<LocalTrip>>()
-
-    init {
-        trips.observeForever {
-            if (tripsInitialized) {
-                coroutineScope.launch {
-                    tripsStorage.saveTrips(it)
-                }
-            }
-            tripsInitialized = true
-        }
-        coroutineScope.launch {
-            trips.postValue(tripsStorage.getTrips())
-        }
-    }
-
-    override val completedTrips = Transformations.map(trips) {
+    override val completedTrips = Transformations.map(tripsRepository.trips) {
         it.filter { it.status != TripStatus.ACTIVE }
     }
-    override val currentTrip = Transformations.map(trips) {
+
+    override val currentTrip = Transformations.map(tripsRepository.trips) {
         getCurrentTrip(it)
     }.toHotTransformation().liveData
 
@@ -93,7 +69,7 @@ class TripsInteractorImpl(
     )
 
     override fun getOrderLiveData(orderId: String): LiveData<LocalOrder> {
-        return Transformations.switchMap(trips) {
+        return Transformations.switchMap(tripsRepository.trips) {
             MutableLiveData<LocalOrder>().apply {
                 getOrder(orderId).let { if (it != null) postValue(it) }
             }
@@ -101,59 +77,12 @@ class TripsInteractorImpl(
     }
 
     override suspend fun refreshTrips() {
-        try {
-            val remoteTrips = apiClient.getTrips()
-
-            val legacyTrip = remoteTrips.firstOrNull {
-                it.orders.isNullOrEmpty() && it.status == TripStatus.ACTIVE.value
-            }
-            if (legacyTrip != null) {
-                //legacy mode for v1 trips
-                //destination = order, order.id = trip.id
-                //todo handle case if not loaded from database yet
-                val oldLocalOrders = trips.value!!.firstOrNull { it.id == legacyTrip._id }
-                    ?.orders ?: listOf()
-                val localTrip =
-                    localTripFromRemote(
-                        legacyTrip,
-                        localOrdersFromRemote(
-                            listOf(createLegacyRemoteOrder(legacyTrip)),
-                            oldLocalOrders,
-                            legacyOrderFactory
-                        )
-                    )
-                trips.postValue(listOf(localTrip))
-            } else {
-                val localTrips = tripsStorage.getTrips().toMap { it.id }
-                val newTrips = remoteTrips.map { remoteTrip ->
-                    if (remoteTrip.tripId in localTrips.keys) {
-                        val localTrip = localTrips.getValue(remoteTrip.tripId)
-                        val remoteOrders = (remoteTrip.orders ?: listOf())
-                        val localOrders = localTrip.orders
-
-                        val orders = localOrdersFromRemote(remoteOrders, localOrders, orderFactory)
-
-                        return@map localTripFromRemote(remoteTrip, orders)
-                    } else {
-                        localTripFromRemote(
-                            remoteTrip,
-                            localOrdersFromRemote(
-                                remoteTrip.orders ?: listOf(),
-                                listOf(),
-                                orderFactory
-                            )
-                        )
-                    }
-                }
-                trips.postValue(newTrips)
-            }
-        } catch (e: Exception) {
-            errorFlow.emit(Consumable((e)))
-        }
+        tripsRepository.refreshTrips()
     }
 
     override fun getOrder(orderId: String): LocalOrder? {
-        return trips.value?.map { it.orders }?.flatten()?.firstOrNull() { it.id == orderId }
+        return tripsRepository.trips.value?.map { it.orders }?.flatten()
+            ?.firstOrNull() { it.id == orderId }
     }
 
     override suspend fun completeOrder(orderId: String): OrderCompletionResponse {
@@ -166,29 +95,20 @@ class TripsInteractorImpl(
 
     override suspend fun updateOrderNote(orderId: String, orderNote: String) {
         try {
-            persistOrderNote(orderId, orderNote)
-            val order = getOrder(orderId)!!
-            order.note = orderNote
+            tripsRepository.updateLocalOrder(orderId) {
+                it.note = orderNote
+            }
         } catch (e: Exception) {
             errorFlow.emit(Consumable(e))
-        }
-    }
-
-    //todo workaround, move to order model
-    private fun getOrderTripId(order: LocalOrder): String {
-        return trips.value!!.first { it.orders.any { it.id == order.id } }.id
-    }
-
-    override suspend fun persistOrderNote(orderId: String, orderNote: String?) {
-        updateOrder(orderId) {
-            it.note = orderNote
         }
     }
 
     override suspend fun setOrderPickedUp(orderId: String) {
         //used only for legacy orders, so orderId is tripId
         hyperTrackService.sendPickedUp(orderId, "trip_id")
-        updateOrderPickedUpState(orderId, true)
+        tripsRepository.updateLocalOrder(orderId) {
+            it.isPickedUp = true
+        }
     }
 
     override suspend fun addPhotoToOrder(orderId: String, path: String) {
@@ -204,7 +124,7 @@ class TripsInteractorImpl(
                     base64thumbnail = osUtilsProvider.bitmapToBase64(bitmap),
                     state = PhotoUploadingState.NOT_UPLOADED
                 )
-                updateOrder(orderId) {
+                tripsRepository.updateLocalOrder(orderId) {
 //                it.photos.add(photo.photoId)
                     it.photos.add(photo)
                 }
@@ -233,15 +153,15 @@ class TripsInteractorImpl(
                     if (order.legacy) {
                         //legacy v1 trip, destination is order, order.id is trip.id
                         hyperTrackService.sendCompletionEvent(order, canceled)
-                        //todo completion is disabled regarding to Indiabulls use-case
-                        updateCurrentTripOrderStatus(
-                            orderId, if (!canceled) {
+                        tripsRepository.updateLocalOrder(orderId) {
+                            it.status = if (!canceled) {
                                 OrderStatus.COMPLETED
                             } else {
                                 OrderStatus.CANCELED
                             }
-                        )
+                        }
                         return OrderCompletionSuccess
+                        //todo completion is disabled regarding to Indiabulls use-case
 //                        val res = apiClient.completeTrip(order.id)
 //                        when (res) {
 //                            TripCompletionSuccess -> {
@@ -277,13 +197,13 @@ class TripsInteractorImpl(
                             apiClient.cancelOrder(orderId = orderId, tripId = trip.id)
                         }
                         if (res is OrderCompletionSuccess) {
-                            updateCurrentTripOrderStatus(
-                                orderId, if (!canceled) {
+                            tripsRepository.updateLocalOrder(orderId) {
+                                it.status = if (!canceled) {
                                     OrderStatus.COMPLETED
                                 } else {
                                     OrderStatus.CANCELED
                                 }
-                            )
+                            }
                         }
                         return res
                     }
@@ -294,182 +214,12 @@ class TripsInteractorImpl(
         }
     }
 
-    private suspend fun updateOrder(orderId: String, updateFun: (LocalOrder) -> Unit) {
-        trips.postValue(trips.value!!.map { localTrip ->
-            localTrip.apply {
-                orders = orders.map {
-                    if (it.id == orderId) {
-                        updateFun.invoke(it)
-                        it
-                    } else {
-                        it
-                    }
-                }.toMutableList()
-            }
-        })
-    }
-
-    private fun updateOrder(orderId: String, order: LocalOrder) {
-        trips.postValue(trips.value!!.map { localTrip ->
-            localTrip.apply {
-                orders = orders.map {
-                    if (it.id == orderId) {
-                        order
-                    } else {
-                        it
-                    }
-                }.toMutableList()
-            }
-        })
-    }
-
-    private fun updateOrderPickedUpState(orderId: String, pickedUp: Boolean) {
-        trips.postValue(trips.value!!.map {
-            it.apply {
-                orders = orders.map {
-                    if (it.id == orderId) {
-                        it.apply {
-                            isPickedUp = pickedUp
-                        }
-                    } else {
-                        it
-                    }
-                }.toMutableList()
-            }
-        })
-    }
-
     private fun getCurrentTrip(trips: List<LocalTrip>): LocalTrip? {
         return trips.firstOrNull {
             it.status == TripStatus.ACTIVE
         }
     }
 
-    private suspend fun localOrdersFromRemote(
-        remoteOrders: List<Order>,
-        localOrders: List<LocalOrder>,
-        orderFactory: LocalOrderFactory
-    ): List<LocalOrder> {
-        val localOrdersMap = localOrders.toMap { it.id }
-        return remoteOrders.map {
-            val localOrder = localOrdersMap.get(it.id)
-            val res = orderFactory.create(it, localOrder)
-            res
-        }
-    }
-
-    private fun updateTrip(newTrip: LocalTrip) {
-        trips.postValue(trips.value!!.map { localTrip ->
-            if (localTrip.id == newTrip.id) {
-                newTrip
-            } else {
-                localTrip
-            }
-        })
-    }
-
-    private fun updateCurrentTripOrderStatus(orderId: String, status: OrderStatus) {
-        currentTrip.value?.let { localTrip ->
-            localTrip.orders = localTrip.orders.map {
-                if (it.id == orderId) {
-                    it.copy(status = status)
-                } else {
-                    it
-                }
-            }.toMutableList()
-            updateTrip(localTrip)
-        }
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    private fun localTripFromRemote(remoteTrip: Trip, orders: List<LocalOrder>): LocalTrip {
-        return LocalTrip(
-            remoteTrip.tripId,
-            TripStatus.fromString(remoteTrip.status),
-            ((remoteTrip.metadata ?: mapOf<String, String>())
-                .filter { it.value is String } as Map<String, String>)
-                .toMutableMap()
-                .apply {
-                    if (orders.any { it.legacy } && BuildConfig.DEBUG) {
-                        put("legacy (debug)", "true")
-                    }
-                },
-            orders.toMutableList()
-        )
-    }
-
-    private fun createLegacyRemoteOrder(trip: Trip): Order {
-        return Order(
-            id = trip._id,
-            destination = trip.destination!!,
-            _status = OrderStatus.ONGOING.value,
-            scheduledAt = null,
-            estimate = null,
-            _metadata = mapOf(),
-        )
-    }
-
-    inner class OrderFactory : LocalOrderFactory {
-        @Suppress("RedundantIf")
-        override suspend fun create(order: Order, localOrder: LocalOrder?): LocalOrder {
-            val remoteMetadata = Metadata.deserialize(order.metadata)
-            val localPhotosMap = localOrder?.photos?.toMap { it.photoId } ?: mapOf()
-            val resPhotos = mutableSetOf<PhotoForUpload>().apply {
-                addAll(localOrder?.photos ?: listOf())
-                (remoteMetadata.visitsAppMetadata.photos ?: listOf()).forEach {
-                    if (!localPhotosMap.containsKey(it)) {
-                        val loadedImage = apiClient.getImageBase64(it)
-
-                        //todo cache
-                        PhotoForUpload(
-                            it,
-                            null,
-                            loadedImage,
-                            state = PhotoUploadingState.UPLOADED
-                        )
-                    }
-                }
-            }
-
-            return LocalOrder(
-                order,
-                isPickedUp = localOrder?.isPickedUp ?: if (accountRepository.isPickUpAllowed) {
-                    false
-                } else {
-                    true //if pick up not allowed, order created as already picked up
-                },
-                note = localOrder?.note,
-                photos = resPhotos,
-                metadata = remoteMetadata
-            )
-        }
-    }
-
-    inner class LegacyOrderFactory : LocalOrderFactory {
-        @Suppress("RedundantIf")
-        override suspend fun create(order: Order, localOrder: LocalOrder?): LocalOrder {
-            val res = LocalOrder(
-                order,
-                isPickedUp = localOrder?.isPickedUp ?: if (accountRepository.isPickUpAllowed) {
-                    false
-                } else {
-                    true //if pick up not allowed, order created as already picked up
-                },
-                note = localOrder?.note,
-                legacy = true,
-                photos = localOrder?.photos ?: mutableSetOf(),
-                metadata = Metadata.deserialize(order.metadata),
-                status = if (localOrder?.status == OrderStatus.COMPLETED) {
-                    OrderStatus.COMPLETED
-                } else null
-            )
-            return res
-        }
-    }
-
 }
 
 
-interface LocalOrderFactory {
-    suspend fun create(order: Order, localOrder: LocalOrder?): LocalOrder
-}

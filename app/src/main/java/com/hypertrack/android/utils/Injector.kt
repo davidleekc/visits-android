@@ -219,11 +219,7 @@ object Injector {
             val tripsInteractor = TripsInteractorImpl(
                 getTripsRepository(),
                 getVisitsApiClient(MyApplication.context),
-                getMyPreferences(MyApplication.context),
-                getAccountRepo(MyApplication.context),
-                getMoshi(),
                 getHyperTrackService(MyApplication.context),
-                GlobalScope,
                 photoUploadQueueInteractor,
                 getImageDecoder(),
                 getOsUtilsProvider(MyApplication.context),
@@ -282,7 +278,10 @@ object Injector {
     private fun getTripsRepository(): TripsRepository {
         return TripsRepositoryImpl(
             getVisitsApiClient(MyApplication.context),
-            getHyperTrackService(MyApplication.context)
+            getMyPreferences(MyApplication.context),
+            getHyperTrackService(MyApplication.context),
+            GlobalScope,
+            getAccountRepo(MyApplication.context).isPickUpAllowed
         )
     }
 

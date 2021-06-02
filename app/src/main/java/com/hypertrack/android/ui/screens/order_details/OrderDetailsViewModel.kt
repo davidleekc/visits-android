@@ -158,7 +158,7 @@ class OrderDetailsViewModel(
 
     fun onExit(orderNote: String) {
         globalScope.launch {
-            tripsInteractor.persistOrderNote(orderId, orderNote)
+            tripsInteractor.updateOrderNote(orderId, orderNote)
         }
     }
 
@@ -190,7 +190,7 @@ class OrderDetailsViewModel(
 
     fun onAddPhotoClicked(activity: Activity, note: String) {
         globalScope.launch {
-            tripsInteractor.persistOrderNote(orderId, note)
+            tripsInteractor.updateOrderNote(orderId, note)
         }
         try {
             val file = osUtilsProvider.createImageFile()

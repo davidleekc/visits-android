@@ -19,10 +19,11 @@ import java.util.*
 data class LocalOrder(
     val id: String,
     val destination: TripDestination,
-    val status: OrderStatus,
     val scheduledAt: String?,
     val estimate: Estimate?,
     val _metadata: Metadata?,
+
+    var status: OrderStatus,
     //local
     //todo remove
     var isPickedUp: Boolean = true,
