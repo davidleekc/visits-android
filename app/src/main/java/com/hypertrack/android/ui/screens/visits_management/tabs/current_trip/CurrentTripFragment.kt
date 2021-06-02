@@ -9,9 +9,13 @@ import com.hypertrack.android.models.local.LocalTrip
 import com.hypertrack.android.ui.base.ProgressDialogFragment
 import com.hypertrack.android.ui.common.*
 import com.hypertrack.android.ui.screens.select_destination.DestinationData
+import com.hypertrack.android.utils.Injector
 import com.hypertrack.android.utils.MyApplication
+import com.hypertrack.android.utils.stringFromResource
 import com.hypertrack.logistics.android.github.R
 import kotlinx.android.synthetic.main.fragment_current_trip.*
+import kotlinx.android.synthetic.main.inflate_current_trip.*
+import java.time.format.DateTimeFormatter
 
 class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_trip) {
 
@@ -20,6 +24,7 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
     private val vm: CurrentTripViewModel by viewModels {
         MyApplication.injector.provideUserScopeViewModelFactory()
     }
+    private val timeDistanceFormatter = Injector.getTimeDistanceFormatter()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -42,14 +47,14 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
                     KeyValueItem("a", "b"),
                     KeyValueItem("a", "b"),
                     KeyValueItem("a", "b"),
-                    KeyValueItem("a", "b"),
-                    KeyValueItem("a", "b"),
-                    KeyValueItem("a", "b"),
-                    KeyValueItem("a", "b"),
-                    KeyValueItem("a", "b"),
-                    KeyValueItem("a", "b"),
-                    KeyValueItem("a", "b"),
-                    KeyValueItem("a", "b"),
+//                    KeyValueItem("a", "b"),
+//                    KeyValueItem("a", "b"),
+//                    KeyValueItem("a", "b"),
+//                    KeyValueItem("a", "b"),
+//                    KeyValueItem("a", "b"),
+//                    KeyValueItem("a", "b"),
+//                    KeyValueItem("a", "b"),
+//                    KeyValueItem("a", "b"),
                 )
             )
         }
@@ -85,6 +90,22 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
     }
 
     private fun displayTrip(trip: LocalTrip) {
+        trip.nextOrder.let { order ->
+            order.shortAddress.toView(destination_address)
+            (order.eta?.let {
+                timeDistanceFormatter.formatTime(it.format(DateTimeFormatter.ISO_INSTANT))
+            } ?: R.string.orders_list_eta_unavailable.stringFromResource()).toView(
+                destination_arrival
+            )
+            order.awaySeconds.let { seconds ->
+                listOf(destination_away, destination_away_title).forEach {
+                    it.setGoneState(seconds == null)
+                }
+                seconds?.let {
+                    DateTimeUtils.secondsToLocalizedString(seconds.toInt()).toView(destination_away)
+                }
+            }
+        }
 
     }
 

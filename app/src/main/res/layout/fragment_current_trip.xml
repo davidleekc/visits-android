@@ -23,6 +23,7 @@
         android:gravity="center"
         android:textColor="@color/colorWhite"
         android:textSize="12sp"
+        android:visibility="gone"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -101,7 +102,7 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <LinearLayout
+        <FrameLayout
             android:id="@+id/bottom_holder"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -113,177 +114,12 @@
             app:behavior_peekHeight="140dp"
             app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
-            <FrameLayout
+            <include
+                layout="@layout/inflate_current_trip"
                 android:layout_width="match_parent"
-                android:layout_height="140dp">
+                android:layout_height="wrap_content" />
 
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:id="@+id/trip_summary_info"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:padding="@dimen/content_padding"
-                    android:visibility="gone">
 
-                    <TextView
-                        android:id="@+id/stats"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="32dp"
-                        android:textSize="16sp"
-                        android:textStyle="bold"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                    <TextView
-                        android:id="@+id/destination"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:drawableStart="@drawable/arrival_sd_c"
-                        android:drawablePadding="8dp"
-                        android:gravity="center_vertical"
-                        app:layout_constraintTop_toBottomOf="@id/stats" />
-
-                </androidx.constraintlayout.widget.ConstraintLayout>
-
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:id="@+id/trip_info"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:padding="@dimen/content_padding">
-
-                    <TextView
-                        android:id="@+id/trip_to"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/trip_to"
-                        android:textStyle="bold"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                    <ImageView
-                        android:id="@+id/destination_icon"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:layout_marginTop="4dp"
-                        android:drawableStart="@drawable/destination"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/trip_to" />
-
-                    <TextView
-                        android:id="@+id/destination_address"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="4dp"
-                        android:ellipsize="end"
-                        android:lines="1"
-                        android:textSize="18sp"
-                        android:textStyle="bold"
-                        app:layout_constraintBottom_toBottomOf="@id/destination_icon"
-                        app:layout_constraintLeft_toRightOf="@id/destination_icon"
-                        app:layout_constraintRight_toLeftOf="@id/endTripButton"
-                        app:layout_constraintTop_toTopOf="@id/destination_icon" />
-
-                    <TextView
-                        android:id="@+id/destination_arrival"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:drawableStart="@drawable/eta"
-                        android:drawablePadding="4dp"
-                        android:textSize="18sp"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/destination_address" />
-
-                    <TextView
-                        android:id="@+id/destination_arrival_title"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="28dp"
-                        android:text="@string/arrival"
-                        android:textColor="@color/textColorSecondary"
-                        android:textSize="12sp"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/destination_arrival" />
-
-                    <TextView
-                        android:id="@+id/destination_away"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="122dp"
-                        android:layout_marginTop="8dp"
-                        android:textSize="18sp"
-                        app:layout_constraintLeft_toLeftOf="@id/destination_address"
-                        app:layout_constraintTop_toBottomOf="@id/destination_address" />
-
-                    <TextView
-                        android:id="@+id/destination_away_title"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/away"
-                        android:textColor="@color/textColorSecondary"
-                        android:textSize="12sp"
-                        app:layout_constraintLeft_toLeftOf="@id/destination_away"
-                        app:layout_constraintTop_toBottomOf="@id/destination_away" />
-
-                    <Button
-                        android:id="@+id/endTripButton"
-                        style="@style/EndTripButtonStyleLive"
-                        android:layout_width="96dp"
-                        android:layout_height="40dp"
-                        android:background="@drawable/button_end"
-                        android:text="@string/end_trip"
-                        android:textSize="16sp"
-                        android:textStyle="bold"
-                        app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                    <Button
-                        android:id="@+id/shareButton"
-                        style="@style/ShareTripButtonStyleLive"
-                        android:layout_width="96dp"
-                        android:layout_height="40dp"
-                        android:layout_marginTop="8dp"
-                        android:background="@drawable/bg_info_bottom"
-                        android:text="@string/share_trip"
-                        android:textColor="#0a84ff"
-                        android:textStyle="bold"
-                        app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/endTripButton" />
-
-                </androidx.constraintlayout.widget.ConstraintLayout>
-
-                <View
-                    android:layout_width="36dp"
-                    android:layout_height="5dp"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_marginTop="4dp"
-                    android:background="@drawable/divider_mid" />
-
-                <TextView
-                    android:id="@+id/trips_count"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="bottom"
-                    android:layout_margin="8dp"
-                    android:textColor="@color/textColorSecondary"
-                    android:textSize="12sp"
-                    tools:text="@string/you_have_ongoing_orders" />
-
-                <View
-                    android:id="@+id/bottom_holder_cover"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@color/cover"
-                    android:clickable="true"
-                    android:visibility="gone" />
-
-            </FrameLayout>
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recycler_view"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1" />
-
-        </LinearLayout>
+        </FrameLayout>
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

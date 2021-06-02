@@ -2,6 +2,7 @@ package com.hypertrack.android.ui.common
 
 import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.logistics.android.github.R
+import java.lang.Math.abs
 import java.time.ZonedDateTime
 import java.time.chrono.Chronology
 import java.time.format.DateTimeFormatter
@@ -10,13 +11,15 @@ import java.time.format.FormatStyle
 import java.util.*
 
 object DateTimeUtils {
-    fun secondsToLocalizedString(totalSeconds: Int): String {
-        val hours = totalSeconds / 3600
-        val minutes = (totalSeconds % 3600) / 60
-        if (hours > 0) {
-            return MyApplication.context.getString(R.string.duration, hours, minutes)
-        } else {
-            return MyApplication.context.getString(R.string.duration_minutes, minutes)
+    fun secondsToLocalizedString(_totalSeconds: Int): String {
+        abs(_totalSeconds).let { totalSeconds ->
+            val hours = totalSeconds / 3600
+            val minutes = (totalSeconds % 3600) / 60
+            if (hours > 0) {
+                return MyApplication.context.getString(R.string.duration, hours, minutes)
+            } else {
+                return MyApplication.context.getString(R.string.duration_minutes, minutes)
+            }
         }
     }
 }

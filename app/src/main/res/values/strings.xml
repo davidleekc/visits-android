@@ -112,6 +112,8 @@
     </string>
     <string name="permission_rationale_3">We also need to access accelerometer to detect when you drive or walk</string>
 
+    <string name="current_trip">Current trip</string>
+
     <string name="timeline_summary">Tracking summary: %s</string>
     <string name="timeline_inactive_reason_location_permissions_denied">Location permissions denied</string>
     <string name="timeline_inactive_reason_location_services_disabled">Location services disabled</string>
@@ -125,6 +127,8 @@
     <string name="orders_list">Orders</string>
     <string name="orders_list_current_trip">Current trip</string>
     <string name="orders_list_no_trip">You don\'t have orders</string>
+    <string name="orders_list_eta">Estimated arrival time: %s</string>
+    <string name="orders_list_eta_unavailable">Estimated arrival time unavailable</string>
 
     <string name="order_complete">Complete</string>
     <string name="order_cancel">Cancel</string>

@@ -13,6 +13,8 @@ class LocalTrip(
     var orders: MutableList<LocalOrder>,
 ) {
 
+    val nextOrder: LocalOrder = orders.first()
+
     fun getOrder(orderId: String): LocalOrder? {
         return orders.firstOrNull { it.id == orderId }
     }
