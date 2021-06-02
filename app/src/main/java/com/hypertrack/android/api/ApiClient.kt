@@ -203,6 +203,20 @@ class ApiClient(
         }
     }
 
+    suspend fun createTripV1(tripParams: TripParams): Trip {
+        try {
+            val res = api.createTrip(tripParams)
+            if (res.isSuccessful) {
+                val trip = res.body()!!
+                return trip
+            } else {
+                throw HttpException(res)
+            }
+        } catch (e: Throwable) {
+            throw e
+        }
+    }
+
     override suspend fun completeTrip(tripId: String): TripCompletionResult {
         return try {
             with(api.completeTrip(tripId)) {

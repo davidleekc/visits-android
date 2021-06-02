@@ -78,19 +78,18 @@ class TripsRepositoryImpl(
     }
 
     override suspend fun createTrip(latLng: LatLng): TripCreationResult {
-        return when (val result = apiClient.createTrip(
-            TripParams(
-                hyperTrackService.deviceId,
-                latitude = latLng.latitude,
-                longitude = latLng.longitude,
+        try {
+            val trip = apiClient.createTripV1(
+                TripParams(
+                    hyperTrackService.deviceId,
+                    latitude = latLng.latitude,
+                    longitude = latLng.longitude,
+                )
             )
-        )) {
-            is ShareableTripSuccess -> {
-                TripCreationSuccess()
-            }
-            is CreateTripError -> {
-                TripCreationError(((result.error ?: UnknownError()) as Exception))
-            }
+            onTripCreated(trip)
+            return TripCreationSuccess()
+        } catch (e: Exception) {
+            return TripCreationError(e)
         }
     }
 
@@ -109,6 +108,12 @@ class TripsRepositoryImpl(
         })
     }
 
+    private fun onTripCreated(trip: Trip) {
+        trips.postValue(
+            (trips.value ?: listOf()).toMutableList()
+                .apply { add(localTripFromRemote(trip, listOf())) })
+    }
+
     private suspend fun mapTripsFromRemote(remoteTrips: List<Trip>): List<LocalTrip> {
         val legacyTrip = remoteTrips.firstOrNull {
             it.orders.isNullOrEmpty() && it.status == TripStatus.ACTIVE.value
@@ -117,17 +122,7 @@ class TripsRepositoryImpl(
             //legacy mode for v1 trips
             //destination = order, order.id = trip.id
             //todo handle case if not loaded from database yet
-            val oldLocalOrders = trips.value!!.firstOrNull { it.id == legacyTrip._id }
-                ?.orders ?: listOf()
-            val localTrip =
-                localTripFromRemote(
-                    legacyTrip,
-                    localOrdersFromRemote(
-                        listOf(createLegacyRemoteOrder(legacyTrip)),
-                        oldLocalOrders,
-                        legacyOrderFactory
-                    )
-                )
+            val localTrip = localTripFromLegacyRemoteTrip(legacyTrip)
             return listOf(localTrip)
         } else {
             val localTrips = tripsStorage.getTrips().toMap { it.id }
@@ -153,6 +148,19 @@ class TripsRepositoryImpl(
             }
             return newTrips
         }
+    }
+
+    private suspend fun localTripFromLegacyRemoteTrip(legacyTrip: Trip): LocalTrip {
+        val oldLocalOrders = trips.value!!.firstOrNull { it.id == legacyTrip._id }
+            ?.orders ?: listOf()
+        return localTripFromRemote(
+            legacyTrip,
+            localOrdersFromRemote(
+                listOf(createLegacyRemoteOrder(legacyTrip)),
+                oldLocalOrders,
+                legacyOrderFactory
+            )
+        )
     }
 
     @Suppress("UNCHECKED_CAST")
