@@ -176,7 +176,8 @@ class TripsRepositoryImpl(
                         put("legacy (debug)", "true")
                     }
                 },
-            orders.toMutableList()
+            orders.toMutableList(),
+            remoteTrip.views
         )
     }
 

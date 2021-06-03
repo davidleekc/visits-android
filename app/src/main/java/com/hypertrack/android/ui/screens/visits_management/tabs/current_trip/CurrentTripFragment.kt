@@ -77,6 +77,10 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
         whereAreYouGoing.setOnClickListener {
             vm.onWhereAreYouGoingClick()
         }
+
+        shareButton.setOnClickListener {
+            vm.onShareTripClick()
+        }
     }
 
     private fun displayTrip(trip: LocalTrip) {

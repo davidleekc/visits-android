@@ -1,5 +1,6 @@
 package com.hypertrack.android.utils
 
+import android.app.PendingIntent
 import android.content.ClipData
 import android.content.ClipDescription.MIMETYPE_TEXT_PLAIN
 import android.content.ClipboardManager
@@ -25,6 +26,7 @@ import com.hypertrack.android.models.Address
 import com.hypertrack.android.toBase64
 import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.logistics.android.github.BuildConfig
+import com.hypertrack.android.ui.screens.visits_management.tabs.livemap.TrackingPresenter
 import com.hypertrack.logistics.android.github.R
 import java.io.File
 import java.io.IOException
@@ -204,6 +206,21 @@ class OsUtilsProvider(private val context: Context, private val crashReportsProv
                 e.format()
             }
         }
+    }
+
+    fun shareText(text: String, title: String? = null) {
+        val sharingTitle: String = context.getString(R.string.share_trip_via)
+        val sendIntent = Intent()
+        sendIntent.action = Intent.ACTION_SEND
+        sendIntent.putExtra(Intent.EXTRA_TEXT, text)
+        sendIntent.type = "text/plain"
+        val intent = Intent(TrackingPresenter.SHARE_BROADCAST_ACTION)
+        intent.setPackage(context.packageName)
+        val pendingIntent =
+            PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+        val chooser = Intent.createChooser(sendIntent, sharingTitle, pendingIntent.intentSender)
+        chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(chooser)
     }
 
     companion object {

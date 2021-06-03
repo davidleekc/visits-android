@@ -12,6 +12,7 @@ import com.hypertrack.android.ui.base.toConsumable
 import com.hypertrack.android.ui.screens.select_destination.DestinationData
 import com.hypertrack.android.ui.screens.visits_management.VisitsManagementFragmentDirections
 import com.hypertrack.android.utils.OsUtilsProvider
+import com.hypertrack.logistics.android.github.R
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
@@ -56,6 +57,15 @@ class CurrentTripViewModel(
                 }
             }
             loadingStateBase.postValue(false)
+        }
+    }
+
+    fun onShareTripClick() {
+        trip.value!!.views?.shareUrl?.let {
+            osUtilsProvider.shareText(
+                text = it,
+                title = osUtilsProvider.getString(R.string.share_trip_via)
+            )
         }
     }
 

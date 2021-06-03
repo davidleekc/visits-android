@@ -41,7 +41,9 @@
             android:id="@+id/trip_info"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:padding="@dimen/content_padding">
+            android:paddingLeft="@dimen/content_padding"
+            android:paddingTop="@dimen/content_padding"
+            android:paddingBottom="@dimen/content_padding">
 
             <TextView
                 android:id="@+id/trip_to"
@@ -65,15 +67,15 @@
                 android:id="@+id/destination_address"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginRight="8dp"
-                android:layout_marginLeft="8dp"
+                android:layout_marginEnd="8dp"
                 android:ellipsize="end"
                 android:lines="1"
                 android:textSize="16dp"
                 android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="@id/destination_icon"
-                app:layout_constraintLeft_toRightOf="@id/destination_icon"
+                app:layout_constraintEnd_toStartOf="@+id/guideline"
                 app:layout_constraintRight_toLeftOf="@id/endTripButton"
+                app:layout_constraintStart_toEndOf="@+id/destination_icon"
                 app:layout_constraintTop_toTopOf="@id/destination_icon" />
 
             <TextView
@@ -118,6 +120,14 @@
                 app:layout_constraintLeft_toLeftOf="@id/destination_away"
                 app:layout_constraintTop_toBottomOf="@id/destination_away" />
 
+            <androidx.constraintlayout.widget.Guideline
+                android:id="@+id/guideline"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintGuide_end="112dp" />
+
             <Button
                 android:id="@+id/endTripButton"
                 style="@style/EndTripButtonStyleLive"
@@ -127,7 +137,9 @@
                 android:text="@string/end_trip"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                app:layout_constraintRight_toRightOf="parent"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="@+id/guideline"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <Button
@@ -136,11 +148,12 @@
                 android:layout_width="96dp"
                 android:layout_height="40dp"
                 android:layout_marginTop="8dp"
-                android:background="@drawable/bg_info_bottom"
+                android:background="@drawable/bg_info"
                 android:text="@string/share_trip"
                 android:textColor="#0a84ff"
                 android:textStyle="bold"
-                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="@+id/guideline"
                 app:layout_constraintTop_toBottomOf="@id/endTripButton" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
