@@ -1,14 +1,13 @@
 package com.hypertrack.android.ui.screens.visits_management.tabs.current_trip
 
 import androidx.lifecycle.MediatorLiveData
-import androidx.lifecycle.Transformations
 import androidx.lifecycle.viewModelScope
 import com.hypertrack.android.interactors.TripsInteractor
+import com.hypertrack.android.models.local.LocalOrder
 import com.hypertrack.android.repository.TripCreationError
 import com.hypertrack.android.repository.TripCreationSuccess
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.Consumable
-import com.hypertrack.android.ui.base.toConsumable
 import com.hypertrack.android.ui.screens.select_destination.DestinationData
 import com.hypertrack.android.ui.screens.visits_management.VisitsManagementFragmentDirections
 import com.hypertrack.android.utils.OsUtilsProvider
@@ -67,6 +66,14 @@ class CurrentTripViewModel(
                 title = osUtilsProvider.getString(R.string.share_trip_via)
             )
         }
+    }
+
+    fun onOrderClick(id: String) {
+        destination.postValue(
+            VisitsManagementFragmentDirections.actionVisitManagementFragmentToOrderDetailsFragment(
+                id
+            )
+        )
     }
 
 }

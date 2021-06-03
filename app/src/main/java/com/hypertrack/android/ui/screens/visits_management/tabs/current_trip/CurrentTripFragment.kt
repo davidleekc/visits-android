@@ -47,7 +47,11 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
         bottom_holder.show()
         val bottomHolder = bottom_holder
         recycler_view.setLinearLayoutManager(requireContext())
-        recycler_view.adapter = ordersAdapter
+        recycler_view.adapter = ordersAdapter.apply {
+            onItemClickListener = {
+                vm.onOrderClick(it.id)
+            }
+        }
 
         bottomHolder.setOnClickListener {
             if (bottomHolderSheetBehavior.state != BottomSheetBehavior.STATE_EXPANDED) {
