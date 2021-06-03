@@ -29,13 +29,15 @@ class OrdersAdapter(
         return object : BaseContainerVh<LocalOrder>(view, baseClickListener) {
             override fun bind(item: LocalOrder) {
                 item.shortAddress.toView(containerView.tvAddress)
-                item.eta?.let {
+                if (item.eta != null) {
                     containerView.tvEta.setText(
                         MyApplication.context.getString(
                             R.string.orders_list_eta,
-                            timeDistanceFormatter.formatTime(it.format(DateTimeFormatter.ISO_INSTANT))
+                            timeDistanceFormatter.formatTime(item.eta!!.format(DateTimeFormatter.ISO_INSTANT))
                         )
                     )
+                } else {
+                    containerView.tvEta.setText(R.string.orders_list_eta_unavailable)
                 }
 
                 containerView.tvStatus.setGoneState(!showStatus)

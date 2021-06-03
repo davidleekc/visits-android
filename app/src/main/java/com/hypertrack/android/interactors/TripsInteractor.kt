@@ -41,7 +41,8 @@ interface TripsInteractor {
     suspend fun setOrderPickedUp(orderId: String)
     suspend fun addPhotoToOrder(orderId: String, path: String)
     fun retryPhotoUpload(orderId: String, photoId: String)
-    suspend fun createTrip(latLng: LatLng): TripCreationResult
+    suspend fun createTrip(latLng: LatLng, address: String?): TripCreationResult
+    suspend fun completeTrip(tripId: String)
 }
 
 class TripsInteractorImpl(
@@ -139,8 +140,17 @@ class TripsInteractorImpl(
         photoUploadInteractor.retry(photoId)
     }
 
-    override suspend fun createTrip(latLng: LatLng): TripCreationResult {
-        return tripsRepository.createTrip(latLng)
+    override suspend fun createTrip(latLng: LatLng, address: String?): TripCreationResult {
+        return tripsRepository.createTrip(latLng, address)
+    }
+
+    override suspend fun completeTrip(tripId: String) {
+        try {
+            tripsRepository.completeTrip(tripId)
+            refreshTrips()
+        } catch (e: Exception) {
+            errorFlow.emit(Consumable(e))
+        }
     }
 
     private suspend fun setOrderCompletionStatus(

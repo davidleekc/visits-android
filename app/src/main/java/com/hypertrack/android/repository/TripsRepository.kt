@@ -5,13 +5,10 @@ import androidx.lifecycle.MutableLiveData
 import com.google.android.gms.maps.model.LatLng
 import com.hypertrack.android.api.ApiClient
 import com.hypertrack.android.api.Trip
-import com.hypertrack.android.api.TripParams
 import com.hypertrack.android.interactors.PhotoForUpload
 import com.hypertrack.android.interactors.PhotoUploadingState
-import com.hypertrack.android.models.CreateTripError
 import com.hypertrack.android.models.Metadata
 import com.hypertrack.android.models.Order
-import com.hypertrack.android.models.ShareableTripSuccess
 import com.hypertrack.android.models.local.LocalOrder
 import com.hypertrack.android.models.local.LocalTrip
 import com.hypertrack.android.models.local.OrderStatus
@@ -29,8 +26,9 @@ interface TripsRepository {
     val trips: LiveData<List<LocalTrip>>
     val errorFlow: MutableSharedFlow<Consumable<Exception>>
     suspend fun refreshTrips()
-    suspend fun createTrip(latLng: LatLng): TripCreationResult
+    suspend fun createTrip(latLng: LatLng, address: String?): TripCreationResult
     suspend fun updateLocalOrder(orderId: String, updateFun: (LocalOrder) -> Unit)
+    suspend fun completeTrip(tripId: String)
 }
 
 class TripsRepositoryImpl(
@@ -77,20 +75,18 @@ class TripsRepositoryImpl(
         }
     }
 
-    override suspend fun createTrip(latLng: LatLng): TripCreationResult {
+    override suspend fun createTrip(latLng: LatLng, address: String?): TripCreationResult {
         try {
-            val trip = apiClient.createTripV1(
-                TripParams(
-                    hyperTrackService.deviceId,
-                    latitude = latLng.latitude,
-                    longitude = latLng.longitude,
-                )
-            )
+            val trip = apiClient.createTrip(latLng, address)
             onTripCreated(trip)
             return TripCreationSuccess()
         } catch (e: Exception) {
             return TripCreationError(e)
         }
+    }
+
+    override suspend fun completeTrip(tripId: String) {
+        apiClient.completeTrip(tripId)
     }
 
     override suspend fun updateLocalOrder(orderId: String, updateFun: (LocalOrder) -> Unit) {
@@ -108,10 +104,20 @@ class TripsRepositoryImpl(
         })
     }
 
-    private fun onTripCreated(trip: Trip) {
+    private suspend fun onTripCreated(trip: Trip) {
         trips.postValue(
             (trips.value ?: listOf()).toMutableList()
-                .apply { add(localTripFromRemote(trip, listOf())) })
+                .apply {
+                    add(
+                        localTripFromRemote(
+                            trip, localOrdersFromRemote(
+                                trip.orders ?: listOf(),
+                                listOf(),
+                                orderFactory
+                            )
+                        )
+                    )
+                })
     }
 
     private suspend fun mapTripsFromRemote(remoteTrips: List<Trip>): List<LocalTrip> {
@@ -164,7 +170,7 @@ class TripsRepositoryImpl(
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun localTripFromRemote(remoteTrip: Trip, orders: List<LocalOrder>): LocalTrip {
+    private fun localTripFromRemote(remoteTrip: Trip, newLocalOrders: List<LocalOrder>): LocalTrip {
         return LocalTrip(
             remoteTrip.tripId,
             TripStatus.fromString(remoteTrip.status),
@@ -172,21 +178,21 @@ class TripsRepositoryImpl(
                 .filter { it.value is String } as Map<String, String>)
                 .toMutableMap()
                 .apply {
-                    if (orders.any { it.legacy } && BuildConfig.DEBUG) {
+                    if (newLocalOrders.any { it.legacy } && BuildConfig.DEBUG) {
                         put("legacy (debug)", "true")
                     }
                 },
-            orders.toMutableList(),
+            newLocalOrders.toMutableList(),
             remoteTrip.views
         )
     }
 
     private suspend fun localOrdersFromRemote(
         remoteOrders: List<Order>,
-        localOrders: List<LocalOrder>,
+        oldLocalOrders: List<LocalOrder>,
         orderFactory: LocalOrderFactory
     ): List<LocalOrder> {
-        val localOrdersMap = localOrders.toMap { it.id }
+        val localOrdersMap = oldLocalOrders.toMap { it.id }
         return remoteOrders.map {
             val localOrder = localOrdersMap.get(it.id)
             val res = orderFactory.create(it, localOrder)

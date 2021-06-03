@@ -8,14 +8,17 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.hypertrack.android.models.local.LocalTrip
 import com.hypertrack.android.ui.base.ProgressDialogFragment
 import com.hypertrack.android.ui.common.*
+import com.hypertrack.android.ui.screens.add_place_info.AddPlaceInfoFragment
 import com.hypertrack.android.ui.screens.select_destination.DestinationData
 import com.hypertrack.android.ui.screens.visits_management.tabs.orders.OrdersAdapter
 import com.hypertrack.android.utils.Injector
 import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.android.utils.stringFromResource
+import com.hypertrack.logistics.android.github.BuildConfig
 import com.hypertrack.logistics.android.github.R
 import kotlinx.android.synthetic.main.fragment_current_trip.*
 import kotlinx.android.synthetic.main.inflate_current_trip.*
+import kotlinx.android.synthetic.main.progress_bar.*
 import java.time.format.DateTimeFormatter
 
 class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_trip) {
@@ -40,6 +43,8 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
             ?.observe(viewLifecycleOwner) { result ->
                 result?.let {
                     vm.onDestinationResult(it)
+                    findNavController().currentBackStackEntry?.savedStateHandle
+                        ?.set(KEY_DESTINATION, null)
                 }
             }
 
@@ -65,16 +70,25 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
             findNavController().navigate(it)
         })
 
-        vm.showWhereAreYouGoing.observe(viewLifecycleOwner, {
-            whereAreYouGoing.setGoneState(!it)
+        vm.trip.observe(viewLifecycleOwner, {
+            whereAreYouGoing.setGoneState(it != null)
+            lTrip.setGoneState(it == null)
+            it?.let { displayTrip(it) }
         })
 
-        vm.trip.observe(viewLifecycleOwner, {
-            if (it != null) {
-                lTrip.show()
-                displayTrip(it)
+        vm.errorBase.observe(viewLifecycleOwner, {
+            it.consume {
+                SnackbarUtil.showErrorSnackbar(view, it)
+            }
+        })
+
+        vm.loadingStateBase.observe(viewLifecycleOwner, {
+            whereAreYouGoing.setGoneState(it)
+            progress.setGoneState(!it)
+            if (it) {
+                loader.playAnimation()
             } else {
-                lTrip.hide()
+                loader.cancelAnimation()
             }
         })
 
@@ -85,10 +99,15 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
         shareButton.setOnClickListener {
             vm.onShareTripClick()
         }
+
+        endTripButton.setGoneState(BuildConfig.DEBUG.not())
+        endTripButton.setOnClickListener {
+            vm.onCompleteClick()
+        }
     }
 
     private fun displayTrip(trip: LocalTrip) {
-        trip.nextOrder.let { order ->
+        trip.nextOrder?.let { order ->
             order.shortAddress.toView(destination_address)
             (order.eta?.let {
                 timeDistanceFormatter.formatTime(it.format(DateTimeFormatter.ISO_INSTANT))

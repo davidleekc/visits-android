@@ -4,6 +4,7 @@ import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.viewModelScope
 import com.hypertrack.android.interactors.TripsInteractor
 import com.hypertrack.android.models.local.LocalOrder
+import com.hypertrack.android.models.local.LocalTrip
 import com.hypertrack.android.repository.TripCreationError
 import com.hypertrack.android.repository.TripCreationSuccess
 import com.hypertrack.android.ui.base.BaseViewModel
@@ -20,17 +21,14 @@ class CurrentTripViewModel(
     private val osUtilsProvider: OsUtilsProvider
 ) : BaseViewModel() {
 
-    val trip = tripsInteractor.currentTrip
-
-    val showWhereAreYouGoing = MediatorLiveData<Boolean>().apply {
+    val trip = MediatorLiveData<LocalTrip>().apply {
         addSource(tripsInteractor.currentTrip) {
             loadingStateBase.postValue(false)
-            postValue(it == null)
+            postValue(it)
         }
     }
 
     init {
-        showWhereAreYouGoing.postValue(false)
         loadingStateBase.postValue(true)
         viewModelScope.launch {
             tripsInteractor.refreshTrips()
@@ -45,11 +43,11 @@ class CurrentTripViewModel(
     }
 
     fun onDestinationResult(destinationData: DestinationData) {
+        loadingStateBase.postValue(true)
         GlobalScope.launch {
-            loadingStateBase.postValue(true)
-            when (val res = tripsInteractor.createTrip(destinationData.latLng)) {
+            when (val res =
+                tripsInteractor.createTrip(destinationData.latLng, destinationData.address)) {
                 is TripCreationSuccess -> {
-                    errorBase.postValue(Consumable("Trip created"))
                 }
                 is TripCreationError -> {
                     errorBase.postValue(Consumable(osUtilsProvider.getErrorMessage(res.exception)))
@@ -74,6 +72,14 @@ class CurrentTripViewModel(
                 id
             )
         )
+    }
+
+    fun onCompleteClick() {
+        loadingStateBase.postValue(true)
+        viewModelScope.launch {
+            tripsInteractor.completeTrip(trip.value!!.id)
+            loadingStateBase.postValue(false)
+        }
     }
 
 }

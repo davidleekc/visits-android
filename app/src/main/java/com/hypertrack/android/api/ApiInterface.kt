@@ -200,9 +200,9 @@ data class Trip(
 
 @JsonClass(generateAdapter = true)
 data class TripDestination(
-    @field:Json(name = "address") val address: String?,
+    @field:Json(name = "address") val address: String? = null,
     @field:Json(name = "geometry") val geometry: Geometry,
-    @field:Json(name = "arrived_at") val arrivedAt: String?
+    @field:Json(name = "arrived_at") val arrivedAt: String? = null
 )
 
 @JsonClass(generateAdapter = true)
@@ -251,6 +251,8 @@ data class Geofence(
 class Point(
         @field:Json(name = "coordinates") override val coordinates: List<Double>
 ) : Geometry() {
+    constructor(latitude: Double, longitude: Double) : this(listOf(longitude, latitude))
+
     override val type: String
         get() = "Point"
 
@@ -443,11 +445,19 @@ class HistoryCoordinate(
 
 @JsonClass(generateAdapter = true)
 class TripParams(
-    @field:Json(name = "device_id") val deviceId: String,
-    @field:Json(name = "destination") val destination: TripDestination?
-    ) {
+    @Json(name = "device_id") val deviceId: String,
+    @Json(name = "destination") val destination: TripDestination? = null,
+    @Json(name = "orders") val orders: List<OrderParams>? = null
+) {
     constructor(deviceId: String) : this(deviceId, null)
     constructor(deviceId: String, latitude: Double, longitude: Double) : this(
         deviceId, TripDestination(null, Point(listOf(longitude, latitude)), null)
     )
+}
+
+@JsonClass(generateAdapter = true)
+class OrderParams(
+    @Json(name = "order_id") val orderId: String,
+    @Json(name = "destination") val destination: TripDestination?,
+) {
 }
