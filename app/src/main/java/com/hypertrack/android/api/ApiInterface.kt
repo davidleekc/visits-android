@@ -202,6 +202,7 @@ data class Trip(
 data class TripDestination(
     @field:Json(name = "address") val address: String? = null,
     @field:Json(name = "geometry") val geometry: Geometry,
+    @field:Json(name = "radius") val radius: Int?,
     @field:Json(name = "arrived_at") val arrivedAt: String? = null
 )
 

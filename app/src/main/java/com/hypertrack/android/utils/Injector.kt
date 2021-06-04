@@ -362,7 +362,7 @@ object Injector {
         )
     }
 
-    private fun accessTokenRepository(context: Context) =
+    fun accessTokenRepository(context: Context) =
         (getMyPreferences(context).restoreRepository()
             ?: throw IllegalStateException("No access token repository was saved"))
 

@@ -39,8 +39,19 @@ data class Estimate(
 
 @JsonClass(generateAdapter = true)
 data class Route(
-    @field:Json(name = "remaining_duration") val remainingDuration: Int?
+    @field:Json(name = "remaining_duration") val remainingDuration: Int?,
+    val polyline: Polyline?
 )
+
+@JsonClass(generateAdapter = true)
+data class Polyline(
+    val type: String,
+    val coordinates: List<List<Double>>
+) {
+    fun getPolylinePoints(): List<LatLng> {
+        return coordinates.map { LatLng(it[1], it[0]) }
+    }
+}
 
 
 /*

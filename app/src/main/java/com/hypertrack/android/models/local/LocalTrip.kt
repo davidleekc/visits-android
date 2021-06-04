@@ -1,6 +1,7 @@
 package com.hypertrack.android.models.local
 
 import com.hypertrack.android.api.Trip
+import com.hypertrack.android.api.TripDestination
 import com.hypertrack.android.api.Views
 import com.hypertrack.android.models.Order
 import com.squareup.moshi.Json
@@ -22,6 +23,7 @@ class LocalTrip(
     fun getOrder(orderId: String): LocalOrder? {
         return orders.firstOrNull { it.id == orderId }
     }
+
 
 }
 

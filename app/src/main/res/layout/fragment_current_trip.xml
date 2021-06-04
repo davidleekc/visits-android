@@ -125,11 +125,11 @@
 
     <include
         android:id="@+id/progress"
-        layout="@layout/progress_bar"
+        layout="@layout/progress_bar_white"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="center"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+        tools:visibility="visible" />
 </androidx.constraintlayout.widget.ConstraintLayout>
