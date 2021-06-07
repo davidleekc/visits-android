@@ -541,7 +541,8 @@ class TripInteractorTest {
                 queueInteractor,
                 mockk(relaxed = true) {},
                 mockk(relaxed = true) {},
-                Dispatchers.Main
+                Dispatchers.Main,
+                TestCoroutineScope()
             )
         }
 

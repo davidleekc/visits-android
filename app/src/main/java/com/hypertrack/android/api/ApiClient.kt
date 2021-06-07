@@ -250,6 +250,31 @@ class ApiClient(
         }
     }
 
+    suspend fun addOrderToTrip(
+        tripId: String,
+        orderCreationParams: OrderCreationParams
+    ): Trip {
+        try {
+            with(
+                api.addOrderToTrip(
+                    tripId,
+                    AddOrderBody(
+                        deviceId = deviceId,
+                        orderCreationParams = listOf(orderCreationParams)
+                    )
+                )
+            ) {
+                if (isSuccessful) {
+                    return body()!!
+                } else {
+                    throw HttpException(this)
+                }
+            }
+        } catch (e: Exception) {
+            throw e
+        }
+    }
+
     override suspend fun completeTrip(tripId: String): TripCompletionResult {
         return try {
             with(api.completeTrip(tripId)) {

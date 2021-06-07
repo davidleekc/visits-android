@@ -16,7 +16,6 @@ import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.logistics.android.github.R
 import kotlinx.android.synthetic.main.fragment_select_destination.*
 import kotlinx.android.parcel.Parcelize
-import kotlinx.android.synthetic.main.fragment_add_place.*
 
 //todo merge with add place
 open class SelectDestinationFragment :

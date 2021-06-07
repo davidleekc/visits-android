@@ -3,7 +3,6 @@ package com.hypertrack.android.api
 import android.graphics.Bitmap
 import android.util.Log
 import com.google.android.gms.maps.model.LatLng
-import com.google.gson.annotations.SerializedName
 import com.hypertrack.android.models.*
 import com.hypertrack.android.toBase64
 import com.hypertrack.android.toNote
@@ -74,6 +73,12 @@ interface ApiInterface {
     @POST("client/trips/{trip_id}/complete")
     suspend fun completeTrip(@Path("trip_id") tripId: String): Response<Unit>
 
+    @POST("client/trips/{trip_id}/orders")
+    suspend fun addOrderToTrip(
+        @Path("trip_id") tripId: String,
+        @Body addOrderBody: AddOrderBody,
+    ): Response<Trip>
+
     @POST("client/trips/{trip_id}/orders/{order_id}/complete")
     suspend fun completeOrder(
         @Path("trip_id") tripId: String,
@@ -111,6 +116,18 @@ interface ApiInterface {
 }
 
 @JsonClass(generateAdapter = true)
+data class AddOrderBody(
+    @field:Json(name = "device_id") val deviceId: String,
+    @field:Json(name = "orders") val orderCreationParams: List<OrderCreationParams>,
+)
+
+@JsonClass(generateAdapter = true)
+data class OrderCreationParams(
+    @field:Json(name = "order_id") val id: String,
+    @field:Json(name = "destination") val destination: TripDestination,
+)
+
+@JsonClass(generateAdapter = true)
 data class IntegrationsResponse(
     val data: List<Integration>,
 )
@@ -122,15 +139,15 @@ data class OrderBody(
 
 @JsonClass(generateAdapter = true)
 data class GeofenceParams(
-    @SerializedName("geofences") val geofences: Set<GeofenceProperties>,
-    @SerializedName("device_id") val deviceId: String
+    @field:Json(name = "geofences") val geofences: Set<GeofenceProperties>,
+    @field:Json(name = "device_id") val deviceId: String
 )
 
 @JsonClass(generateAdapter = true)
 data class GeofenceProperties(
-    @SerializedName("geometry") val geometry: Geometry,
-    @SerializedName("metadata") val metadata: Map<String, Any>,
-    @SerializedName("radius") val radius: Int?
+    @field:Json(name = "geometry") val geometry: Geometry,
+    @field:Json(name = "metadata") val metadata: Map<String, Any>,
+    @field:Json(name = "radius") val radius: Int?
 )
 
 @JsonClass(generateAdapter = true)
@@ -202,9 +219,16 @@ data class Trip(
 data class TripDestination(
     @field:Json(name = "address") val address: String? = null,
     @field:Json(name = "geometry") val geometry: Geometry,
-    @field:Json(name = "radius") val radius: Int?,
+    @field:Json(name = "radius") val radius: Int? = null,
     @field:Json(name = "arrived_at") val arrivedAt: String? = null
-)
+) {
+    constructor(latLng: LatLng, address: String?) : this(
+        address,
+        Point(latitude = latLng.latitude, longitude = latLng.longitude),
+        100,
+        null
+    )
+}
 
 @JsonClass(generateAdapter = true)
 data class Views(
@@ -446,9 +470,9 @@ class HistoryCoordinate(
 
 @JsonClass(generateAdapter = true)
 class TripParams(
-    @Json(name = "device_id") val deviceId: String,
-    @Json(name = "destination") val destination: TripDestination? = null,
-    @Json(name = "orders") val orders: List<OrderParams>? = null
+    @field:Json(name = "device_id") val deviceId: String,
+    @field:Json(name = "destination") val destination: TripDestination? = null,
+    @field:Json(name = "orders") val orders: List<OrderParams>? = null
 ) {
     constructor(deviceId: String) : this(deviceId, null)
     constructor(deviceId: String, latitude: Double, longitude: Double) : this(
@@ -458,7 +482,7 @@ class TripParams(
 
 @JsonClass(generateAdapter = true)
 class OrderParams(
-    @Json(name = "order_id") val orderId: String,
-    @Json(name = "destination") val destination: TripDestination?,
+    @field:Json(name = "order_id") val orderId: String,
+    @field:Json(name = "destination") val destination: TripDestination?,
 ) {
 }

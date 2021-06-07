@@ -5,6 +5,7 @@ import android.util.TypedValue
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavDirections
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.CircleOptions
@@ -109,6 +110,14 @@ class CurrentTripViewModel(
             tripsInteractor.completeTrip(trip.value!!.id)
             loadingStateBase.postValue(false)
         }
+    }
+
+    fun onAddOrderClick() {
+        destination.postValue(
+            VisitsManagementFragmentDirections.actionVisitManagementFragmentToAddOrderFragment(
+                trip.value!!.id
+            )
+        )
     }
 
 

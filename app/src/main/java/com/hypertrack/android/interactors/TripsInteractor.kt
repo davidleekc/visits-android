@@ -1,7 +1,5 @@
 package com.hypertrack.android.interactors
 
-import android.util.Log
-import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
@@ -15,13 +13,9 @@ import com.hypertrack.android.models.local.TripStatus
 import com.hypertrack.android.repository.*
 import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.common.toHotTransformation
-import com.hypertrack.android.ui.common.toMap
-import com.hypertrack.android.ui.screens.visits_management.tabs.livemap.SearchPlacePresenter
 import com.hypertrack.android.utils.HyperTrackService
 import com.hypertrack.android.utils.ImageDecoder
 import com.hypertrack.android.utils.OsUtilsProvider
-import com.hypertrack.logistics.android.github.BuildConfig
-import com.squareup.moshi.Moshi
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -43,6 +37,7 @@ interface TripsInteractor {
     fun retryPhotoUpload(orderId: String, photoId: String)
     suspend fun createTrip(latLng: LatLng, address: String?): TripCreationResult
     suspend fun completeTrip(tripId: String)
+    suspend fun addOrderToTrip(tripId: String, latLng: LatLng, address: String?): AddOrderResult
 }
 
 class TripsInteractorImpl(
@@ -52,7 +47,8 @@ class TripsInteractorImpl(
     private val photoUploadInteractor: PhotoUploadQueueInteractor,
     private val imageDecoder: ImageDecoder,
     private val osUtilsProvider: OsUtilsProvider,
-    private val ioDispatcher: CoroutineDispatcher
+    private val ioDispatcher: CoroutineDispatcher,
+    private val globalScope: CoroutineScope
 ) : TripsInteractor {
 
     override val completedTrips = Transformations.map(tripsRepository.trips) {
@@ -78,7 +74,9 @@ class TripsInteractorImpl(
     }
 
     override suspend fun refreshTrips() {
-        tripsRepository.refreshTrips()
+        globalScope.launch {
+            tripsRepository.refreshTrips()
+        }
     }
 
     override fun getOrder(orderId: String): LocalOrder? {
@@ -87,52 +85,62 @@ class TripsInteractorImpl(
     }
 
     override suspend fun completeOrder(orderId: String): OrderCompletionResponse {
-        return setOrderCompletionStatus(orderId, canceled = false)
+        return withContext(globalScope.coroutineContext) {
+            setOrderCompletionStatus(orderId, canceled = false)
+        }
     }
 
     override suspend fun cancelOrder(orderId: String): OrderCompletionResponse {
-        return setOrderCompletionStatus(orderId, canceled = true)
+        return withContext(globalScope.coroutineContext) {
+            setOrderCompletionStatus(orderId, canceled = true)
+        }
     }
 
     override suspend fun updateOrderNote(orderId: String, orderNote: String) {
-        try {
-            tripsRepository.updateLocalOrder(orderId) {
-                it.note = orderNote
+        globalScope.launch {
+            try {
+                tripsRepository.updateLocalOrder(orderId) {
+                    it.note = orderNote
+                }
+            } catch (e: Exception) {
+                errorFlow.emit(Consumable(e))
             }
-        } catch (e: Exception) {
-            errorFlow.emit(Consumable(e))
         }
     }
 
     override suspend fun setOrderPickedUp(orderId: String) {
-        //used only for legacy orders, so orderId is tripId
-        hyperTrackService.sendPickedUp(orderId, "trip_id")
-        tripsRepository.updateLocalOrder(orderId) {
-            it.isPickedUp = true
+        globalScope.launch {
+            //used only for legacy orders, so orderId is tripId
+            hyperTrackService.sendPickedUp(orderId, "trip_id")
+            tripsRepository.updateLocalOrder(orderId) {
+                it.isPickedUp = true
+            }
         }
     }
 
     override suspend fun addPhotoToOrder(orderId: String, path: String) {
-        try {
-            val generatedImageId = UUID.randomUUID().toString()
+        globalScope.launch {
+            try {
+                val generatedImageId = UUID.randomUUID().toString()
 
-            val previewMaxSideLength: Int = (200 * osUtilsProvider.screenDensity).toInt()
-            withContext(ioDispatcher) {
-                val bitmap = imageDecoder.readBitmap(path, previewMaxSideLength)
-                val photo = PhotoForUpload(
-                    photoId = generatedImageId,
-                    filePath = path,
-                    base64thumbnail = osUtilsProvider.bitmapToBase64(bitmap),
-                    state = PhotoUploadingState.NOT_UPLOADED
-                )
-                tripsRepository.updateLocalOrder(orderId) {
+                val previewMaxSideLength: Int = (200 * osUtilsProvider.screenDensity).toInt()
+                withContext(ioDispatcher) {
+                    val bitmap = imageDecoder.readBitmap(path, previewMaxSideLength)
+                    val photo = PhotoForUpload(
+                        photoId = generatedImageId,
+                        filePath = path,
+                        base64thumbnail = osUtilsProvider.bitmapToBase64(bitmap),
+                        state = PhotoUploadingState.NOT_UPLOADED
+                    )
+                    tripsRepository.updateLocalOrder(orderId) {
 //                it.photos.add(photo.photoId)
-                    it.photos.add(photo)
+                        it.photos.add(photo)
+                    }
+                    photoUploadInteractor.addToQueue(photo)
                 }
-                photoUploadInteractor.addToQueue(photo)
+            } catch (e: Exception) {
+                errorFlow.emit(Consumable(e))
             }
-        } catch (e: Exception) {
-            errorFlow.emit(Consumable(e))
         }
     }
 
@@ -141,15 +149,39 @@ class TripsInteractorImpl(
     }
 
     override suspend fun createTrip(latLng: LatLng, address: String?): TripCreationResult {
-        return tripsRepository.createTrip(latLng, address)
+        return withContext(globalScope.coroutineContext) {
+            tripsRepository.createTrip(latLng, address)
+        }
     }
 
     override suspend fun completeTrip(tripId: String) {
-        try {
-            tripsRepository.completeTrip(tripId)
-            refreshTrips()
-        } catch (e: Exception) {
-            errorFlow.emit(Consumable(e))
+        globalScope.launch {
+            try {
+                tripsRepository.completeTrip(tripId)
+                refreshTrips()
+            } catch (e: Exception) {
+                errorFlow.emit(Consumable(e))
+            }
+        }
+    }
+
+    override suspend fun addOrderToTrip(
+        tripId: String,
+        latLng: LatLng,
+        address: String?
+    ): AddOrderResult {
+        return withContext(globalScope.coroutineContext) {
+            try {
+                tripsRepository.addOrderToTrip(
+                    tripId, OrderCreationParams(
+                        UUID.randomUUID().toString(),
+                        TripDestination(latLng, address)
+                    )
+                )
+                AddOrderSuccess
+            } catch (e: Exception) {
+                AddOrderError(e)
+            }
         }
     }
 
@@ -231,5 +263,9 @@ class TripsInteractorImpl(
     }
 
 }
+
+sealed class AddOrderResult
+object AddOrderSuccess : AddOrderResult()
+class AddOrderError(val e: Exception) : AddOrderResult()
 
 

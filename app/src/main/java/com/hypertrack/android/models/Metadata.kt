@@ -53,7 +53,7 @@ data class VisitsAppMetadata(
     val appended: Map<String, AppendMetadata>? = null,
     var note: String? = null,
     var photos: List<String>? = null,
-    @Json(name = "user_location") val userLocation: Location? = null,
+    @field:Json(name = "user_location") val userLocation: Location? = null,
 ) {
 
     fun addPhoto(photoId: String) {
@@ -104,7 +104,7 @@ data class VisitsAppMetadata(
 data class AppendMetadata(
     val note: String? = null,
     val photos: List<String>? = null,
-    @Json(name = "user_location") val userLocation: Location? = null
+    @field:Json(name = "user_location") val userLocation: Location? = null
 ) {
 
     @TestOnly

@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.google.android.gms.maps.model.LatLng
 import com.hypertrack.android.api.ApiClient
+import com.hypertrack.android.api.OrderCreationParams
 import com.hypertrack.android.api.Trip
 import com.hypertrack.android.interactors.PhotoForUpload
 import com.hypertrack.android.interactors.PhotoUploadingState
@@ -29,6 +30,7 @@ interface TripsRepository {
     suspend fun createTrip(latLng: LatLng, address: String?): TripCreationResult
     suspend fun updateLocalOrder(orderId: String, updateFun: (LocalOrder) -> Unit)
     suspend fun completeTrip(tripId: String)
+    suspend fun addOrderToTrip(tripId: String, orderParams: OrderCreationParams): Trip
 }
 
 class TripsRepositoryImpl(
@@ -100,6 +102,29 @@ class TripsRepositoryImpl(
                         it
                     }
                 }.toMutableList()
+            }
+        })
+    }
+
+    override suspend fun addOrderToTrip(tripId: String, orderParams: OrderCreationParams): Trip {
+        val trip = apiClient.addOrderToTrip(tripId, orderParams)
+        updateTrip(trip)
+        return trip
+    }
+
+    private suspend fun updateTrip(remoteTrip: Trip) {
+        trips.postValue(trips.value!!.map {
+            if (it.id == remoteTrip.tripId) {
+                localTripFromRemote(
+                    remoteTrip,
+                    localOrdersFromRemote(
+                        remoteTrip.orders ?: listOf(),
+                        it.orders,
+                        orderFactory
+                    )
+                )
+            } else {
+                it
             }
         })
     }

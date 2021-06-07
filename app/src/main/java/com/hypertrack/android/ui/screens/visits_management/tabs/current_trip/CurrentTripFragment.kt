@@ -114,6 +114,10 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
             vm.onShareTripClick()
         }
 
+        bAddOrder.setOnClickListener {
+            vm.onAddOrderClick()
+        }
+
         endTripButton.setGoneState(BuildConfig.DEBUG.not())
         endTripButton.setOnClickListener {
             vm.onCompleteClick()

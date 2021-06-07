@@ -18,7 +18,6 @@ import com.hypertrack.android.interactors.PlacesInteractorImpl
 import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.common.nullIfEmpty
-import com.hypertrack.android.models.Location
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.SingleLiveEvent
 import com.hypertrack.android.ui.base.ZipLiveData
@@ -92,9 +91,7 @@ class AddPlaceViewModel(
     override fun proceed(destinationData: DestinationData) {
         destination.postValue(
             AddPlaceFragmentDirections.actionAddPlaceFragmentToAddPlaceInfoFragment(
-                destinationData.latLng,
-                address = destinationData.address,
-                name = destinationData.name
+                destinationData
             )
         )
     }

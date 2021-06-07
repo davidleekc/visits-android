@@ -113,6 +113,10 @@
     <string name="permission_rationale_3">We also need to access accelerometer to detect when you drive or walk</string>
 
     <string name="current_trip">Current trip</string>
+    <string name="current_trip_add_order">Add order</string>
+
+    <string name="add_order">Add order</string>
+    <string name="add_order_create">@string/add_order</string>
 
     <string name="timeline_summary">Tracking summary: %s</string>
     <string name="timeline_inactive_reason_location_permissions_denied">Location permissions denied</string>

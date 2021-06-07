@@ -97,35 +97,15 @@ object Injector {
     fun <T> provideParamVmFactory(param: T): ParamViewModelFactory<T> {
         return ParamViewModelFactory(
             param,
-            getUserScope().tripsInteractor,
-            getUserScope().placesInteractor,
+            { getUserScope() },
             getOsUtilsProvider(MyApplication.context),
-            placesClient,
             getAccountRepo(MyApplication.context),
-            getUserScope().photoUploadQueueInteractor,
             getVisitsApiClient(MyApplication.context),
             getMoshi(),
             crashReportsProvider,
+            placesClient,
+            getDeviceLocationProvider()
         )
-    }
-
-    fun provideAddPlaceInfoVmFactory(
-        latLng: LatLng,
-        address: String?,
-        name: String?,
-    ): ViewModelProvider.Factory {
-        return object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return AddPlaceInfoViewModel(
-                    latLng,
-                    initialAddress = address,
-                    _name = name,
-                    getUserScope().placesInteractor,
-                    getUserScope().integrationsRepository,
-                    getOsUtilsProvider(MyApplication.context),
-                ) as T
-            }
-        }
     }
 
     fun provideUserScopeViewModelFactory(): UserScopeViewModelFactory {
@@ -223,7 +203,8 @@ object Injector {
                 photoUploadQueueInteractor,
                 getImageDecoder(),
                 getOsUtilsProvider(MyApplication.context),
-                Dispatchers.IO
+                Dispatchers.IO,
+                GlobalScope
             )
 
             val driverRepository = getDriverRepo(context)
@@ -451,7 +432,7 @@ object Injector {
 
 }
 
-private class UserScope(
+class UserScope(
     val historyRepository: HistoryRepository,
     val tripsInteractor: TripsInteractor,
     val placesInteractor: PlacesInteractor,

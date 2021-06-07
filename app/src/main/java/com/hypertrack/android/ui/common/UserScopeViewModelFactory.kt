@@ -9,6 +9,7 @@ import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.interactors.TripsInteractor
 import com.hypertrack.android.repository.*
 import com.hypertrack.android.ui.screens.add_integration.AddIntegrationViewModel
+import com.hypertrack.android.ui.screens.add_order.AddOrderViewModel
 import com.hypertrack.android.ui.screens.add_place.AddPlaceViewModel
 import com.hypertrack.android.ui.screens.visits_management.VisitsManagementViewModel
 import com.hypertrack.android.ui.screens.visits_management.tabs.profile.ProfileViewModel

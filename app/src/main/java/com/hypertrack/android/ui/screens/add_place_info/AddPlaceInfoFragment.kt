@@ -23,10 +23,8 @@ class AddPlaceInfoFragment : ProgressDialogFragment(R.layout.fragment_add_place_
 
     private val args: AddPlaceInfoFragmentArgs by navArgs()
     private val vm: AddPlaceInfoViewModel by viewModels {
-        MyApplication.injector.provideAddPlaceInfoVmFactory(
-            args.latLng,
-            address = args.address,
-            name = args.name,
+        MyApplication.injector.provideParamVmFactory(
+            args.destinationData
         )
     }
 
