@@ -53,19 +53,43 @@ class LocalizedTimeDistanceFormatter(
 ) : SimpleTimeDistanceFormatter(zoneId) {
 
     override fun formatDistance(meters: Int): String {
-        val format = when {
-            meters == 0 -> "%.0f"
-            meters < 0.01 * 1609.0 -> "%.3f"
-            else -> "%.1f"
-        }
-        val res = if (shouldUseImperial) {
+        return if (shouldUseImperial && false) {
             val miles = meters / 1609.0
-            osUtilsProvider.stringFromResource(R.string.miles, format.format(miles))
+            when {
+                miles >= 100 -> {
+                    osUtilsProvider.stringFromResource(
+                        R.string.miles,
+                        "%.0f".format(miles.toFloat())
+                    )
+                }
+                miles >= 1 -> {
+                    osUtilsProvider.stringFromResource(
+                        R.string.miles,
+                        "%.1f".format(miles.toFloat())
+                    )
+                }
+                else -> {
+                    val feet = 0.3048 * meters
+                    osUtilsProvider.stringFromResource(R.string.feet, "%.0f".format(feet.toFloat()))
+                }
+            }
         } else {
             val kms = meters / 1000.0
-            osUtilsProvider.stringFromResource(R.string.kms, format.format(kms))
+            when {
+                kms >= 100 -> {
+                    osUtilsProvider.stringFromResource(R.string.kms, "%.0f".format(kms.toFloat()))
+                }
+                kms >= 1 -> {
+                    osUtilsProvider.stringFromResource(R.string.kms, "%.1f".format(kms.toFloat()))
+                }
+                else -> {
+                    osUtilsProvider.stringFromResource(
+                        R.string.meters,
+                        "%.0f".format(meters.toFloat())
+                    )
+                }
+            }
         }
-        return res
     }
 
     companion object {

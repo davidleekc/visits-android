@@ -77,6 +77,8 @@
     <string name="steps">%1$d steps</string>
     <string name="miles">%s mi</string>
     <string name="kms">%s km</string>
+    <string name="feet">%s ft</string>
+    <string name="meters">%s m</string>
     <string name="close">Close</string>
     <string name="device_id">Device ID</string>
     <string name="driver_id">Driver ID</string>
