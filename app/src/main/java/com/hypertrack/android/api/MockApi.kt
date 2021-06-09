@@ -16,20 +16,32 @@ class MockApi(val remoteApi: ApiInterface) : ApiInterface by remoteApi {
         deviceId: String,
         params: GeofenceParams
     ): Response<List<Geofence>> {
-//        return remoteApi.createGeofences(deviceId, params)
-        fences.add(
-            Geofence(
-                "",
-                "00000000-0000-0000-0000-000000000000",
-                "",
-                params.geofences.first().metadata,
-                params.geofences.first().geometry,
-                null,
-                100,
-                false,
-            )
+        return remoteApi.createGeofences(deviceId, params)
+//        fences.add(
+//            Geofence(
+//                "",
+//                "00000000-0000-0000-0000-000000000000",
+//                "",
+//                params.geofences.first().metadata,
+//                params.geofences.first().geometry,
+//                null,
+//                100,
+//                false,
+//            )
+//        )
+//        return Response.success(listOf())
+    }
+
+    override suspend fun getDeviceGeofences(
+        deviceId: String,
+        paginationToken: String?,
+        includeArchived: Boolean,
+        sortNearest: Boolean
+    ): Response<GeofenceResponse> {
+        return Response.success(
+            Injector.getMoshi().adapter(GeofenceResponse::class.java)
+                .fromJson(MockData.MOCK_GEOFENCES_JSON)
         )
-        return Response.success(listOf())
     }
 
     override suspend fun getGeofencesWithMarkers(
@@ -38,12 +50,12 @@ class MockApi(val remoteApi: ApiInterface) : ApiInterface by remoteApi {
         includeArchived: Boolean,
         sortNearest: Boolean
     ): Response<GeofenceResponse> {
-        return Response.success(GeofenceResponse(fences, null))
+//        return Response.success(GeofenceResponse(fences, null))
 
-//        return Response.success(
-//            Injector.getMoshi().adapter(GeofenceResponse::class.java)
-//                .fromJson(MockData.MOCK_GEOFENCES_JSON)
-//        )
+        return Response.success(
+            Injector.getMoshi().adapter(GeofenceResponse::class.java)
+                .fromJson(MockData.MOCK_GEOFENCES_JSON)
+        )
 
 //        val page = try {
 //            paginationToken?.toInt() ?: 0

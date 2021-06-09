@@ -1,9 +1,11 @@
 package com.hypertrack.android.ui.screens.visits_management.tabs.places
 
 import android.location.Address
+import android.util.Log
 import android.view.View
 import com.hypertrack.android.api.Geofence
 import com.hypertrack.android.models.Location
+import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.ui.base.BaseAdapter
 import com.hypertrack.android.ui.common.*
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
@@ -58,8 +60,7 @@ class PlacesAdapter(
                         } $timesString"
                             .toView(containerView.tvVisited)
 
-                        item.geofence.marker!!.markers.sortedByDescending { it.arrival?.recordedAt }
-                            .firstOrNull()?.arrival?.recordedAt?.formatDateTime()
+                        item.geofence.lastVisit?.arrival?.recordedAt?.formatDateTime()
                             ?.let {
                                 MyApplication.context.getString(
                                     R.string.places_last_visit,
@@ -73,39 +74,16 @@ class PlacesAdapter(
                     }
                 }
 
-                var placeAddress: Address? = null
-
-                val name = (item.geofence.name
-                    ?: item.geofence.address?.street
-                    ?: osUtilsProvider.getPlaceFromCoordinates(
-                        item.geofence.latitude,
-                        item.geofence.longitude
-                    )?.let {
-                        placeAddress = it
-                        it.toShortAddressString()
-                    }
-                    ?: item.geofence.metadataAddress
-                    ?: item.geofence.created_at.let {
-                        ZonedDateTime.parse(it).formatDateTime()
-                    })
+                val name = item.geofence.name
+                    ?: item.geofence.shortAddress
+                    ?: osUtilsProvider.stringFromResource(
+                        R.string.places_created,
+                        item.geofence.createdAt.formatDateTime()
+                    )
                 name.toView(containerView.tvTitle)
 
-                val address =
-                    item.geofence.metadataAddress
-                        ?: item.geofence.address?.let {
-                            "${it.city}, ${it.street}"
-                        }
-                        ?: (placeAddress ?: osUtilsProvider.getPlaceFromCoordinates(
-                            item.geofence.geometry.latitude,
-                            item.geofence.geometry.longitude,
-                        ))?.let {
-                            if (it.thoroughfare == null) {
-                                it.toShortAddressString()
-                            } else {
-                                null
-                            }
-                        }
-                        ?: "${item.geofence.geometry.latitude} ${item.geofence.geometry.longitude}"
+                val address = item.geofence.shortAddress
+                    ?: osUtilsProvider.stringFromResource(R.string.places_no_address)
                 address.toView(containerView.tvAddress)
 
                 containerView.tvDistance.setGoneState(location == null)
@@ -121,5 +99,5 @@ class PlacesAdapter(
 }
 
 class PlaceItem(
-    val geofence: Geofence
+    val geofence: LocalGeofence
 )

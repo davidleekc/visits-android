@@ -221,6 +221,7 @@ data class Geofence(
     @field:Json(name = "radius") val radius: Int?,
     @field:Json(name = "archived") val archived: Boolean?,
 ) : VisitDataSource {
+
     override val latitude: Double
         get() = geometry.latitude
     override val longitude: Double
@@ -244,57 +245,6 @@ data class Geofence(
     val type: String
         get() = geometry.type
 
-    val fullAddress: String?
-        get() = address?.let { "${it.city}, ${it.street}" }
-
-    val metadataAddress: String?
-        get() = metadata?.get("address").let {
-            if (it is String) {
-                if (it.isNotBlank()) {
-                    return@let it
-                }
-            }
-            null
-        }
-
-    val latLng: LatLng
-        get() = LatLng(latitude, longitude)
-
-    val location: Location
-        get() = Location(
-            latitude = latitude,
-            longitude = longitude
-        )
-
-    val name: String?
-        get() = metadata?.get("name").let {
-            if (it is String) it else null
-        }
-
-    val visitsCount: Int by lazy {
-        marker?.markers?.count() ?: 0
-    }
-
-    val lastVisit: String? by lazy {
-        marker?.markers?.sortedByDescending {
-            it.arrival?.recordedAt
-        }?.firstOrNull()?.arrival?.recordedAt
-    }
-
-    //todo move deserialization somewhere else
-    private fun getGeofenceMetadata(moshi: Moshi): GeofenceMetadata? {
-        return try {
-            moshi.adapter(GeofenceMetadata::class.java)
-                .fromJsonValue(metadata)
-        } catch (_: Exception) {
-            //todo
-            null
-        }
-    }
-
-    fun getIntegration(moshi: Moshi): Integration? {
-        return getGeofenceMetadata(moshi)?.integration
-    }
 }
 
 class Point(
