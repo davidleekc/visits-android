@@ -1,6 +1,9 @@
 package com.hypertrack.android.repository
 
+import android.util.Log
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.google.android.gms.maps.model.LatLng
 import com.hypertrack.android.api.ApiClient
 import com.hypertrack.android.api.Geofence
 import com.hypertrack.android.api.GeofenceProperties
@@ -18,9 +21,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import retrofit2.HttpException
 
 interface PlacesRepository {
-    fun refresh()
     suspend fun loadPage(pageToken: String?): GeofencesPage
-    fun getGeofence(geofenceId: String): LocalGeofence
     suspend fun createGeofence(
         latitude: Double,
         longitude: Double,
@@ -33,31 +34,17 @@ interface PlacesRepository {
 
 class PlacesRepositoryImpl(
     private val apiClient: ApiClient,
-    private val integrationsRepository: IntegrationsRepository,
     private val moshi: Moshi,
     private val osUtilsProvider: OsUtilsProvider
 ) : PlacesRepository {
 
-    private val geofencesCache = mutableMapOf<String, Geofence>()
-
-    override fun refresh() {
-        integrationsRepository.invalidateCache()
-    }
-
     override suspend fun loadPage(pageToken: String?): GeofencesPage {
         val res = apiClient.getGeofences(pageToken)
-        res.geofences.forEach { geofencesCache.put(it.geofence_id, it) }
+        val localGeofences =
+            res.geofences.map { LocalGeofence.fromGeofence(it, moshi, osUtilsProvider) }
         return GeofencesPage(
-            res.geofences.map { LocalGeofence.fromGeofence(it, moshi, osUtilsProvider) },
+            localGeofences,
             res.paginationToken
-        )
-    }
-
-    override fun getGeofence(geofenceId: String): LocalGeofence {
-        return LocalGeofence.fromGeofence(
-            geofencesCache.getValue(geofenceId),
-            moshi,
-            osUtilsProvider
         )
     }
 
@@ -87,6 +74,7 @@ class PlacesRepositoryImpl(
             return CreateGeofenceError(e)
         }
     }
+
 }
 
 class GeofencesPage(

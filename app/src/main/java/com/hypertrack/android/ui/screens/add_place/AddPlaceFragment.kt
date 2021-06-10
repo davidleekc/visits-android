@@ -20,7 +20,6 @@ open class AddPlaceFragment : SelectDestinationFragment() {
         MyApplication.injector.provideUserScopeViewModelFactory()
     }
 
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 

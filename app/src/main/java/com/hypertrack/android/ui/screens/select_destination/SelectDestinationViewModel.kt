@@ -81,7 +81,7 @@ open class SelectDestinationViewModel(
 
 
     @SuppressLint("MissingPermission")
-    fun onMapReady(googleMap: GoogleMap) {
+    open fun onMapReady(googleMap: GoogleMap) {
         map.postValue(googleMap)
         try {
             googleMap.isMyLocationEnabled = true

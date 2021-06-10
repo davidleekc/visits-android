@@ -179,8 +179,8 @@ object Injector {
             )
             val scope = CoroutineScope(Dispatchers.IO)
             val placesRepository = getPlacesRepository()
-            val placesInteractor = PlacesInteractor(placesRepository)
             val integrationsRepository = getIntegrationsRepository()
+            val placesInteractor = PlacesInteractor(placesRepository, integrationsRepository)
             val hyperTrackService = getHyperTrackService(context)
             val photoUploadInteractor = PhotoUploadInteractorImpl(
                 getVisitsRepo(context),
@@ -237,7 +237,7 @@ object Injector {
                 UserScopeViewModelFactory(
                     getVisitsRepo(context),
                     tripsInteractor,
-                    placesRepository,
+                    placesInteractor,
                     integrationsRepository,
                     historyRepository,
                     driverRepository,
@@ -281,7 +281,6 @@ object Injector {
     private fun getPlacesRepository(): PlacesRepository {
         return PlacesRepositoryImpl(
             getVisitsApiClient(MyApplication.context),
-            getIntegrationsRepository(),
             getMoshi(),
             getOsUtilsProvider(MyApplication.context)
         )

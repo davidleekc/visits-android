@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.hypertrack.android.api.ApiClient
 import com.hypertrack.android.interactors.PermissionsInteractor
+import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.interactors.TripsInteractor
 import com.hypertrack.android.repository.*
 import com.hypertrack.android.ui.screens.add_integration.AddIntegrationViewModel
@@ -28,7 +29,7 @@ import com.hypertrack.android.view_models.HistoryViewModel
 class UserScopeViewModelFactory(
     private val visitsRepository: VisitsRepository,
     private val tripsInteractor: TripsInteractor,
-    private val placesRepository: PlacesRepository,
+    private val placesInteractor: PlacesInteractor,
     private val integrationsRepository: IntegrationsRepository,
     private val historyRepository: HistoryRepository,
     private val driverRepository: DriverRepository,
@@ -56,7 +57,8 @@ class UserScopeViewModelFactory(
             AddPlaceViewModel::class.java -> AddPlaceViewModel(
                 osUtilsProvider,
                 placesClient,
-                deviceLocationProvider
+                deviceLocationProvider,
+                placesInteractor
             ) as T
             SelectDestinationViewModel::class.java -> SelectDestinationViewModel(
                 osUtilsProvider,
@@ -64,7 +66,7 @@ class UserScopeViewModelFactory(
                 deviceLocationProvider
             ) as T
             PlacesViewModel::class.java -> PlacesViewModel(
-                placesRepository,
+                placesInteractor,
                 osUtilsProvider,
                 deviceLocationProvider,
                 timeLengthFormatter

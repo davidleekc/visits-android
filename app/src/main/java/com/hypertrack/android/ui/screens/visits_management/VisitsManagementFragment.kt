@@ -43,7 +43,8 @@ class VisitsManagementFragment : ProgressDialogFragment(R.layout.fragment_visits
     private val args: VisitsManagementFragmentArgs by navArgs()
 
     private val tabsMap = mapOf(
-        Tab.MAP to CurrentTripFragment(),
+        Tab.MAP to Injector.getCustomFragmentFactory(MyApplication.context)
+            .instantiate(ClassLoader.getSystemClassLoader(), LiveMapFragment::class.java.name),
         Tab.HISTORY to MapViewFragment(),
         Tab.ORDERS to OrdersFragment.newInstance(),
         Tab.VISITS to VisitsListFragment.newInstance(),

@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.hypertrack.android.api.ApiClient
 import com.hypertrack.android.api.Geofence
 import com.hypertrack.android.api.GeofenceMarker
+import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.repository.PlacesRepository
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.Consumable
@@ -24,7 +25,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 class PlacesViewModel(
-    private val placesRepository: PlacesRepository,
+    private val placesInteractor: PlacesInteractor,
     private val osUtilsProvider: OsUtilsProvider,
     private val locationProvider: DeviceLocationProvider,
     private val timeDistanceFormatter: TimeDistanceFormatter,
@@ -42,7 +43,7 @@ class PlacesViewModel(
         updateJob?.cancel()
         loadingStateBase.value = false
         loadingStateBase.postValue(false)
-        placesRepository.refresh()
+        placesInteractor.refresh()
         onLoadMore()
     }
 
@@ -75,7 +76,7 @@ class PlacesViewModel(
                     if (nextPageToken != null || placesPage.value == null) {
 //                        Log.v("hypertrack-verbose", "** loading ${nextPageToken.hashCode()}")
                         loadingStateBase.postValue(true)
-                        val res = placesRepository.loadPage(nextPageToken)
+                        val res = placesInteractor.loadPage(nextPageToken)
                         nextPageToken = res.paginationToken
 //                        Log.v("hypertrack-verbose", "nextPageToken = ${nextPageToken.hashCode()}")
                         placesPage.postValue(Consumable(res.geofences.map { PlaceItem(it) }))
