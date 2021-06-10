@@ -180,7 +180,11 @@ object Injector {
             val scope = CoroutineScope(Dispatchers.IO)
             val placesRepository = getPlacesRepository()
             val integrationsRepository = getIntegrationsRepository()
-            val placesInteractor = PlacesInteractor(placesRepository, integrationsRepository)
+            val placesInteractor = PlacesInteractorImpl(
+                placesRepository,
+                integrationsRepository,
+                GlobalScope
+            )
             val hyperTrackService = getHyperTrackService(context)
             val photoUploadInteractor = PhotoUploadInteractorImpl(
                 getVisitsRepo(context),

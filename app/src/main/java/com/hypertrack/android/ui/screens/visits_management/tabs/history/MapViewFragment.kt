@@ -56,7 +56,7 @@ class MapViewFragment : Fragment(R.layout.fragment_tab_map_webview) {
                 viewLifecycleOwner.lifecycleScope.launch {
                     map.showHistory(history)
                     displayLoadingState(false)
-                    mapLoaderCanvas.visibility = View.GONE
+                    mapLoaderCanvas?.visibility = View.GONE
                     state = LoadingProgressState.DONE
                 }
             }

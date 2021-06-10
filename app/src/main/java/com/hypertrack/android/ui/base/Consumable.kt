@@ -2,11 +2,14 @@ package com.hypertrack.android.ui.base
 
 class Consumable<T>(
     val payload: T,
-    private var consumed: Boolean = false
+    private var _consumed: Boolean = false
 ) {
+    val consumed: Boolean
+        get() = _consumed
+
     fun consume(c: (payload: T) -> Unit) {
         if (!consumed) {
-            consumed = true
+            _consumed = true
             c.invoke(payload)
         }
     }

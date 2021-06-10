@@ -75,7 +75,7 @@ class PlacesFragment : ProgressDialogFragment(R.layout.fragment_places) {
             vm.onAddPlaceClicked()
         }
 
-        vm.refresh()
+        vm.init()
     }
 
     companion object {

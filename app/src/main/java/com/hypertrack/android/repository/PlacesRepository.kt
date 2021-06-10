@@ -3,6 +3,7 @@ package com.hypertrack.android.repository
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.fonfon.kgeohash.GeoHash
 import com.google.android.gms.maps.model.LatLng
 import com.hypertrack.android.api.ApiClient
 import com.hypertrack.android.api.Geofence
@@ -21,7 +22,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import retrofit2.HttpException
 
 interface PlacesRepository {
-    suspend fun loadPage(pageToken: String?): GeofencesPage
+    suspend fun loadPage(pageToken: String?, gh: GeoHash? = null): GeofencesPage
     suspend fun createGeofence(
         latitude: Double,
         longitude: Double,
@@ -38,7 +39,7 @@ class PlacesRepositoryImpl(
     private val osUtilsProvider: OsUtilsProvider
 ) : PlacesRepository {
 
-    override suspend fun loadPage(pageToken: String?): GeofencesPage {
+    override suspend fun loadPage(pageToken: String?, gh: GeoHash?): GeofencesPage {
         val res = apiClient.getGeofences(pageToken)
         val localGeofences =
             res.geofences.map { LocalGeofence.fromGeofence(it, moshi, osUtilsProvider) }
@@ -66,7 +67,13 @@ class PlacesRepositoryImpl(
                 )
             )
             if (res.isSuccessful) {
-                return CreateGeofenceSuccess
+                return CreateGeofenceSuccess(
+                    LocalGeofence.fromGeofence(
+                        res.body()!!.first(),
+                        moshi,
+                        osUtilsProvider
+                    )
+                )
             } else {
                 return CreateGeofenceError(HttpException(res))
             }
@@ -83,5 +90,5 @@ class GeofencesPage(
 )
 
 sealed class CreateGeofenceResult
-object CreateGeofenceSuccess : CreateGeofenceResult()
+class CreateGeofenceSuccess(val geofence: LocalGeofence) : CreateGeofenceResult()
 class CreateGeofenceError(val e: Exception) : CreateGeofenceResult()
