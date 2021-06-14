@@ -2,6 +2,7 @@ package com.hypertrack.android.ui.screens.add_place
 
 import android.os.Bundle
 import android.text.Editable
+import android.util.Log
 import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -12,7 +13,7 @@ import com.hypertrack.android.ui.common.Utils.isDoneAction
 import com.hypertrack.android.ui.screens.select_destination.SelectDestinationFragment
 import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.logistics.android.github.R
-import kotlinx.android.synthetic.main.fragment_add_place.*
+import kotlinx.android.synthetic.main.fragment_select_destination.*
 
 open class AddPlaceFragment : SelectDestinationFragment() {
 
@@ -24,6 +25,16 @@ open class AddPlaceFragment : SelectDestinationFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         toolbar.title = getString(R.string.add_place)
+
+        vm.loadingStateBase.observe(viewLifecycleOwner, {
+            progressbar.setGoneState(!it)
+        })
+
+        vm.errorBase.observe(viewLifecycleOwner, {
+            it.consume {
+                SnackbarUtil.showErrorSnackbar(view, it)
+            }
+        })
     }
 
 }

@@ -12,10 +12,11 @@ import com.hypertrack.android.ui.common.Utils.isDoneAction
 import com.hypertrack.android.ui.screens.visits_management.tabs.current_trip.CurrentTripFragment
 import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.logistics.android.github.R
-import kotlinx.android.synthetic.main.fragment_add_place.*
+import kotlinx.android.synthetic.main.fragment_select_destination.*
 
 //todo merge with add place
-open class SelectDestinationFragment : ProgressDialogFragment(R.layout.fragment_add_place) {
+open class SelectDestinationFragment :
+    ProgressDialogFragment(R.layout.fragment_select_destination) {
 
     protected open val vm: SelectDestinationViewModel by viewModels {
         MyApplication.injector.provideUserScopeViewModelFactory()
@@ -75,10 +76,6 @@ open class SelectDestinationFragment : ProgressDialogFragment(R.layout.fragment_
             search.setSelection(search.textString().length)
             watcher.disabled = false
             Utils.hideKeyboard(mainActivity())
-        })
-
-        vm.loadingState.observe(viewLifecycleOwner, {
-            if (it) showProgress() else dismissProgress()
         })
 
         vm.destination.observe(viewLifecycleOwner, {

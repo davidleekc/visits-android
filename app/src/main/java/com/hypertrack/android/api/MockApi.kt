@@ -4,8 +4,11 @@ import android.util.Log
 import com.hypertrack.android.utils.Injector
 import com.hypertrack.android.utils.MockData
 import com.hypertrack.android.utils.MyApplication
+import kotlinx.coroutines.delay
 import retrofit2.Response
 import retrofit2.http.Query
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 @Suppress("BlockingMethodInNonBlockingContext")
 class MockApi(val remoteApi: ApiInterface) : ApiInterface by remoteApi {
@@ -38,9 +41,20 @@ class MockApi(val remoteApi: ApiInterface) : ApiInterface by remoteApi {
         includeArchived: Boolean,
         sortNearest: Boolean
     ): Response<GeofenceResponse> {
+//        return Response.success(
+//            Injector.getMoshi().adapter(GeofenceResponse::class.java)
+//                .fromJson(MockData.MOCK_GEOFENCES_JSON)
+//        )
+
+        delay((1000 + Math.random() * 2000).toLong())
+
         return Response.success(
-            Injector.getMoshi().adapter(GeofenceResponse::class.java)
-                .fromJson(MockData.MOCK_GEOFENCES_JSON)
+            GeofenceResponse(
+                (0..10).map {
+                    generateGeofence(0)
+                },
+                null
+            )
         )
     }
 
@@ -66,23 +80,7 @@ class MockApi(val remoteApi: ApiInterface) : ApiInterface by remoteApi {
 //        return Response.success(
 //            GeofenceResponse(
 //                (0..10).map {
-//                    Geofence(
-//                        "",
-//                        "",
-//                        mapOf("name" to page.toString()),
-//                        """
-//                {
-//                "type":"Point",
-//                "coordinates": [122.395223, 37.794763]
-//            }
-//            """.let {
-//                            Injector.getMoshi().adapter(Geometry::class.java).fromJson(it)!!
-//                        },
-//                        null,
-//                        100,
-//                        false,
-//                    )
-//                }, if (page < 5) {
+//                    generateGeofence(page), if (page < 5) {
 //                    (page + 1).toString()
 //                } else {
 //                    null
@@ -104,6 +102,30 @@ class MockApi(val remoteApi: ApiInterface) : ApiInterface by remoteApi {
                         it
                     }
                 }
+        )
+    }
+
+    private fun generateGeofence(
+        page: Int,
+        lat: Double = 122.395223,
+        lon: Double = 37.794763
+    ): Geofence {
+        return Geofence(
+            "",
+            "",
+            ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT),
+            mapOf("name" to page.toString()),
+            """
+                {
+                "type":"Point",
+                "coordinates": [$lat, $lon]
+            }
+            """.let {
+                Injector.getMoshi().adapter(Geometry::class.java).fromJson(it)!!
+            },
+            null,
+            100,
+            false,
         )
     }
 }

@@ -31,7 +31,6 @@ open class SelectDestinationViewModel(
     private var programmaticCameraMove: Boolean = false
     private val currentLocation = MutableLiveData<Location>()
     val places = MutableLiveData<List<GooglePlaceModel>>()
-    val loadingState = MutableLiveData<Boolean>(false)
     val map = MutableLiveData<GoogleMap>()
     val searchText = MutableLiveData<String>()
     val error = SingleLiveEvent<String>()
@@ -88,6 +87,9 @@ open class SelectDestinationViewModel(
         } catch (_: Exception) {
         }
         googleMap.setOnCameraIdleListener {
+            map.value?.let {
+                onCameraMoved(it)
+            }
             if (/*!firstLaunch &&*/ !programmaticCameraMove) {
                 map.value?.cameraPosition?.target?.let {
                     currentPlace = null
@@ -174,6 +176,8 @@ open class SelectDestinationViewModel(
     protected open fun proceed(latLng: LatLng, address: String?) {
         goBackEvent.postValue(address.toString())
     }
+
+    protected open fun onCameraMoved(map: GoogleMap) {}
 
     private fun moveMapCamera(latitude: Double, longitude: Double) {
         programmaticCameraMove = true

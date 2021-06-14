@@ -1,5 +1,6 @@
 package com.hypertrack.android.ui.base
 
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavDirections
 import com.hypertrack.android.utils.OsUtilsProvider
@@ -11,7 +12,7 @@ open class BaseViewModel : ViewModel() {
     val popBackStack = SingleLiveEvent<Boolean>()
 
     //todo remove loadingState form children and rename to loadingState
-    val loadingStateBase = SingleLiveEvent<Boolean>()
-    val errorBase = SingleLiveEvent<Consumable<String>>()
+    open val loadingStateBase = MutableLiveData<Boolean>()
+    open val errorBase = MutableLiveData<Consumable<String>>()
 
 }

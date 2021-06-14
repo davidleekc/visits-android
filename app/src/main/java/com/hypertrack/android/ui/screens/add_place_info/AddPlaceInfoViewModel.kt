@@ -110,7 +110,7 @@ class AddPlaceInfoViewModel(
                 )
                 loadingState.postValue(false)
                 when (res) {
-                    CreateGeofenceSuccess -> {
+                    is CreateGeofenceSuccess -> {
                         destination.postValue(
                             AddPlaceFragmentDirections.actionGlobalVisitManagementFragment(
                                 Tab.PLACES

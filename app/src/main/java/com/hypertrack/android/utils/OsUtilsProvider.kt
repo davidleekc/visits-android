@@ -24,6 +24,7 @@ import com.hypertrack.android.decodeBase64Bitmap
 import com.hypertrack.android.models.Address
 import com.hypertrack.android.toBase64
 import com.hypertrack.android.ui.base.Consumable
+import com.hypertrack.logistics.android.github.BuildConfig
 import com.hypertrack.logistics.android.github.R
 import java.io.File
 import java.io.IOException
@@ -195,6 +196,9 @@ class OsUtilsProvider(private val context: Context, private val crashReportsProv
     }
 
     fun getErrorMessage(e: Exception): String {
+        if (BuildConfig.DEBUG) {
+            e.printStackTrace()
+        }
         return when (e) {
             else -> e.message ?: R.string.unknown_error.stringFromResource()
         }
