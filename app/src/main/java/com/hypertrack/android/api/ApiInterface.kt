@@ -47,6 +47,7 @@ interface ApiInterface {
     @GET("client/devices/{device_id}/geofences")
     suspend fun getDeviceGeofences(
         @Path("device_id") deviceId: String,
+        @Query("geohash") geohash: String? = null,
         @Query("pagination_token") paginationToken: String? = null,
         @Query("include_archived") includeArchived: Boolean = false,
         @Query("sort_nearest") sortNearest: Boolean = true,

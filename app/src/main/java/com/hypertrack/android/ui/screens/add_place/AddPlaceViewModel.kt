@@ -102,11 +102,18 @@ class AddPlaceViewModel(
 
             if (BuildConfig.DEBUG) {
                 placesInteractor.geoCache.getItems().forEach {
+                    val text = it.second.let { item ->
+                        if (!item.isLoading()) {
+                            "loaded"
+                        } else {
+                            item.paginator?.pageToken ?: "loading"
+                        }
+                    }
                     googleMap.addMarker(
                         MarkerOptions().anchor(0.5f, 0.5f).position(
                             it.first.toLocation().toLatLng()
                         )
-                            .icon(createPureTextIcon("${it.second.isLoading()}"))
+                            .icon(createPureTextIcon(text))
                     )
 
                     it.first.boundingBox

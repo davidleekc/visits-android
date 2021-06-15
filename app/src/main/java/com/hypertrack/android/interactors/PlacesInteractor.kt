@@ -49,6 +49,7 @@ class PlacesInteractorImpl(
     //todo task check oom
     override val geofences: MutableLiveData<Map<String, LocalGeofence>> =
         MutableLiveData<Map<String, LocalGeofence>>(mapOf())
+    private val geofencesMutex = Mutex()
     private val pageCache = mutableMapOf<String?, List<LocalGeofence>>()
     val geoCache = GeoCache()
 
@@ -144,12 +145,14 @@ class PlacesInteractorImpl(
         }
     }
 
-    private fun addGeofencesToCache(newPack: List<LocalGeofence>) {
-        geofences.postValue(geofences.value!!.toMutableMap().apply {
-            newPack.forEach {
-                put(it.id, it)
-            }
-        })
+    private suspend fun addGeofencesToCache(newPack: List<LocalGeofence>) {
+        geofencesMutex.withLock {
+            geofences.postValue(geofences.value!!.toMutableMap().apply {
+                newPack.forEach {
+                    put(it.id, it)
+                }
+            })
+        }
     }
 
     inner class GeoCache {
@@ -192,6 +195,7 @@ class PlacesInteractorImpl(
         val gh: GeoHash
     ) {
         val job: Job
+        var paginator: Paginator<List<LocalGeofence>>? = null
 
         private var loaded: Boolean = false
 
@@ -199,12 +203,28 @@ class PlacesInteractorImpl(
             job = globalScope.launch {
                 try {
                     Log.v("hypertrack-verbose", "Loading for ${gh}")
-                    val res = placesRepository.loadPage(null, gh)
-                    addGeofencesToCache(res.geofences)
-                    Log.v(
-                        "hypertrack-verbose",
-                        geoCache.getItems().map { it.second.isLoading() }.toString()
-                    )
+                    paginator = object : Paginator<List<LocalGeofence>>() {
+                        override suspend fun load(pageToken: String?): PageRes<List<LocalGeofence>> {
+                            return placesRepository.loadPage(pageToken, gh).let {
+                                PageRes(it.geofences, it.paginationToken)
+                            }
+                        }
+
+                        override suspend fun onLoaded(
+                            pageToken: String?,
+                            res: List<LocalGeofence>
+                        ) {
+                            Log.v("hypertrack-verbose", "page $pageToken for ${gh}")
+                            addGeofencesToCache(res)
+                        }
+                    }.apply {
+                        start()
+                    }
+
+//                    Log.v(
+//                        "hypertrack-verbose",
+//                        geoCache.getItems().map { it.second.isLoading() }.toString()
+//                    )
                     loaded = true
                     isLoadingForLocation.postValue(geoCache.isLoading())
                     Log.v(
@@ -226,6 +246,26 @@ class PlacesInteractorImpl(
 
 }
 
+abstract class Paginator<T> {
+    var pageToken: String? = null
+
+    suspend fun start() {
+        do {
+            val res = load(pageToken)
+            onLoaded(pageToken, res.res)
+            pageToken = res.pageToken
+        } while (pageToken != null)
+    }
+
+    abstract suspend fun load(pageToken: String?): PageRes<T>
+
+    abstract suspend fun onLoaded(pageToken: String?, res: T)
+
+    inner class PageRes<R>(
+        val res: R,
+        val pageToken: String?
+    )
+}
 
 
 

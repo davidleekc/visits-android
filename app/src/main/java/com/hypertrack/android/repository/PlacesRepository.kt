@@ -41,7 +41,7 @@ class PlacesRepositoryImpl(
 
     override suspend fun loadPage(pageToken: String?, gh: GeoHash?): GeofencesPage {
         //todo task geohash
-        val res = apiClient.getGeofences(pageToken)
+        val res = apiClient.getGeofences(pageToken, gh.toString())
         val localGeofences =
             res.geofences.map { LocalGeofence.fromGeofence(it, moshi, osUtilsProvider) }
         return GeofencesPage(
