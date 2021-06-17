@@ -66,6 +66,7 @@ class VisitTest {
             metadata = emptyMap(), destination = TripDestination(
                 null,
                 Point(listOf(42.0, 42.0)),
+                0,
                 arrivedAt = "2020-02-02T20:20:02.020Z"
             ),
             estimate = Estimate("2020-02-02T20:20:02.020Z", null)
@@ -92,6 +93,8 @@ class VisitTest {
             metadata = emptyMap(), destination = TripDestination(
                 null,
                 Point(listOf(42.0, 42.0)),
+                0,
+
                 arrivedAt = "2020-02-02T20:20:02.020Z"
             ),
             estimate = Estimate("2020-02-02T20:20:02.020Z", null)
@@ -120,6 +123,8 @@ class VisitTest {
             metadata = emptyMap(), destination = TripDestination(
                 null,
                 Point(listOf(42.0, 42.0)),
+                0,
+
                 arrivedAt = arrivedAt
             ),
             estimate = Estimate("2020-02-02T20:20:02.020Z", null)
@@ -147,6 +152,8 @@ class VisitTest {
             metadata = emptyMap(), destination = TripDestination(
                 null,
                 Point(listOf(42.0, 42.0)),
+                0,
+
                 arrivedAt = arrivedAt
             ),
             estimate = Estimate("2020-02-02T20:20:02.020Z", null)
@@ -172,6 +179,8 @@ class VisitTest {
             metadata = emptyMap(), destination = TripDestination(
                 null,
                 Point(listOf(42.0, 42.0)),
+                0,
+
                 arrivedAt = arrivedAt
             ),
             estimate = Estimate("2020-02-02T20:20:02.020Z", null)
@@ -197,6 +206,8 @@ class VisitTest {
             metadata = emptyMap(), destination = TripDestination(
                 null,
                 Point(listOf(42.0, 42.0)),
+                0,
+
                 arrivedAt = arrivedAt
             ),
             estimate = Estimate("2020-02-02T20:20:02.020Z", null)

@@ -22,6 +22,7 @@ import io.mockk.*
 import io.mockk.coVerify
 import junit.framework.Assert.*
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.runBlocking
