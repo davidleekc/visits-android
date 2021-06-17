@@ -1,26 +1,28 @@
 package com.hypertrack.android.interactors
 
 import android.util.Log
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.fonfon.kgeohash.GeoHash
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.VisibleRegion
 import com.hypertrack.android.models.Integration
 import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.repository.*
 import com.hypertrack.android.ui.base.Consumable
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 
 interface PlacesInteractor {
     val errorFlow: MutableSharedFlow<Consumable<Exception>>
-    val geofences: MutableLiveData<Map<String, LocalGeofence>>
+    val geofences: LiveData<Map<String, LocalGeofence>>
+    val geofencesDiff: Flow<List<LocalGeofence>>
     val isLoadingForLocation: MutableLiveData<Boolean>
 
-    fun loadGeofencesForMap(center: LatLng, region: VisibleRegion)
+    fun loadGeofencesForMap(center: LatLng)
     fun getGeofence(geofenceId: String): LocalGeofence
     fun invalidateCache()
     suspend fun createGeofence(
@@ -46,12 +48,17 @@ class PlacesInteractorImpl(
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
 
-    //todo task check oom
-    override val geofences: MutableLiveData<Map<String, LocalGeofence>> =
-        MutableLiveData<Map<String, LocalGeofence>>(mapOf())
-    private val geofencesMutex = Mutex()
+    private val _geofences = mutableMapOf<String, LocalGeofence>()
+    override val geofences = MutableLiveData<Map<String, LocalGeofence>>(mapOf())
+    override val geofencesDiff = MutableSharedFlow<List<LocalGeofence>>(
+        replay = Int.MAX_VALUE,
+        onBufferOverflow = BufferOverflow.SUSPEND
+    )
     private val pageCache = mutableMapOf<String?, List<LocalGeofence>>()
-    val geoCache = GeoCache()
+    private val geoCache = GeoCache()
+    private val mutex = Mutex()
+
+    val debugCacheState = MutableLiveData<List<GeoCacheItem>>()
 
     override val isLoadingForLocation = MutableLiveData<Boolean>(false)
     private var firstPageJob: Deferred<GeofencesPage>? = null
@@ -66,12 +73,11 @@ class PlacesInteractorImpl(
         return loadPlacesPage(pageToken, false)
     }
 
-    override fun loadGeofencesForMap(center: LatLng, region: VisibleRegion) {
-        //todo task pagination
-        globalScope.launch {
-            val gh = GeoHash(center.latitude, center.longitude, 5)
+    override fun loadGeofencesForMap(center: LatLng) {
+        val gh = GeoHash(center.latitude, center.longitude, 5)
+        globalScope.launch(Dispatchers.Main) {
             loadRegion(gh)
-//            gh.adjacent.forEach { loadRegion(it) }
+            gh.adjacent.forEach { loadRegion(it) }
         }
     }
 
@@ -83,7 +89,8 @@ class PlacesInteractorImpl(
         firstPageJob?.cancel()
         firstPageJob = null
         integrationsRepository.invalidateCache()
-        geofences.postValue(mapOf())
+        _geofences.clear()
+        geofences.postValue(_geofences)
         pageCache.clear()
         geoCache.clear()
     }
@@ -135,60 +142,52 @@ class PlacesInteractorImpl(
         }
     }
 
-    private suspend fun loadRegion(gh: GeoHash) {
+    private fun loadRegion(gh: GeoHash) {
         //todo retry on error
         if (!geoCache.contains(gh)) {
             isLoadingForLocation.postValue(true)
-            globalScope.launch {
-                geoCache.add(gh)
-            }
+            geoCache.add(gh)
         }
     }
 
-    private suspend fun addGeofencesToCache(newPack: List<LocalGeofence>) {
-        geofencesMutex.withLock {
-            geofences.postValue(geofences.value!!.toMutableMap().apply {
-                newPack.forEach {
-                    put(it.id, it)
-                }
-            })
+    private fun addGeofencesToCache(newPack: List<LocalGeofence>) {
+        newPack.forEach {
+            _geofences.put(it.id, it)
         }
+        geofences.postValue(_geofences)
+        updateDebugCacheState()
+        globalScope.launch {
+            geofencesDiff.emit(newPack)
+        }
+    }
+
+    private fun updateDebugCacheState() {
+        debugCacheState.postValue(geoCache.getItems().values.toList())
     }
 
     inner class GeoCache {
         private val items = mutableMapOf<GeoHash, GeoCacheItem>()
-        private val mutex = Mutex()
 
-        suspend fun getItems() = mutex.withLock {
-            items.map { Pair<GeoHash, GeoCacheItem>(it.key, it.value) }
-        }
+        fun getItems(): Map<GeoHash, GeoCacheItem> = items
 
         fun clear() {
-            globalScope.launch {
-                mutex.withLock {
-                    items.forEach { it.value.job.cancel() }
-                    items.clear()
-                }
-            }
+            items.forEach { it.value.job.cancel() }
+            items.clear()
         }
 
-        suspend fun contains(gh: GeoHash): Boolean {
-            mutex.withLock {
-                return items.contains(gh)
-            }
+        fun contains(gh: GeoHash): Boolean {
+            return items.contains(gh)
         }
 
-        suspend fun add(gh: GeoHash) {
-            mutex.withLock {
-                items.put(gh, GeoCacheItem(gh))
-            }
+        fun add(gh: GeoHash) {
+            items[gh] = GeoCacheItem(gh)
+            updateDebugCacheState()
         }
 
-        suspend fun isLoading(): Boolean {
-            mutex.withLock {
-                return items.values.any { it.isLoading() }
-            }
+        fun isLoading(): Boolean {
+            return items.values.any { it.status == Status.LOADING }
         }
+
     }
 
     inner class GeoCacheItem(
@@ -197,12 +196,12 @@ class PlacesInteractorImpl(
         val job: Job
         var paginator: Paginator<List<LocalGeofence>>? = null
 
-        private var loaded: Boolean = false
+        var status: Status = Status.LOADING
 
         init {
-            job = globalScope.launch {
+            job = globalScope.launch(Dispatchers.Main) {
                 try {
-                    Log.v("hypertrack-verbose", "Loading for ${gh}")
+//                    Log.v("hypertrack-verbose", "Loading for ${gh}")
                     paginator = object : Paginator<List<LocalGeofence>>() {
                         override suspend fun load(pageToken: String?): PageRes<List<LocalGeofence>> {
                             return placesRepository.loadPage(pageToken, gh).let {
@@ -210,11 +209,11 @@ class PlacesInteractorImpl(
                             }
                         }
 
-                        override suspend fun onLoaded(
+                        override fun onLoaded(
                             pageToken: String?,
                             res: List<LocalGeofence>
                         ) {
-                            Log.v("hypertrack-verbose", "page $pageToken for ${gh}")
+//                            Log.v("hypertrack-verbose", "page $pageToken for ${gh}")
                             addGeofencesToCache(res)
                         }
                     }.apply {
@@ -225,13 +224,14 @@ class PlacesInteractorImpl(
 //                        "hypertrack-verbose",
 //                        geoCache.getItems().map { it.second.isLoading() }.toString()
 //                    )
-                    loaded = true
+                    status = Status.COMPLETED
                     isLoadingForLocation.postValue(geoCache.isLoading())
                     Log.v(
                         "hypertrack-verbose",
                         "${gh}: loaded"
                     )
                 } catch (e: Exception) {
+                    status = Status.ERROR
 //                    loadingGeohashes.remove(gh)
                     isLoadingForLocation.postValue(geoCache.isLoading())
                     errorFlow.emit(Consumable(e))
@@ -239,9 +239,10 @@ class PlacesInteractorImpl(
             }
         }
 
-        fun isLoading(): Boolean {
-            return !loaded
-        }
+    }
+
+    enum class Status {
+        COMPLETED, LOADING, ERROR
     }
 
 }
@@ -259,7 +260,7 @@ abstract class Paginator<T> {
 
     abstract suspend fun load(pageToken: String?): PageRes<T>
 
-    abstract suspend fun onLoaded(pageToken: String?, res: T)
+    abstract fun onLoaded(pageToken: String?, res: T)
 
     inner class PageRes<R>(
         val res: R,

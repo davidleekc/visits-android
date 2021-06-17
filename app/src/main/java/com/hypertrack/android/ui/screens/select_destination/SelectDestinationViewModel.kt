@@ -1,6 +1,7 @@
 package com.hypertrack.android.ui.screens.select_destination
 
 import android.annotation.SuppressLint
+import android.content.Context
 import androidx.lifecycle.MutableLiveData
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -80,7 +81,7 @@ open class SelectDestinationViewModel(
 
 
     @SuppressLint("MissingPermission")
-    open fun onMapReady(googleMap: GoogleMap) {
+    open fun onMapReady(context: Context, googleMap: GoogleMap) {
         map.postValue(googleMap)
         try {
             googleMap.isMyLocationEnabled = true

@@ -29,7 +29,7 @@ open class SelectDestinationFragment :
         super.onViewCreated(view, savedInstanceState)
 
         (childFragmentManager.findFragmentById(R.id.mapView) as SupportMapFragment?)?.getMapAsync {
-            vm.onMapReady(it)
+            vm.onMapReady(requireContext(), it)
         }
 
         toolbar.title = getString(R.string.select_destination)

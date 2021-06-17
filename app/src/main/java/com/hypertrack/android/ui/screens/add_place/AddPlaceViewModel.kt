@@ -1,25 +1,31 @@
 package com.hypertrack.android.ui.screens.add_place
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.location.Location
+import android.util.Log
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.*
 import com.google.android.libraries.places.api.net.PlacesClient
+import com.google.maps.android.clustering.Cluster
+import com.google.maps.android.clustering.ClusterItem
+import com.google.maps.android.clustering.ClusterManager
+import com.google.maps.android.clustering.view.DefaultClusterRenderer
 import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.interactors.PlacesInteractorImpl
 import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.ui.base.Consumable
+import com.hypertrack.android.ui.common.nullIfEmpty
 import com.hypertrack.android.ui.screens.select_destination.SelectDestinationViewModel
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
 import com.hypertrack.android.utils.OsUtilsProvider
-import com.hypertrack.logistics.android.github.BuildConfig
 import com.hypertrack.logistics.android.github.R
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 
@@ -33,6 +39,7 @@ class AddPlaceViewModel(
     placesClient,
     deviceLocationProvider
 ) {
+    private lateinit var clusterManager: ClusterManager<GeofenceClusterItem>
 
     override val loadingStateBase = placesInteractor.isLoadingForLocation
 
@@ -45,21 +52,30 @@ class AddPlaceViewModel(
     }
 
     init {
-        MediatorLiveData<Pair<GoogleMap?, List<LocalGeofence>?>>().apply {
-            addSource(map) {
-                postValue(Pair(map.value, placesInteractor.geofences.value?.values?.toList()))
+        viewModelScope.launch {
+            placesInteractor.geofencesDiff.collect {
+                map.value?.let { map ->
+                    addGeofencesToMap(map, it)
+                }
             }
-            addSource(placesInteractor.geofences) {
-                postValue(Pair(map.value, placesInteractor.geofences.value?.values?.toList()))
+        }
+
+        (placesInteractor as PlacesInteractorImpl).debugCacheState.observeManaged {
+            map.value?.let {
+//                showMapDebugData()
             }
-        }.observeForever { p ->
-            p.first?.let { p.second?.let { onDisplayGeofencesOnMap(p.first!!, p.second!!) } }
         }
     }
 
     private val icon = BitmapDescriptorFactory.fromBitmap(
         osUtilsProvider.bitmapFormResource(
             R.drawable.ic_ht_departure_active
+        )
+    )
+
+    private val clusterIcon = BitmapDescriptorFactory.fromBitmap(
+        osUtilsProvider.bitmapFormResource(
+            R.drawable.ic_cluster
         )
     )
 
@@ -73,85 +89,108 @@ class AddPlaceViewModel(
         )
     }
 
-    override fun onMapReady(googleMap: GoogleMap) {
-        super.onMapReady(googleMap)
-        googleMap.setOnMarkerClickListener {
-            it.snippet?.let { snippet ->
+
+    override fun onMapReady(context: Context, googleMap: GoogleMap) {
+        super.onMapReady(context, googleMap)
+        clusterManager = ClusterManager<GeofenceClusterItem>(context, googleMap)
+        clusterManager.renderer = object :
+            DefaultClusterRenderer<GeofenceClusterItem>(context, googleMap, clusterManager) {
+            override fun onBeforeClusterItemRendered(
+                item: GeofenceClusterItem,
+                markerOptions: MarkerOptions
+            ) {
+                super.onBeforeClusterItemRendered(item, markerOptions)
+                markerOptions.icon(icon).anchor(0.5f, 0.5f)
+            }
+
+            override fun onBeforeClusterRendered(
+                cluster: Cluster<GeofenceClusterItem>,
+                markerOptions: MarkerOptions
+            ) {
+                super.onBeforeClusterRendered(cluster, markerOptions)
+                markerOptions.icon(clusterIcon)
+            }
+        }.apply {
+            setAnimation(false)
+            minClusterSize = 10
+//            minClusterSize = Int.MAX_VALUE
+        }
+
+        clusterManager.setOnClusterItemClickListener {
+            it.snippet.nullIfEmpty()?.let { snippet ->
                 destination.postValue(
                     AddPlaceFragmentDirections.actionAddPlaceFragmentToPlaceDetailsFragment(
                         snippet
                     )
                 )
-                return@setOnMarkerClickListener true
+                return@setOnClusterItemClickListener true
             }
             false
+        }
+
+        placesInteractor.geofences.value?.let {
+            addGeofencesToMap(googleMap, it.values.toList())
         }
     }
 
     override fun onCameraMoved(map: GoogleMap) {
         val region = map.projection.visibleRegion
-        placesInteractor.loadGeofencesForMap(map.cameraPosition.target, region)
+        placesInteractor.loadGeofencesForMap(map.cameraPosition.target)
+        clusterManager.onCameraIdle()
     }
 
-    private fun onDisplayGeofencesOnMap(googleMap: GoogleMap, geofences: List<LocalGeofence>) {
-        viewModelScope.launch {
-            googleMap.clear()
+    private fun addGeofencesToMap(googleMap: GoogleMap, geofences: List<LocalGeofence>) {
+//            if (BuildConfig.DEBUG) {
+//                googleMap.clear()
+//                showMapDebugData()
+//            }
+//        Log.v("hypertrack-verbose", placesInteractor.geofences.value?.size.toString())
+//        geofences.forEach { googleMap.addMarker(MarkerOptions().position(it.latLng)) }
+
+        clusterManager.addItems(geofences.map { GeofenceClusterItem(it) })
+        clusterManager.cluster()
+    }
 
 
-            val placesInteractor = placesInteractor as PlacesInteractorImpl
+    private fun showMapDebugData() {
+        (placesInteractor as PlacesInteractorImpl).debugCacheState.value?.let { items ->
+            val googleMap = map.value!!
+            items.forEach {
+                val text = it.let { item ->
+                    when (item.status) {
+                        PlacesInteractorImpl.Status.COMPLETED -> "completed"
+                        PlacesInteractorImpl.Status.LOADING -> item.paginator?.pageToken
+                            ?: "loading"
+                        PlacesInteractorImpl.Status.ERROR -> "error"
+                    }
+                }
+                googleMap.addMarker(
+                    MarkerOptions().anchor(0.5f, 0.5f).position(
+                        it.gh.toLocation().toLatLng()
+                    )
+                        .icon(createPureTextIcon(text))
+                )
 
-            if (BuildConfig.DEBUG) {
-                placesInteractor.geoCache.getItems().forEach {
-                    val text = it.second.let { item ->
-                        if (!item.isLoading()) {
-                            "loaded"
-                        } else {
-                            item.paginator?.pageToken ?: "loading"
+                it.gh.boundingBox
+                    .let { bb ->
+                        listOf(
+                            bb.bottomLeft,
+                            bb.bottomRight,
+                            bb.topRight,
+                            bb.topLeft,
+                            bb.bottomLeft
+                        ).map {
+                            it.toLatLng()
                         }
                     }
-                    googleMap.addMarker(
-                        MarkerOptions().anchor(0.5f, 0.5f).position(
-                            it.first.toLocation().toLatLng()
-                        )
-                            .icon(createPureTextIcon(text))
-                    )
-
-                    it.first.boundingBox
-                        .let { bb ->
-                            listOf(
-                                bb.bottomLeft,
-                                bb.bottomRight,
-                                bb.topRight,
-                                bb.topLeft,
-                                bb.bottomLeft
-                            ).map {
-                                it.toLatLng()
-                            }
-                        }
-                        .let {
-                            googleMap.addPolygon(PolygonOptions().addAll(it))
-                        }
-                }
-            }
-
-            geofences.forEach {
-                googleMap.addMarker(
-                    MarkerOptions().anchor(0.5f, 0.5f).icon(icon).position(it.latLng).snippet(it.id)
-                )
-                googleMap.addCircle(
-                    CircleOptions().strokeColor(
-                        osUtilsProvider.colorFromResource(R.color.colorHyperTrackGreenSemitransparent)
-                    ).radius(it.radius?.toDouble() ?: 0.0).center(it.latLng)
-                )
+                    .let {
+                        googleMap.addPolygon(PolygonOptions().strokeWidth(1f).addAll(it))
+                    }
             }
         }
     }
 
-    fun Location.toLatLng(): LatLng {
-        return LatLng(latitude, longitude)
-    }
-
-    fun createPureTextIcon(text: String?): BitmapDescriptor? {
+    private fun createPureTextIcon(text: String?): BitmapDescriptor? {
         val textPaint = Paint().apply {
             textSize = 50f
         } // Adapt to your needs
@@ -162,14 +201,24 @@ class AddPlaceViewModel(
         val image: Bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(image)
         canvas.translate(0f, height.toFloat())
-
-        // For development only:
-        // Set a background in order to see the
-        // full size and positioning of the bitmap.
-        // Remove that for a fully transparent icon.
-        canvas.drawColor(Color.LTGRAY)
+//        canvas.drawColor(Color.LTGRAY)
         canvas.drawText(text ?: "null", 0f, 0f, textPaint)
         return BitmapDescriptorFactory.fromBitmap(image)
+    }
+
+    fun Location.toLatLng(): LatLng {
+        return LatLng(latitude, longitude)
+    }
+
+    class GeofenceClusterItem(
+        private val geofence: LocalGeofence
+    ) : ClusterItem {
+
+        override fun getPosition() = geofence.latLng
+
+        override fun getTitle() = geofence.name
+
+        override fun getSnippet() = geofence.id
     }
 
 }
