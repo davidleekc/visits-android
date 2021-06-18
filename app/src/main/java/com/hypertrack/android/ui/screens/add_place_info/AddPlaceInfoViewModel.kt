@@ -83,7 +83,7 @@ class AddPlaceInfoViewModel(
                 hasIntegrations.postValue(res)
                 loadingState.postValue(false)
             } else {
-                //todo task
+                error.postValue(osUtilsProvider.stringFromResource(R.string.place_integration_error))
                 hasIntegrations.postValue(false)
             }
         }

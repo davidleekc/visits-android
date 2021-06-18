@@ -15,22 +15,6 @@ import org.junit.Test
 @ExperimentalCoroutinesApi
 class PlacesInteractorTest {
 
-    @Test
-    fun `it should load geofences for geohash with pagination`() {
-        val placesInteractor = PlacesInteractorImpl(
-            mockk(relaxed = true),
-            mockk(relaxed = true),
-            TestCoroutineScope(),
-        )
 
-        runBlocking {
-            placesInteractor.loadGeofencesForMap(LatLng(0.0, 0.0))
-        }
-
-        runBlocking {
-            assertEquals(10, placesInteractor.geofences.observeAndGetValue().size)
-        }
-
-    }
 
 }

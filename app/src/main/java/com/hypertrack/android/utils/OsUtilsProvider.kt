@@ -200,13 +200,19 @@ class OsUtilsProvider(private val context: Context, private val crashReportsProv
             e.printStackTrace()
         }
         return when (e) {
-            else -> e.message ?: R.string.unknown_error.stringFromResource()
+            else -> {
+                e.format()
+            }
         }
     }
 
     companion object {
         const val TAG = "OsUtilsProvider"
     }
+}
+
+fun Exception.format() = this.let { e ->
+    "${e::class.java.simpleName}${e.message?.let { ": $it" }.orEmpty()}"
 }
 
 fun Int.stringFromResource(): String {

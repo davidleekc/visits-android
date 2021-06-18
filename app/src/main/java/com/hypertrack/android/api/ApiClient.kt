@@ -85,7 +85,6 @@ class ApiClient(
                 geohash = geoHash
             )
             if (response.isSuccessful) {
-                //todo task
                 return response.body()!!
             } else {
                 throw HttpException(response)

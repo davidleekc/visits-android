@@ -9,6 +9,7 @@ import com.hypertrack.android.models.Integration
 import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.repository.*
 import com.hypertrack.android.ui.base.Consumable
+import com.hypertrack.android.utils.format
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
@@ -74,7 +75,7 @@ class PlacesInteractorImpl(
     }
 
     override fun loadGeofencesForMap(center: LatLng) {
-        val gh = GeoHash(center.latitude, center.longitude, 5)
+        val gh = GeoHash(center.latitude, center.longitude, 4)
         globalScope.launch(Dispatchers.Main) {
             loadRegion(gh)
             gh.adjacent.forEach { loadRegion(it) }
@@ -143,10 +144,24 @@ class PlacesInteractorImpl(
     }
 
     private fun loadRegion(gh: GeoHash) {
-        //todo retry on error
-        if (!geoCache.contains(gh)) {
-            isLoadingForLocation.postValue(true)
-            geoCache.add(gh)
+        val item = geoCache.getItems()[gh]
+//        Log.v(
+//            "hypertrack-verbose",
+//            geoCache.getItems().values.map { "${it.gh} ${it.status}" }.toString()
+//        )
+        when (item?.status) {
+            Status.COMPLETED, Status.LOADING -> {
+            }
+            null -> {
+//                Log.v("hypertrack-verbose", "loading: ${gh}")
+                isLoadingForLocation.postValue(true)
+                geoCache.add(gh)
+            }
+            Status.ERROR -> {
+//                Log.v("hypertrack-verbose", "retrying: ${gh}")
+                isLoadingForLocation.postValue(true)
+                item.retry()
+            }
         }
     }
 
@@ -193,52 +208,42 @@ class PlacesInteractorImpl(
     inner class GeoCacheItem(
         val gh: GeoHash
     ) {
-        val job: Job
-        var paginator: Paginator<List<LocalGeofence>>? = null
-
-        var status: Status = Status.LOADING
+        lateinit var job: Job
+        var pageToken: String? = null
+        lateinit var status: Status
 
         init {
+            load()
+        }
+
+        private fun load() {
+            status = Status.LOADING
             job = globalScope.launch(Dispatchers.Main) {
                 try {
-//                    Log.v("hypertrack-verbose", "Loading for ${gh}")
-                    paginator = object : Paginator<List<LocalGeofence>>() {
-                        override suspend fun load(pageToken: String?): PageRes<List<LocalGeofence>> {
-                            return placesRepository.loadPage(pageToken, gh).let {
-                                PageRes(it.geofences, it.paginationToken)
-                            }
-                        }
+                    do {
+                        val res = placesRepository.loadPage(pageToken, gh)
+                        pageToken = res.paginationToken
+                        addGeofencesToCache(res.geofences)
+                    } while (pageToken != null)
 
-                        override fun onLoaded(
-                            pageToken: String?,
-                            res: List<LocalGeofence>
-                        ) {
-//                            Log.v("hypertrack-verbose", "page $pageToken for ${gh}")
-                            addGeofencesToCache(res)
-                        }
-                    }.apply {
-                        start()
-                    }
-
-//                    Log.v(
-//                        "hypertrack-verbose",
-//                        geoCache.getItems().map { it.second.isLoading() }.toString()
-//                    )
                     status = Status.COMPLETED
                     isLoadingForLocation.postValue(geoCache.isLoading())
-                    Log.v(
-                        "hypertrack-verbose",
-                        "${gh}: loaded"
-                    )
+//                    Log.v(
+//                        "hypertrack-verbose",
+//                        "${gh}: loaded"
+//                    )
                 } catch (e: Exception) {
+//                    Log.v("hypertrack-verbose", "error for ${gh} :  ${e.format()}")
                     status = Status.ERROR
-//                    loadingGeohashes.remove(gh)
                     isLoadingForLocation.postValue(geoCache.isLoading())
                     errorFlow.emit(Consumable(e))
                 }
             }
         }
 
+        fun retry() {
+            load()
+        }
     }
 
     enum class Status {
@@ -247,26 +252,6 @@ class PlacesInteractorImpl(
 
 }
 
-abstract class Paginator<T> {
-    var pageToken: String? = null
-
-    suspend fun start() {
-        do {
-            val res = load(pageToken)
-            onLoaded(pageToken, res.res)
-            pageToken = res.pageToken
-        } while (pageToken != null)
-    }
-
-    abstract suspend fun load(pageToken: String?): PageRes<T>
-
-    abstract fun onLoaded(pageToken: String?, res: T)
-
-    inner class PageRes<R>(
-        val res: R,
-        val pageToken: String?
-    )
-}
 
 
 

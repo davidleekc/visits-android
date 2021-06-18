@@ -24,6 +24,7 @@ import com.hypertrack.android.ui.common.nullIfEmpty
 import com.hypertrack.android.ui.screens.select_destination.SelectDestinationViewModel
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
 import com.hypertrack.android.utils.OsUtilsProvider
+import com.hypertrack.logistics.android.github.BuildConfig
 import com.hypertrack.logistics.android.github.R
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -44,8 +45,9 @@ class AddPlaceViewModel(
     override val loadingStateBase = placesInteractor.isLoadingForLocation
 
     override val errorBase = MediatorLiveData<Consumable<String>>().apply {
-        addSource(placesInteractor.errorFlow.asLiveData()) {
-            postValue(it.map {
+        addSource(placesInteractor.errorFlow.asLiveData()) { e ->
+            map.value?.let { onCameraMoved(it) }
+            postValue(e.map {
                 osUtilsProvider.getErrorMessage(it)
             })
         }
@@ -60,11 +62,11 @@ class AddPlaceViewModel(
             }
         }
 
-        (placesInteractor as PlacesInteractorImpl).debugCacheState.observeManaged {
-            map.value?.let {
+//        (placesInteractor as PlacesInteractorImpl).debugCacheState.observeManaged {
+//            map.value?.let {
 //                showMapDebugData()
-            }
-        }
+//            }
+//        }
     }
 
     private val icon = BitmapDescriptorFactory.fromBitmap(
@@ -140,26 +142,30 @@ class AddPlaceViewModel(
     }
 
     private fun addGeofencesToMap(googleMap: GoogleMap, geofences: List<LocalGeofence>) {
-//            if (BuildConfig.DEBUG) {
-//                googleMap.clear()
-//                showMapDebugData()
-//            }
-//        Log.v("hypertrack-verbose", placesInteractor.geofences.value?.size.toString())
-//        geofences.forEach { googleMap.addMarker(MarkerOptions().position(it.latLng)) }
-
-        clusterManager.addItems(geofences.map { GeofenceClusterItem(it) })
-        clusterManager.cluster()
+        if (BuildConfig.DEBUG.not() || !SHOW_DEBUG_DATA) {
+            clusterManager.addItems(geofences.map { GeofenceClusterItem(it) })
+            clusterManager.cluster()
+        } else {
+            googleMap.clear()
+            showMapDebugData(googleMap)
+            placesInteractor.geofences.value!!.values.forEach {
+                googleMap.addMarker(
+                    MarkerOptions().icon(
+                        icon
+                    ).position(it.latLng)
+                )
+            }
+        }
     }
 
 
-    private fun showMapDebugData() {
+    private fun showMapDebugData(googleMap: GoogleMap) {
         (placesInteractor as PlacesInteractorImpl).debugCacheState.value?.let { items ->
-            val googleMap = map.value!!
             items.forEach {
                 val text = it.let { item ->
                     when (item.status) {
                         PlacesInteractorImpl.Status.COMPLETED -> "completed"
-                        PlacesInteractorImpl.Status.LOADING -> item.paginator?.pageToken
+                        PlacesInteractorImpl.Status.LOADING -> item.pageToken
                             ?: "loading"
                         PlacesInteractorImpl.Status.ERROR -> "error"
                     }
@@ -219,6 +225,10 @@ class AddPlaceViewModel(
         override fun getTitle() = geofence.name
 
         override fun getSnippet() = geofence.id
+    }
+
+    companion object {
+        const val SHOW_DEBUG_DATA = false
     }
 
 }

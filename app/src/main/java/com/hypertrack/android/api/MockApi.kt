@@ -55,16 +55,16 @@ class MockApi(val remoteApi: ApiInterface) : ApiInterface by remoteApi {
         withContext(Dispatchers.Default) {
             delay((500 + Math.random() * 500).toLong())
         }
-        //todo task
-//        if(Math.random() > 0.5f) {
-//            throw RuntimeException()
-//        }
 
-        val page = (paginationToken?.split("_")?.get(0)?.toInt() ?: 0) + 1
+
+        val page = (paginationToken?.split("/")?.get(0)?.toInt() ?: 0) + 1
         val totalPages = 5
 //        val totalPages =
-//            (paginationToken?.split("_")?.get(1)?.toInt()) ?: (3 + (Math.random() * 3f).toInt())
+//            (paginationToken?.split("/")?.get(1)?.toInt()) ?: (3 + (Math.random() * 3f).toInt())
 
+//        if (Math.random() > 0.8f /*&& *//*page > 1*/) {
+//            throw RuntimeException("${geohash} ${page}")
+//        }
 
         if (geohash == null || geohash == "null") {
             return Response.success(GeofenceResponse(listOf(), null))
@@ -84,7 +84,7 @@ class MockApi(val remoteApi: ApiInterface) : ApiInterface by remoteApi {
                     )
                 },
                 if (page < totalPages) {
-                    "${page}_${totalPages}"
+                    "${page}/${totalPages}"
                 } else {
                     null
                 }
