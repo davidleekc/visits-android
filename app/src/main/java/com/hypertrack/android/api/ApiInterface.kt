@@ -1,6 +1,7 @@
 package com.hypertrack.android.api
 
 import android.graphics.Bitmap
+import android.util.Log
 import com.google.android.gms.maps.model.LatLng
 import com.google.gson.annotations.SerializedName
 import com.hypertrack.android.models.*
@@ -330,7 +331,7 @@ abstract class Geometry {
 @JsonClass(generateAdapter = true)
 data class GeofenceMarker(
     @field:Json(name = "geofence_id") val geofenceId: String,
-    @field:Json(name = "marker_id") val markerId: String,
+    @field:Json(name = "marker_id") val markerId: String?,
     @field:Json(name = "device_id") val deviceId: String,
     @field:Json(name = "arrival") val arrival: Arrival?,
     @field:Json(name = "exit") val exit: Exit?,
@@ -380,16 +381,16 @@ data class HistoryResponse(
 )
 
 interface HistoryMarker {
-    val markerId: String
+    val markerId: String?
     val type: String
     val data: Any
 }
 
 @JsonClass(generateAdapter = true)
 data class HistoryStatusMarker(
-        @field:Json(name = "marker_id") override val markerId: String,
-        @field:Json(name = "type") override val type: String = "device_status",
-        @field:Json(name = "data") override val data: HistoryStatusMarkerData
+    @field:Json(name = "marker_id") override val markerId: String?,
+    @field:Json(name = "type") override val type: String = "device_status",
+    @field:Json(name = "data") override val data: HistoryStatusMarkerData
 ) : HistoryMarker
 
 @JsonClass(generateAdapter = true)
@@ -409,9 +410,9 @@ data class HistoryStatusMarkerData(
 // Do not be misguided by name. It's a geotag.
 @JsonClass(generateAdapter = true)
 data class HistoryTripMarker(
-        @field:Json(name = "marker_id") override val markerId: String,
-        @field:Json(name = "type") override val type: String = "trip_marker",
-        @field:Json(name = "data") override val data: HistoryTripMarkerData,
+    @field:Json(name = "marker_id") override val markerId: String?,
+    @field:Json(name = "type") override val type: String = "trip_marker",
+    @field:Json(name = "data") override val data: HistoryTripMarkerData,
 ) : HistoryMarker
 
 @JsonClass(generateAdapter = true)
@@ -430,9 +431,9 @@ data class HistoryTripMarkerLocation(
 
 @JsonClass(generateAdapter = true)
 data class HistoryGeofenceMarker(
-        @field:Json(name = "marker_id") override val markerId: String,
-        @field:Json(name = "type") override val type: String = "geofence",
-        @field:Json(name = "data") override val data: HistoryGeofenceMarkerData,
+    @field:Json(name = "marker_id") override val markerId: String?,
+    @field:Json(name = "type") override val type: String = "geofence",
+    @field:Json(name = "data") override val data: HistoryGeofenceMarkerData,
 ) : HistoryMarker
 
 @JsonClass(generateAdapter = true)

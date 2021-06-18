@@ -1,5 +1,6 @@
 package com.hypertrack.android.ui.screens.place_details
 
+import android.util.Log
 import android.view.View
 import com.hypertrack.android.api.GeofenceMarker
 import com.hypertrack.android.ui.base.BaseAdapter
@@ -31,7 +32,7 @@ class PlaceVisitsAdapter(
                 ).toView(containerView.tvTitle)
                 item.duration?.let { DateTimeUtils.secondsToLocalizedString(it) }
                     ?.toView(containerView.tvDescription)
-                item.markerId.toView(containerView.tvVisitId)
+                item.markerId?.toView(containerView.tvVisitId)
                 item.routeTo?.let {
                     if (it.distance == null) return@let null
                     if (it.duration == null) return@let null
@@ -48,7 +49,9 @@ class PlaceVisitsAdapter(
                 containerView.divider.setGoneState(adapterPosition == itemCount - 1)
 
                 containerView.setOnClickListener {
-                    onCopyClickListener?.invoke(item.markerId)
+                    item.markerId?.let {
+                        onCopyClickListener?.invoke(it)
+                    }
                 }
             }
         }
