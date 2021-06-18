@@ -40,7 +40,7 @@
 
         <include
             android:id="@+id/where_are_you"
-            layout="@layout/where_are_you_going"
+            layout="@layout/inflate_where_are_you_going"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="16dp"

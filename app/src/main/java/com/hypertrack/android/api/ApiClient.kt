@@ -2,6 +2,7 @@ package com.hypertrack.android.api
 
 import android.graphics.Bitmap
 import android.util.Log
+import com.fonfon.kgeohash.GeoHash
 import com.hypertrack.android.models.*
 import com.hypertrack.android.models.local.OrderStatus
 import com.hypertrack.android.repository.AccessTokenRepository
@@ -74,15 +75,16 @@ class ApiClient(
 
     suspend fun getGeofences(
         paginationToken: String?,
+        geoHash: String? = null
     ): GeofenceResponse {
         try {
 //            Log.v("hypertrack-verbose", "getGeofences ${paginationToken.hashCode()}")
             val response = api.getDeviceGeofences(
                 paginationToken = paginationToken,
-                deviceId = deviceId
+                deviceId = deviceId,
+                geohash = geoHash
             )
             if (response.isSuccessful) {
-                //todo task
                 return response.body()!!
             } else {
                 throw HttpException(response)

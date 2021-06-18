@@ -34,21 +34,22 @@ interface ApiInterface {
         @Path("image_id") imageId: String,
     ): Response<EncodedImage>
 
-    /** Returns list of device geofences with visit markers inlined */
-    @GET("client/geofences?include_markers=true")
-    suspend fun getGeofencesWithMarkers(
-        @Query("pagination_token") paginationToken: String?,
-        @Query("device_id") deviceId: String,
-        @Query("include_archived") includeArchived: Boolean = false,
-        @Query("sort_nearest") sortNearest: Boolean = true,
-    ): Response<GeofenceResponse>
+//    @GET("client/geofences?include_markers=true")
+//    suspend fun getGeofences(
+//        @Query("pagination_token") paginationToken: String?,
+//        @Query("device_id") deviceId: String,
+//        @Query("include_archived") includeArchived: Boolean = false,
+//        @Query("sort_nearest") sortNearest: Boolean = true,
+//    ): Response<GeofenceResponse>
 
     /** Returns list of device geofences without visit markers */
     @GET("client/devices/{device_id}/geofences")
     suspend fun getDeviceGeofences(
         @Path("device_id") deviceId: String,
+        @Query("geohash") geohash: String? = null,
         @Query("pagination_token") paginationToken: String? = null,
         @Query("include_archived") includeArchived: Boolean = false,
+        @Query("include_markers") includeMarkers: Boolean = true,
         @Query("sort_nearest") sortNearest: Boolean = true,
     ): Response<GeofenceResponse>
 
@@ -221,6 +222,7 @@ data class Geofence(
     @field:Json(name = "radius") val radius: Int?,
     @field:Json(name = "archived") val archived: Boolean?,
 ) : VisitDataSource {
+
     override val latitude: Double
         get() = geometry.latitude
     override val longitude: Double
@@ -244,57 +246,6 @@ data class Geofence(
     val type: String
         get() = geometry.type
 
-    val fullAddress: String?
-        get() = address?.let { "${it.city}, ${it.street}" }
-
-    val metadataAddress: String?
-        get() = metadata?.get("address").let {
-            if (it is String) {
-                if (it.isNotBlank()) {
-                    return@let it
-                }
-            }
-            null
-        }
-
-    val latLng: LatLng
-        get() = LatLng(latitude, longitude)
-
-    val location: Location
-        get() = Location(
-            latitude = latitude,
-            longitude = longitude
-        )
-
-    val name: String?
-        get() = metadata?.get("name").let {
-            if (it is String) it else null
-        }
-
-    val visitsCount: Int by lazy {
-        marker?.markers?.count() ?: 0
-    }
-
-    val lastVisit: String? by lazy {
-        marker?.markers?.sortedByDescending {
-            it.arrival?.recordedAt
-        }?.firstOrNull()?.arrival?.recordedAt
-    }
-
-    //todo move deserialization somewhere else
-    private fun getGeofenceMetadata(moshi: Moshi): GeofenceMetadata? {
-        return try {
-            moshi.adapter(GeofenceMetadata::class.java)
-                .fromJsonValue(metadata)
-        } catch (_: Exception) {
-            //todo
-            null
-        }
-    }
-
-    fun getIntegration(moshi: Moshi): Integration? {
-        return getGeofenceMetadata(moshi)?.integration
-    }
 }
 
 class Point(

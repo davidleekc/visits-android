@@ -1,11 +1,19 @@
 package com.hypertrack.android.api
 
 import android.util.Log
+import com.fonfon.kgeohash.GeoHash
 import com.hypertrack.android.utils.Injector
 import com.hypertrack.android.utils.MockData
 import com.hypertrack.android.utils.MyApplication
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import retrofit2.Response
 import retrofit2.http.Query
+import java.lang.RuntimeException
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.util.*
 
 @Suppress("BlockingMethodInNonBlockingContext")
 class MockApi(val remoteApi: ApiInterface) : ApiInterface by remoteApi {
@@ -16,67 +24,73 @@ class MockApi(val remoteApi: ApiInterface) : ApiInterface by remoteApi {
         deviceId: String,
         params: GeofenceParams
     ): Response<List<Geofence>> {
-//        return remoteApi.createGeofences(deviceId, params)
-        fences.add(
-            Geofence(
-                "",
-                "00000000-0000-0000-0000-000000000000",
-                "",
-                params.geofences.first().metadata,
-                params.geofences.first().geometry,
-                null,
-                100,
-                false,
-            )
-        )
-        return Response.success(listOf())
+        return remoteApi.createGeofences(deviceId, params)
+//        fences.add(
+//            Geofence(
+//                "",
+//                "00000000-0000-0000-0000-000000000000",
+//                "",
+//                params.geofences.first().metadata,
+//                params.geofences.first().geometry,
+//                null,
+//                100,
+//                false,
+//            )
+//        )
+//        return Response.success(listOf())
     }
 
-    override suspend fun getGeofencesWithMarkers(
-        paginationToken: String?,
+    override suspend fun getDeviceGeofences(
         deviceId: String,
+        geohash: String?,
+        paginationToken: String?,
         includeArchived: Boolean,
+        includeMarkers: Boolean,
         sortNearest: Boolean
     ): Response<GeofenceResponse> {
-        return Response.success(GeofenceResponse(fences, null))
-
 //        return Response.success(
 //            Injector.getMoshi().adapter(GeofenceResponse::class.java)
 //                .fromJson(MockData.MOCK_GEOFENCES_JSON)
 //        )
 
-//        val page = try {
-//            paginationToken?.toInt() ?: 0
-//        } catch (_: Exception) {
-//            0
+        withContext(Dispatchers.Default) {
+            delay((500 + Math.random() * 500).toLong())
+        }
+
+
+        val page = (paginationToken?.split("/")?.get(0)?.toInt() ?: 0) + 1
+        val totalPages = 5
+//        val totalPages =
+//            (paginationToken?.split("/")?.get(1)?.toInt()) ?: (3 + (Math.random() * 3f).toInt())
+
+//        if (Math.random() > 0.8f /*&& *//*page > 1*/) {
+//            throw RuntimeException("${geohash} ${page}")
 //        }
-//        Log.v("hypertrack-verbose", page.toString())
-//        return Response.success(
-//            GeofenceResponse(
-//                (0..10).map {
-//                    Geofence(
-//                        "",
-//                        "",
-//                        mapOf("name" to page.toString()),
-//                        """
-//                {
-//                "type":"Point",
-//                "coordinates": [122.395223, 37.794763]
-//            }
-//            """.let {
-//                            Injector.getMoshi().adapter(Geometry::class.java).fromJson(it)!!
-//                        },
-//                        null,
-//                        100,
-//                        false,
-//                    )
-//                }, if (page < 5) {
-//                    (page + 1).toString()
-//                } else {
-//                    null
-//                }
-//            )
-//        )
+
+        if (geohash == null || geohash == "null") {
+            return Response.success(GeofenceResponse(listOf(), null))
+        }
+        val gh = geohash?.let { GeoHash(it) }
+
+
+        return Response.success(
+            GeofenceResponse(
+                (0..0).map {
+                    MockData.createGeofence(
+                        0,
+                        lat = gh.boundingBox.maxLat - 0.005 * page,
+                        lon = gh.boundingBox.maxLon - 0.005 * page
+//                        lat = gh?.boundingBox?.let { it.maxLat - Math.random() * (it.maxLat - it.minLat) },
+//                        lon = gh?.boundingBox?.let { it.maxLon - Math.random() * (it.maxLon - it.minLon) }
+                    )
+                },
+                if (page < totalPages) {
+                    "${page}/${totalPages}"
+                } else {
+                    null
+                }
+            )
+        )
     }
 
     override suspend fun getIntegrations(
@@ -94,4 +108,5 @@ class MockApi(val remoteApi: ApiInterface) : ApiInterface by remoteApi {
                 }
         )
     }
+
 }

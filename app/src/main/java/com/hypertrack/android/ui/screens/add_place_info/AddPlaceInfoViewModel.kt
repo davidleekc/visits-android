@@ -8,6 +8,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.models.Integration
 import com.hypertrack.android.repository.CreateGeofenceError
 import com.hypertrack.android.repository.CreateGeofenceSuccess
@@ -28,7 +29,7 @@ class AddPlaceInfoViewModel(
     private val latLng: LatLng,
     private val initialAddress: String?,
     private val _name: String?,
-    private val placesRepository: PlacesRepository,
+    private val placesInteractor: PlacesInteractor,
     private val integrationsRepository: IntegrationsRepository,
     private val osUtilsProvider: OsUtilsProvider,
 ) : BaseViewModel() {
@@ -82,7 +83,7 @@ class AddPlaceInfoViewModel(
                 hasIntegrations.postValue(res)
                 loadingState.postValue(false)
             } else {
-                //todo task
+                error.postValue(osUtilsProvider.stringFromResource(R.string.place_integration_error))
                 hasIntegrations.postValue(false)
             }
         }
@@ -99,7 +100,7 @@ class AddPlaceInfoViewModel(
             viewModelScope.launch {
                 loadingState.postValue(true)
 
-                val res = placesRepository.createGeofence(
+                val res = placesInteractor.createGeofence(
                     latitude = latLng.latitude,
                     longitude = latLng.longitude,
                     name = name,
@@ -109,7 +110,7 @@ class AddPlaceInfoViewModel(
                 )
                 loadingState.postValue(false)
                 when (res) {
-                    CreateGeofenceSuccess -> {
+                    is CreateGeofenceSuccess -> {
                         destination.postValue(
                             AddPlaceFragmentDirections.actionGlobalVisitManagementFragment(
                                 Tab.PLACES

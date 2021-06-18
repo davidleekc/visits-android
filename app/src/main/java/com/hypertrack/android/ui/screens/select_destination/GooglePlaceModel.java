@@ -1,4 +1,4 @@
-package com.hypertrack.android.ui.screens.add_place;
+package com.hypertrack.android.ui.screens.select_destination;
 
 
 import android.content.Context;
@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class PlaceModel implements Parcelable {
+public class GooglePlaceModel implements Parcelable {
     private static final CharacterStyle STYLE_NORMAL = new StyleSpan(Typeface.NORMAL);
 
     public String placeId = "";
@@ -34,16 +34,16 @@ public class PlaceModel implements Parcelable {
 
     public boolean isRecent = false;
 
-    public static PlaceModel from(AutocompletePrediction autocompletePrediction) {
-        PlaceModel placeModel = new PlaceModel();
+    public static GooglePlaceModel from(AutocompletePrediction autocompletePrediction) {
+        GooglePlaceModel placeModel = new GooglePlaceModel();
         placeModel.placeId = autocompletePrediction.getPlaceId();
         placeModel.primaryText = autocompletePrediction.getPrimaryText(STYLE_NORMAL).toString();
         placeModel.secondaryText = autocompletePrediction.getSecondaryText(STYLE_NORMAL).toString();
         return placeModel;
     }
 
-    public static List<PlaceModel> from(Collection<AutocompletePrediction> collection) {
-        List<PlaceModel> placeModelList = new ArrayList<>();
+    public static List<GooglePlaceModel> from(Collection<AutocompletePrediction> collection) {
+        List<GooglePlaceModel> placeModelList = new ArrayList<>();
         for (AutocompletePrediction item : collection) {
             placeModelList.add(from(item));
         }
@@ -71,7 +71,7 @@ public class PlaceModel implements Parcelable {
         if (super.equals(obj)) {
             return true;
         }
-        return obj instanceof PlaceModel && placeId.equals(((PlaceModel) obj).placeId);
+        return obj instanceof GooglePlaceModel && placeId.equals(((GooglePlaceModel) obj).placeId);
     }
 
     @Override
@@ -100,10 +100,10 @@ public class PlaceModel implements Parcelable {
         address = getAddressFromGeocoder(latLng, context);
     }
 
-    public PlaceModel() {
+    public GooglePlaceModel() {
     }
 
-    protected PlaceModel(Parcel in) {
+    protected GooglePlaceModel(Parcel in) {
         this.placeId = in.readString();
         this.primaryText = in.readString();
         this.secondaryText = in.readString();
@@ -112,15 +112,15 @@ public class PlaceModel implements Parcelable {
         this.isRecent = in.readByte() != 0;
     }
 
-    public static final Creator<PlaceModel> CREATOR = new Creator<PlaceModel>() {
+    public static final Creator<GooglePlaceModel> CREATOR = new Creator<GooglePlaceModel>() {
         @Override
-        public PlaceModel createFromParcel(Parcel source) {
-            return new PlaceModel(source);
+        public GooglePlaceModel createFromParcel(Parcel source) {
+            return new GooglePlaceModel(source);
         }
 
         @Override
-        public PlaceModel[] newArray(int size) {
-            return new PlaceModel[size];
+        public GooglePlaceModel[] newArray(int size) {
+            return new GooglePlaceModel[size];
         }
     };
 }

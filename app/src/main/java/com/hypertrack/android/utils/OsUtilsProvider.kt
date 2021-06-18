@@ -14,13 +14,17 @@ import android.util.Log
 import android.widget.Toast
 import android.widget.Toast.LENGTH_SHORT
 import androidx.annotation.ColorRes
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.drawable.toBitmap
 import com.hypertrack.android.decodeBase64Bitmap
 import com.hypertrack.android.models.Address
 import com.hypertrack.android.toBase64
 import com.hypertrack.android.ui.base.Consumable
+import com.hypertrack.logistics.android.github.BuildConfig
 import com.hypertrack.logistics.android.github.R
 import java.io.File
 import java.io.IOException
@@ -151,6 +155,10 @@ class OsUtilsProvider(private val context: Context, private val crashReportsProv
         return ContextCompat.getColor(context, res)
     }
 
+    fun bitmapFormResource(@DrawableRes resource: Int): Bitmap {
+        return ResourcesCompat.getDrawable(context.resources, resource, context.theme)!!.toBitmap()
+    }
+
 
     @Throws(IOException::class)
     fun createTakePictureIntent(context: Context, file: File): Intent {
@@ -188,14 +196,23 @@ class OsUtilsProvider(private val context: Context, private val crashReportsProv
     }
 
     fun getErrorMessage(e: Exception): String {
+        if (BuildConfig.DEBUG) {
+            e.printStackTrace()
+        }
         return when (e) {
-            else -> e.message ?: R.string.unknown_error.stringFromResource()
+            else -> {
+                e.format()
+            }
         }
     }
 
     companion object {
         const val TAG = "OsUtilsProvider"
     }
+}
+
+fun Exception.format() = this.let { e ->
+    "${e::class.java.simpleName}${e.message?.let { ": $it" }.orEmpty()}"
 }
 
 fun Int.stringFromResource(): String {

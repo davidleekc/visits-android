@@ -19,6 +19,7 @@ import com.hypertrack.android.ui.common.NotificationUtils
 import com.hypertrack.android.ui.common.SimplePageChangedListener
 import com.hypertrack.android.ui.common.SnackbarUtil
 import com.hypertrack.android.ui.common.Tab
+import com.hypertrack.android.ui.screens.visits_management.tabs.current_trip.CurrentTripFragment
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.MapViewFragment
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.MapViewFragmentOld
 import com.hypertrack.android.ui.screens.visits_management.tabs.livemap.LiveMapFragment

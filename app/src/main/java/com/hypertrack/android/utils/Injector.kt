@@ -98,7 +98,7 @@ object Injector {
         return ParamViewModelFactory(
             param,
             getUserScope().tripsInteractor,
-            getUserScope().placesRepository,
+            getUserScope().placesInteractor,
             getOsUtilsProvider(MyApplication.context),
             placesClient,
             getAccountRepo(MyApplication.context),
@@ -120,7 +120,7 @@ object Injector {
                     latLng,
                     initialAddress = address,
                     _name = name,
-                    getUserScope().placesRepository,
+                    getUserScope().placesInteractor,
                     getUserScope().integrationsRepository,
                     getOsUtilsProvider(MyApplication.context),
                 ) as T
@@ -180,6 +180,11 @@ object Injector {
             val scope = CoroutineScope(Dispatchers.IO)
             val placesRepository = getPlacesRepository()
             val integrationsRepository = getIntegrationsRepository()
+            val placesInteractor = PlacesInteractorImpl(
+                placesRepository,
+                integrationsRepository,
+                GlobalScope
+            )
             val hyperTrackService = getHyperTrackService(context)
             val photoUploadInteractor = PhotoUploadInteractorImpl(
                 getVisitsRepo(context),
@@ -231,12 +236,12 @@ object Injector {
             userScope = UserScope(
                 historyRepository,
                 tripsInteractor,
-                placesRepository,
+                placesInteractor,
                 integrationsRepository,
                 UserScopeViewModelFactory(
                     getVisitsRepo(context),
                     tripsInteractor,
-                    placesRepository,
+                    placesInteractor,
                     integrationsRepository,
                     historyRepository,
                     driverRepository,
@@ -278,9 +283,10 @@ object Injector {
     }
 
     private fun getPlacesRepository(): PlacesRepository {
-        return PlacesRepository(
+        return PlacesRepositoryImpl(
             getVisitsApiClient(MyApplication.context),
-            getIntegrationsRepository()
+            getMoshi(),
+            getOsUtilsProvider(MyApplication.context)
         )
     }
 
@@ -441,7 +447,7 @@ object Injector {
 private class UserScope(
     val historyRepository: HistoryRepository,
     val tripsInteractor: TripsInteractor,
-    val placesRepository: PlacesRepository,
+    val placesInteractor: PlacesInteractor,
     val integrationsRepository: IntegrationsRepository,
     val userScopeViewModelFactory: UserScopeViewModelFactory,
     val photoUploadInteractor: PhotoUploadInteractor,

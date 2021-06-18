@@ -6,6 +6,7 @@ import com.google.android.libraries.places.api.net.PlacesClient
 import com.hypertrack.android.api.ApiClient
 import com.hypertrack.android.interactors.PhotoUploadQueueInteractor
 import com.hypertrack.android.interactors.PhotoUploadQueueStorage
+import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.interactors.TripsInteractor
 import com.hypertrack.android.repository.AccountRepository
 import com.hypertrack.android.repository.PlacesRepository
@@ -20,7 +21,7 @@ import kotlinx.coroutines.GlobalScope
 class ParamViewModelFactory<T>(
     private val param: T,
     private val tripsInteractor: TripsInteractor,
-    private val placesRepository: PlacesRepository,
+    private val placesInteractor: PlacesInteractor,
     private val osUtilsProvider: OsUtilsProvider,
     private val placesClient: PlacesClient,
     private val accountRepository: AccountRepository,
@@ -34,7 +35,7 @@ class ParamViewModelFactory<T>(
         return when (modelClass) {
             PlaceDetailsViewModel::class.java -> PlaceDetailsViewModel(
                 geofenceId = param as String,
-                placesRepository,
+                placesInteractor,
                 osUtilsProvider,
                 crashReportsProvider,
                 moshi

@@ -77,6 +77,8 @@
     <string name="steps">%1$d steps</string>
     <string name="miles">%s mi</string>
     <string name="kms">%s km</string>
+    <string name="feet">%s ft</string>
+    <string name="meters">%s m</string>
     <string name="close">Close</string>
     <string name="device_id">Device ID</string>
     <string name="driver_id">Driver ID</string>
@@ -143,6 +145,8 @@
     <string name="places_not_visited">Not visited</string>
     <string name="places_exit">Exit</string>
     <string name="places_enter">Enter</string>
+    <string name="places_no_address">No address</string>
+    <string name="places_created">Geofence created at %s</string>
 
     <string name="place_visit_id">Visit ID</string>
     <string name="place_route_ro">Traveled %s for %s</string>
@@ -170,6 +174,8 @@
 
     <string name="profile_report_an_issue">Report an issue</string>
     <string name="profile_report_sent">App state is successfully reported</string>
+
+    <string name="select_destination">Select destination</string>
 
     <string name="copied_to_clipboard">Copied to clipboard</string>
     <string name="active">Active</string>
@@ -207,6 +213,7 @@
 
     <string name="tap_to_turn_location_settings">Tap to turn on location in settings</string>
     <string name="app_settings">App settings</string>
+    <string name="place_integration_error">Failed to get integrations</string>
 
     <plurals name="time">
         <item quantity="one">time</item>

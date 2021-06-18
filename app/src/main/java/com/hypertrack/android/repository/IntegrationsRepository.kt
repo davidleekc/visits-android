@@ -34,7 +34,6 @@ class IntegrationsRepositoryImpl(
     override suspend fun hasIntegrations(): Boolean? {
         if (firstPage == null) {
             try {
-                //todo task pagination
                 firstPage = apiClient.getIntegrations(limit = 100)
                 return firstPage!!.isNotEmpty()
             } catch (e: Exception) {

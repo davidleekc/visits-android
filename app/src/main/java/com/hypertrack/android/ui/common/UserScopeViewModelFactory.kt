@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.hypertrack.android.api.ApiClient
 import com.hypertrack.android.interactors.PermissionsInteractor
+import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.interactors.TripsInteractor
 import com.hypertrack.android.repository.*
 import com.hypertrack.android.ui.screens.add_integration.AddIntegrationViewModel
@@ -16,6 +17,7 @@ import com.hypertrack.android.utils.CrashReportsProvider
 import com.hypertrack.android.utils.HyperTrackService
 import com.hypertrack.android.ui.screens.driver_id_input.DriverLoginViewModel
 import com.hypertrack.android.ui.screens.permission_request.PermissionRequestViewModel
+import com.hypertrack.android.ui.screens.select_destination.SelectDestinationViewModel
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
 import com.hypertrack.android.ui.screens.visits_management.tabs.orders.OrdersListViewModel
 import com.hypertrack.android.ui.screens.visits_management.tabs.places.PlacesViewModel
@@ -27,7 +29,7 @@ import com.hypertrack.android.view_models.HistoryViewModel
 class UserScopeViewModelFactory(
     private val visitsRepository: VisitsRepository,
     private val tripsInteractor: TripsInteractor,
-    private val placesRepository: PlacesRepository,
+    private val placesInteractor: PlacesInteractor,
     private val integrationsRepository: IntegrationsRepository,
     private val historyRepository: HistoryRepository,
     private val driverRepository: DriverRepository,
@@ -55,10 +57,16 @@ class UserScopeViewModelFactory(
             AddPlaceViewModel::class.java -> AddPlaceViewModel(
                 osUtilsProvider,
                 placesClient,
+                deviceLocationProvider,
+                placesInteractor
+            ) as T
+            SelectDestinationViewModel::class.java -> SelectDestinationViewModel(
+                osUtilsProvider,
+                placesClient,
                 deviceLocationProvider
             ) as T
             PlacesViewModel::class.java -> PlacesViewModel(
-                placesRepository,
+                placesInteractor,
                 osUtilsProvider,
                 deviceLocationProvider,
                 timeLengthFormatter

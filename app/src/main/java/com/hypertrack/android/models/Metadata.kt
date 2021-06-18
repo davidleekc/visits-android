@@ -149,6 +149,12 @@ class GeofenceMetadata(
         return moshi.adapter(GeofenceMetadata::class.java)
             .toJsonValue(this) as Map<String, Any>
     }
+
+    companion object {
+        const val KEY_ADDRESS = "address"
+        const val KEY_NAME = "name"
+        const val KEY_INTEGRATION = "integration"
+    }
 }
 
 const val KEY_NOTE = "note"

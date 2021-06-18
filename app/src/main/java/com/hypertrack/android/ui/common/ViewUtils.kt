@@ -117,7 +117,7 @@ fun TextView.textString(): String {
     return text.toString()
 }
 
-fun String.toView(textView: TextView) {
+fun String?.toView(textView: TextView) {
     textView.text = this
 }
 
@@ -129,6 +129,6 @@ fun Bitmap.toView(imageView: ImageView) {
     imageView.setImageBitmap(this)
 }
 
-fun Int.toTextView(textView: TextView) {
-    textView.setText(this)
+fun Int?.toTextView(textView: TextView) {
+    textView.text = this?.toString() ?: ""
 }

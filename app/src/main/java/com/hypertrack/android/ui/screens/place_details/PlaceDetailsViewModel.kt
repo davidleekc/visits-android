@@ -2,33 +2,31 @@ package com.hypertrack.android.ui.screens.place_details
 
 import android.content.Intent
 import android.graphics.Color
-import android.hardware.camera2.params.ColorSpaceTransform
 import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
-import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.CircleOptions
-import com.google.android.gms.maps.model.MarkerOptions
 import com.hypertrack.android.api.Geofence
 import com.hypertrack.android.api.GeofenceMarker
+import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.models.Integration
-import com.hypertrack.android.repository.PlacesRepository
+import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.ZipLiveData
 import com.hypertrack.android.ui.common.KeyValueItem
+import com.hypertrack.android.ui.common.formatDateTime
 import com.hypertrack.android.ui.common.toAddressString
 import com.hypertrack.android.utils.CrashReportsProvider
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.logistics.android.github.R
 import com.squareup.moshi.Moshi
-import kotlinx.coroutines.launch
 
 class PlaceDetailsViewModel(
     private val geofenceId: String,
-    private val placesRepository: PlacesRepository,
+    private val placesInteractor: PlacesInteractor,
     private val osUtilsProvider: OsUtilsProvider,
     private val crashReportsProvider: CrashReportsProvider,
     private val moshi: Moshi
@@ -38,9 +36,9 @@ class PlaceDetailsViewModel(
 
     val loadingState = MutableLiveData<Boolean>(false)
 
-    private val geofence = MutableLiveData<Geofence>().apply {
+    private val geofence = MutableLiveData<LocalGeofence>().apply {
         try {
-            postValue(placesRepository.getGeofence(geofenceId))
+            postValue(placesInteractor.getGeofence(geofenceId))
         } catch (e: Exception) {
             //todo handle
         }
@@ -60,17 +58,21 @@ class PlaceDetailsViewModel(
                     osUtilsProvider.stringFromResource(R.string.place_visits_count),
                     geofence.visitsCount.toString()
                 )
-//                put("created_at", geofence.created_at.toString())
+                put("created_at", geofence.createdAt.formatDateTime())
+                put(
+                    "coordinates",
+                    "${"%.5f".format(geofence.latitude)}, ${"%.5f".format(geofence.longitude)}"
+                )
             }
             .map { KeyValueItem(it.key, it.value as String) }.toList()
     }
 
     val integration: LiveData<Integration?> = Transformations.map(geofence) {
-        it.getIntegration(moshi)
+        it.integration
     }
 
     val visits: LiveData<List<GeofenceMarker>> = Transformations.map(geofence) { geofence ->
-        geofence.marker?.markers?.sortedByDescending { it.arrival!!.recordedAt } ?: listOf()
+        geofence.markers
     }
 
     val externalMapsIntent = MutableLiveData<Intent>()
@@ -93,7 +95,7 @@ class PlaceDetailsViewModel(
         map.postValue(googleMap)
     }
 
-    private fun displayGeofenceLocation(geofence: Geofence, googleMap: GoogleMap) {
+    private fun displayGeofenceLocation(geofence: LocalGeofence, googleMap: GoogleMap) {
         geofence.radius?.let { radius ->
             googleMap.addCircle(
                 CircleOptions()
