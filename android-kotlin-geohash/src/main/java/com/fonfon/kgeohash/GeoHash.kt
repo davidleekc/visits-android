@@ -115,7 +115,7 @@ open class GeoHash : Parcelable {
     constructor(parcel: Parcel) {
         bits = parcel.readLong()
         significantBits = parcel.readByte()
-        boundingBox = parcel.readParcelable(BoundingBox::class.java.classLoader)
+        boundingBox = parcel.readParcelable(BoundingBox::class.java.classLoader)!!
     }
 
     @JvmOverloads
