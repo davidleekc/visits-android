@@ -45,6 +45,7 @@ class MockApi(val remoteApi: ApiInterface) : ApiInterface by remoteApi {
         geohash: String?,
         paginationToken: String?,
         includeArchived: Boolean,
+        includeMarkers: Boolean,
         sortNearest: Boolean
     ): Response<GeofenceResponse> {
 //        return Response.success(
@@ -90,37 +91,6 @@ class MockApi(val remoteApi: ApiInterface) : ApiInterface by remoteApi {
                 }
             )
         )
-    }
-
-    override suspend fun getGeofencesWithMarkers(
-        paginationToken: String?,
-        deviceId: String,
-        includeArchived: Boolean,
-        sortNearest: Boolean
-    ): Response<GeofenceResponse> {
-//        return Response.success(GeofenceResponse(fences, null))
-
-        return Response.success(
-            Injector.getMoshi().adapter(GeofenceResponse::class.java)
-                .fromJson(MockData.MOCK_GEOFENCES_JSON)
-        )
-
-//        val page = try {
-//            paginationToken?.toInt() ?: 0
-//        } catch (_: Exception) {
-//            0
-//        }
-//        Log.v("hypertrack-verbose", page.toString())
-//        return Response.success(
-//            GeofenceResponse(
-//                (0..10).map {
-//                    generateGeofence(page), if (page < 5) {
-//                    (page + 1).toString()
-//                } else {
-//                    null
-//                }
-//            )
-//        )
     }
 
     override suspend fun getIntegrations(

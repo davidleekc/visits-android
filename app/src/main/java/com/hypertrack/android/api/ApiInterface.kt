@@ -34,14 +34,13 @@ interface ApiInterface {
         @Path("image_id") imageId: String,
     ): Response<EncodedImage>
 
-    /** Returns list of device geofences with visit markers inlined */
-    @GET("client/geofences?include_markers=true")
-    suspend fun getGeofencesWithMarkers(
-        @Query("pagination_token") paginationToken: String?,
-        @Query("device_id") deviceId: String,
-        @Query("include_archived") includeArchived: Boolean = false,
-        @Query("sort_nearest") sortNearest: Boolean = true,
-    ): Response<GeofenceResponse>
+//    @GET("client/geofences?include_markers=true")
+//    suspend fun getGeofences(
+//        @Query("pagination_token") paginationToken: String?,
+//        @Query("device_id") deviceId: String,
+//        @Query("include_archived") includeArchived: Boolean = false,
+//        @Query("sort_nearest") sortNearest: Boolean = true,
+//    ): Response<GeofenceResponse>
 
     /** Returns list of device geofences without visit markers */
     @GET("client/devices/{device_id}/geofences")
@@ -50,6 +49,7 @@ interface ApiInterface {
         @Query("geohash") geohash: String? = null,
         @Query("pagination_token") paginationToken: String? = null,
         @Query("include_archived") includeArchived: Boolean = false,
+        @Query("include_markers") includeMarkers: Boolean = true,
         @Query("sort_nearest") sortNearest: Boolean = true,
     ): Response<GeofenceResponse>
 
