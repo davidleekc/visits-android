@@ -1,5 +1,6 @@
 package com.hypertrack.android.ui.screens.order_details
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -125,11 +126,16 @@ class OrderDetailsViewModel(
 
     private var currentPhotoPath: String? = null
 
+    @SuppressLint("MissingPermission")
     fun onMapReady(googleMap: GoogleMap) {
         googleMap.uiSettings.apply {
             isScrollGesturesEnabled = false
             isMyLocationButtonEnabled = true
             isZoomControlsEnabled = true
+        }
+        try {
+            googleMap.isMyLocationEnabled = true
+        } catch (_: Exception) {
         }
         map.postValue(googleMap)
 

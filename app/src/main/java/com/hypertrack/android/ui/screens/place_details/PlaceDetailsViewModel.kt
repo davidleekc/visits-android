@@ -1,5 +1,6 @@
 package com.hypertrack.android.ui.screens.place_details
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
@@ -86,11 +87,16 @@ class PlaceDetailsViewModel(
         }
     }
 
+    @SuppressLint("MissingPermission")
     fun onMapReady(googleMap: GoogleMap) {
         googleMap.uiSettings.apply {
             isScrollGesturesEnabled = false
             isMyLocationButtonEnabled = true
             isZoomControlsEnabled = true
+        }
+        try {
+            googleMap.isMyLocationEnabled = true
+        } catch (_: Exception) {
         }
         map.postValue(googleMap)
     }
