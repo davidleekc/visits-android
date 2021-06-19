@@ -81,6 +81,8 @@ android {
 }
 
 repositories {
+    //todo task
+    jcenter()
     maven {
         name 'hypertrack'
         url 'http://m2.hypertrack.com'
@@ -143,9 +145,7 @@ dependencies {
     implementation 'com.hypertrack:hypertrack-views:0.8.6'
     implementation 'com.hypertrack:maps-google:0.1.8'
     implementation 'com.google.android.gms:play-services-location:18.0.0'
-    implementation 'com.google.maps.android:android-maps-utils:2.2.3'
-    implementation 'com.google.maps.android:maps-utils-ktx:3.1.0'
-
+    implementation 'net.sharewire:google-maps-clustering:0.1.3'
 
     testImplementation 'junit:junit:4.13.2'
     //noinspection GradleDependency

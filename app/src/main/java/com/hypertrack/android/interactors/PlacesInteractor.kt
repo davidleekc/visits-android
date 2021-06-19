@@ -170,8 +170,8 @@ class PlacesInteractorImpl(
             _geofences.put(it.id, it)
         }
         geofences.postValue(_geofences)
-        updateDebugCacheState()
         globalScope.launch {
+            updateDebugCacheState()
             geofencesDiff.emit(newPack)
         }
     }
