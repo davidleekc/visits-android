@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.9.14] - 2021-06-19
+## [0.9.15] - 2021-06-19
 ### Added
 - Geofences are now displayed on the Add place map
 
