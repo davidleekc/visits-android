@@ -82,9 +82,9 @@ class PlacesRepositoryImpl(
         }
     }
 
-    fun GeoHash?.string() = this?.let { it.toString() }
-
 }
+
+fun GeoHash?.string() = this?.let { it.toString() }
 
 class GeofencesPage(
     val geofences: List<LocalGeofence>,
