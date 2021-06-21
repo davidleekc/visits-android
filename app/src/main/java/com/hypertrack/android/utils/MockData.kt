@@ -3,13 +3,8 @@ package com.hypertrack.android.utils
 import com.hypertrack.android.api.Geofence
 import com.hypertrack.android.api.Geometry
 import com.hypertrack.android.api.HistoryResponse
-import com.hypertrack.android.api.asMarker
 import com.hypertrack.android.models.*
-import com.hypertrack.android.ui.common.toAddressString
 import com.hypertrack.logistics.android.github.R
-import retrofit2.Response
-import java.io.BufferedReader
-import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*

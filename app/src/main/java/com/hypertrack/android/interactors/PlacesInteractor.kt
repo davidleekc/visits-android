@@ -9,6 +9,7 @@ import com.hypertrack.android.models.Integration
 import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.repository.*
 import com.hypertrack.android.ui.base.Consumable
+import com.hypertrack.android.utils.Meter
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.logistics.android.github.R
 import kotlinx.coroutines.*
@@ -190,11 +191,11 @@ class PlacesInteractorImpl(
     }
 
     private fun addGeofencesToCache(newPack: List<LocalGeofence>) {
-        newPack.forEach {
-            _geofences.put(it.id, it)
-        }
-        geofences.postValue(_geofences)
-        globalScope.launch {
+        globalScope.launch(Dispatchers.Main) {
+            newPack.forEach {
+                _geofences.put(it.id, it)
+            }
+            geofences.postValue(_geofences)
             updateDebugCacheState()
             geofencesDiff.emit(newPack)
         }
