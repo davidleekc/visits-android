@@ -1,5 +1,6 @@
 package com.hypertrack.android.ui.screens.visits_management.tabs.places
 
+import android.util.Log
 import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.Consumable
@@ -28,14 +29,14 @@ class PlacesViewModel(
 
     fun refresh() {
         placesInteractor.invalidateCache()
-        nextPageToken = null
-        updateJob?.cancel()
-        loadingStateBase.value = false
-        loadingStateBase.postValue(false)
         init()
     }
 
     fun init() {
+        loadingStateBase.value = false
+        loadingStateBase.postValue(false)
+        updateJob?.cancel()
+        nextPageToken = null
         placesPage.value = null
         placesPage.postValue(null)
         onLoadMore()
@@ -67,7 +68,7 @@ class PlacesViewModel(
             updateJob = GlobalScope.launch {
                 try {
                     if (nextPageToken != null || placesPage.value == null) {
-//                        Log.v("hypertrack-verbose", "** loading ${nextPageToken.hashCode()}")
+                        Log.v("hypertrack-verbose", "** loading ${nextPageToken.hashCode()}")
                         loadingStateBase.postValue(true)
                         val res = placesInteractor.loadPage(nextPageToken)
                         nextPageToken = res.paginationToken
