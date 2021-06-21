@@ -163,6 +163,7 @@ object Injector {
             val placesInteractor = PlacesInteractorImpl(
                 placesRepository,
                 integrationsRepository,
+                getOsUtilsProvider(MyApplication.context),
                 GlobalScope
             )
             val hyperTrackService = getHyperTrackService(context)

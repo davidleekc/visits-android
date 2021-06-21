@@ -155,6 +155,7 @@
     <string name="places_enter">Enter</string>
     <string name="places_no_address">No address</string>
     <string name="places_created">Geofence created at %s</string>
+    <string name="places_recently_created">created recently</string>
 
     <string name="place_visit_id">Visit ID</string>
     <string name="place_route_ro">Traveled %s for %s</string>

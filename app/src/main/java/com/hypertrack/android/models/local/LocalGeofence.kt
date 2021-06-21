@@ -1,5 +1,6 @@
 package com.hypertrack.android.models.local
 
+import android.os.Parcelable
 import com.google.android.gms.maps.model.LatLng
 import com.hypertrack.android.api.Geofence
 import com.hypertrack.android.api.GeofenceMarker
@@ -8,11 +9,15 @@ import com.hypertrack.android.ui.common.nullIfEmpty
 import com.hypertrack.android.ui.common.toAddressString
 import com.hypertrack.android.ui.common.toShortAddressString
 import com.hypertrack.android.utils.OsUtilsProvider
+import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
+import kotlinx.android.parcel.Parcelize
 import java.time.ZonedDateTime
 
-class LocalGeofence(
-    private val geofence: Geofence,
+@JsonClass(generateAdapter = true)
+data class LocalGeofence(
+    val geofence: Geofence,
     val name: String?,
     val integration: Integration?,
     val shortAddress: String?,
@@ -86,5 +91,16 @@ class LocalGeofence(
                 metadata = metadata.filter { it.value is String } as Map<String, String>
             )
         }
+    }
+}
+
+@Parcelize
+class LocalGeofenceJson(private val jsonString: String) : Parcelable {
+    constructor(moshi: Moshi, localGeofence: LocalGeofence) : this(
+        moshi.adapter(LocalGeofence::class.java).toJson(localGeofence)
+    )
+
+    fun getValue(moshi: Moshi): LocalGeofence {
+        return moshi.adapter(LocalGeofence::class.java).fromJson(jsonString)!!
     }
 }

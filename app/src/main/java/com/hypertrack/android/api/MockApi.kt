@@ -24,20 +24,19 @@ class MockApi(val remoteApi: ApiInterface) : ApiInterface by remoteApi {
         deviceId: String,
         params: GeofenceParams
     ): Response<List<Geofence>> {
-        return remoteApi.createGeofences(deviceId, params)
-//        fences.add(
-//            Geofence(
-//                "",
-//                "00000000-0000-0000-0000-000000000000",
-//                "",
-//                params.geofences.first().metadata,
-//                params.geofences.first().geometry,
-//                null,
-//                100,
-//                false,
-//            )
-//        )
-//        return Response.success(listOf())
+//        return remoteApi.createGeofences(deviceId, params)
+        val created = Geofence(
+            "",
+            "00000000-0000-0000-0000-000000000000",
+            ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT),
+            params.geofences.first().metadata,
+            params.geofences.first().geometry,
+            null,
+            100,
+            false,
+        )
+        fences.add(created)
+        return Response.success(listOf(created))
     }
 
     override suspend fun getDeviceGeofences(
@@ -53,13 +52,14 @@ class MockApi(val remoteApi: ApiInterface) : ApiInterface by remoteApi {
 //                .fromJson(MockData.MOCK_GEOFENCES_JSON)
 //        )
 
-        withContext(Dispatchers.Default) {
-            delay((500 + Math.random() * 500).toLong())
-        }
+        if (geohash != null) {
+            withContext(Dispatchers.Default) {
+                delay((500 + Math.random() * 500).toLong())
+            }
 
 
-        val page = (paginationToken?.split("/")?.get(0)?.toInt() ?: 0) + 1
-        val totalPages = 5
+            val page = (paginationToken?.split("/")?.get(0)?.toInt() ?: 0) + 1
+            val totalPages = 5
 //        val totalPages =
 //            (paginationToken?.split("/")?.get(1)?.toInt()) ?: (3 + (Math.random() * 3f).toInt())
 
@@ -67,30 +67,32 @@ class MockApi(val remoteApi: ApiInterface) : ApiInterface by remoteApi {
 //            throw RuntimeException("${geohash} ${page}")
 //        }
 
-        if (geohash == null || geohash == "null") {
-            return Response.success(GeofenceResponse(listOf(), null))
-        }
-        val gh = geohash?.let { GeoHash(it) }
+            val gh = geohash?.let { GeoHash(it) }
 
 
-        return Response.success(
-            GeofenceResponse(
-                (0..10).map {
-                    MockData.createGeofence(
-                        0,
-                        lat = gh.boundingBox.maxLat - 0.005 * page,
-                        lon = gh.boundingBox.maxLon - 0.005 * page
+            return Response.success(
+                GeofenceResponse(
+                    (0..10).map {
+                        MockData.createGeofence(
+                            0,
+                            lat = gh.boundingBox.maxLat - 0.005 * page,
+                            lon = gh.boundingBox.maxLon - 0.005 * page
 //                        lat = gh?.boundingBox?.let { it.maxLat - Math.random() * (it.maxLat - it.minLat) },
 //                        lon = gh?.boundingBox?.let { it.maxLon - Math.random() * (it.maxLon - it.minLon) }
-                    )
-                },
-                if (page < totalPages) {
-                    "${page}/${totalPages}"
-                } else {
-                    null
-                }
+                        )
+                    },
+                    if (page < totalPages) {
+                        "${page}/${totalPages}"
+                    } else {
+                        null
+                    }
+                )
             )
-        )
+        } else {
+            return Response.success(
+                GeofenceResponse(fences, null)
+            )
+        }
     }
 
     override suspend fun getIntegrations(
