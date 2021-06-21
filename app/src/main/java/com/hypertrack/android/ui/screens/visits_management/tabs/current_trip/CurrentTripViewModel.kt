@@ -174,7 +174,6 @@ class CurrentTripViewModel(
         })
     }
 
-
     //todo task
 //    private fun onMapActive() {
 //        Log.d(LiveMapFragment.TAG, "onMapActive")

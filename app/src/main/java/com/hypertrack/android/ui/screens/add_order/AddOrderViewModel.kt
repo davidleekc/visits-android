@@ -12,6 +12,7 @@ import com.google.android.libraries.places.api.net.FetchPlaceRequest
 import com.google.android.libraries.places.api.net.FetchPlaceResponse
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import com.google.android.libraries.places.api.net.PlacesClient
+import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.models.Location
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.SingleLiveEvent
@@ -25,10 +26,12 @@ import com.hypertrack.android.utils.OsUtilsProvider
 
 class AddOrderViewModel(
     private val tripId: String,
+    private val placesInteractor: PlacesInteractor,
     private val placesClient: PlacesClient,
     private val deviceLocationProvider: DeviceLocationProvider,
     private val osUtilsProvider: OsUtilsProvider,
 ) : SelectDestinationViewModel(
+    placesInteractor,
     osUtilsProvider,
     placesClient,
     deviceLocationProvider

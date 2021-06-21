@@ -36,14 +36,11 @@ class AddPlaceViewModel(
     private val deviceLocationProvider: DeviceLocationProvider,
     private val placesInteractor: PlacesInteractor
 ) : SelectDestinationViewModel(
+    placesInteractor,
     osUtilsProvider,
     placesClient,
     deviceLocationProvider
 ), ClusterManagerMixin<GeofenceClusterItem> {
-
-    private lateinit var clusterManager: ClusterManager<GeofenceClusterItem>
-    private val icon = GeofenceClusterItem.createIcon(osUtilsProvider)
-    private val clusterIcon = GeofenceClusterItem.createClusterIcon(osUtilsProvider)
 
     override val loadingStateBase = placesInteractor.isLoadingForLocation
 
@@ -56,140 +53,12 @@ class AddPlaceViewModel(
         }
     }
 
-    init {
-        viewModelScope.launch {
-            placesInteractor.geofencesDiff.collect {
-                map.value?.let { map ->
-                    addGeofencesToMap(map, it)
-                }
-            }
-        }
-
-//        (placesInteractor as PlacesInteractorImpl).debugCacheState.observeManaged {
-//            map.value?.let {
-//                showMapDebugData()
-//            }
-//        }
-    }
-
     override fun proceed(destinationData: DestinationData) {
         destination.postValue(
             AddPlaceFragmentDirections.actionAddPlaceFragmentToAddPlaceInfoFragment(
                 destinationData
             )
         )
-    }
-
-
-    override fun onMapReady(context: Context, googleMap: GoogleMap) {
-        super.onMapReady(context, googleMap)
-        clusterManager = createClusterManager(
-            context,
-            googleMap,
-            icon = icon,
-            clusterIcon = clusterIcon
-        ) { clusterItem: GeofenceClusterItem ->
-            clusterItem.snippet.nullIfEmpty()?.let { snippet ->
-                destination.postValue(
-                    AddPlaceFragmentDirections.actionAddPlaceFragmentToPlaceDetailsFragment(
-                        snippet
-                    )
-                )
-            }
-        }
-
-        placesInteractor.geofences.value?.let {
-            addGeofencesToMap(googleMap, it.values.toList())
-        }
-    }
-
-    override fun onCameraMoved(map: GoogleMap) {
-        val region = map.projection.visibleRegion
-        placesInteractor.loadGeofencesForMap(map.cameraPosition.target)
-        clusterManager.onCameraIdle()
-    }
-
-    //todo rename to update?
-    private fun addGeofencesToMap(googleMap: GoogleMap, geofences: List<LocalGeofence>) {
-        if (BuildConfig.DEBUG.not() || !SHOW_DEBUG_DATA) {
-            clusterManager.setItems(placesInteractor.geofences.value!!.values.map {
-                GeofenceClusterItem(
-                    it
-                )
-            })
-        } else {
-            googleMap.clear()
-            showMapDebugData(googleMap)
-            placesInteractor.geofences.value!!.values.forEach {
-                googleMap.addMarker(
-                    MarkerOptions().icon(
-                        icon
-                    ).position(it.latLng)
-                )
-            }
-        }
-    }
-
-
-    private fun showMapDebugData(googleMap: GoogleMap) {
-        (placesInteractor as PlacesInteractorImpl).debugCacheState.value?.let { items ->
-            items.forEach {
-                val text = it.let { item ->
-                    when (item.status) {
-                        PlacesInteractorImpl.Status.COMPLETED -> "completed"
-                        PlacesInteractorImpl.Status.LOADING -> item.pageToken
-                            ?: "loading"
-                        PlacesInteractorImpl.Status.ERROR -> "error"
-                    }
-                }
-                googleMap.addMarker(
-                    MarkerOptions().anchor(0.5f, 0.5f).position(
-                        it.gh.toLocation().toLatLng()
-                    )
-                        .icon(createPureTextIcon(text))
-                )
-
-                it.gh.boundingBox
-                    .let { bb ->
-                        listOf(
-                            bb.bottomLeft,
-                            bb.bottomRight,
-                            bb.topRight,
-                            bb.topLeft,
-                            bb.bottomLeft
-                        ).map {
-                            it.toLatLng()
-                        }
-                    }
-                    .let {
-                        googleMap.addPolygon(PolygonOptions().strokeWidth(1f).addAll(it))
-                    }
-            }
-        }
-    }
-
-    private fun createPureTextIcon(text: String?): BitmapDescriptor? {
-        val textPaint = Paint().apply {
-            textSize = 50f
-        } // Adapt to your needs
-        val textWidth: Float = textPaint.measureText(text)
-        val textHeight: Float = textPaint.getTextSize()
-        val width = textWidth.toInt()
-        val height = textHeight.toInt()
-        val image: Bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(image)
-        canvas.translate(0f, height.toFloat())
-//        canvas.drawColor(Color.LTGRAY)
-        canvas.drawText(text ?: "null", 0f, 0f, textPaint)
-        return BitmapDescriptorFactory.fromBitmap(image)
-    }
-
-    fun Location.toLatLng(): LatLng {
-        return LatLng(latitude, longitude)
-    }
-
-    companion object {
-        const val SHOW_DEBUG_DATA = false
     }
 
 }

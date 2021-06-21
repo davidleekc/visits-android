@@ -69,6 +69,7 @@ class UserScopeViewModelFactory(
                 deviceLocationProvider
             ) as T
             SelectDestinationViewModel::class.java -> SelectDestinationViewModel(
+                placesInteractor,
                 osUtilsProvider,
                 placesClient,
                 deviceLocationProvider

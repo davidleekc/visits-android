@@ -1,6 +1,7 @@
 package com.hypertrack.android.ui.common
 
 import android.location.Address
+import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.Place
 import com.hypertrack.android.models.Location
 
@@ -27,6 +28,10 @@ object LocationUtils {
             return null
         }
     }
+}
+
+fun android.location.Location.toLatLng(): LatLng {
+    return LatLng(latitude, longitude)
 }
 
 fun Address.toAddressString(): String {

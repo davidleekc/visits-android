@@ -75,7 +75,7 @@ class MockApi(val remoteApi: ApiInterface) : ApiInterface by remoteApi {
 
         return Response.success(
             GeofenceResponse(
-                (0..0).map {
+                (0..10).map {
                     MockData.createGeofence(
                         0,
                         lat = gh.boundingBox.maxLat - 0.005 * page,

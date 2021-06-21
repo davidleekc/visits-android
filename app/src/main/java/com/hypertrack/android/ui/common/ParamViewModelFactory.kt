@@ -70,6 +70,7 @@ class ParamViewModelFactory<T>(
             ) as T
             AddOrderViewModel::class.java -> AddOrderViewModel(
                 param as String,
+                userScopeProvider.get().placesInteractor,
                 placesClient,
                 deviceLocationProvider,
                 osUtilsProvider,
