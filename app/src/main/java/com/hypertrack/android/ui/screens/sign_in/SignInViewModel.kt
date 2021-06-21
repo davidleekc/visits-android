@@ -1,15 +1,9 @@
 package com.hypertrack.android.ui.screens.sign_in
 
 import android.app.Activity
-import android.util.Log
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavDestination
-import androidx.navigation.NavDirections
 import com.hypertrack.android.interactors.*
-import com.hypertrack.android.repository.AccountRepository
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.utils.*
 import com.hypertrack.logistics.android.github.R
@@ -24,7 +18,7 @@ class SignInViewModel(
     private var login = ""
     private var password = ""
 
-    val errorText = MutableLiveData<String>()
+    val errorTextState = MutableLiveData<String>()
     val showProgress = MutableLiveData(false)
     val isLoginButtonClickable = MutableLiveData(false)
 
@@ -41,7 +35,7 @@ class SignInViewModel(
     }
 
     fun onLoginClick(activity: Activity) {
-        errorText.postValue("")
+        errorTextState.postValue("")
         // Log.v(TAG, "onLoginClick")
         isLoginButtonClickable.postValue(false)
         showProgress.postValue(true)
@@ -58,10 +52,10 @@ class SignInViewModel(
                     showProgress.postValue(false)
                     when (res) {
                         is NoSuchUser -> {
-                            errorText.postValue(osUtilsProvider.stringFromResource(R.string.user_does_not_exist))
+                            errorTextState.postValue(osUtilsProvider.stringFromResource(R.string.user_does_not_exist))
                         }
                         is InvalidLoginOrPassword -> {
-                            errorText.postValue(osUtilsProvider.stringFromResource(R.string.incorrect_username_or_pass))
+                            errorTextState.postValue(osUtilsProvider.stringFromResource(R.string.incorrect_username_or_pass))
                         }
                         is EmailConfirmationRequired -> {
                             destination.postValue(
@@ -71,7 +65,7 @@ class SignInViewModel(
                             )
                         }
                         is LoginError -> {
-                            errorText.postValue(MyApplication.context.getString(R.string.unknown_error))
+                            errorTextState.postValue(MyApplication.context.getString(R.string.unknown_error))
                         }
                         is PublishableKey -> throw IllegalStateException()
                     }

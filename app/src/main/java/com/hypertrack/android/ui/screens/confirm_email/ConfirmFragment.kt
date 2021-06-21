@@ -40,7 +40,9 @@ class ConfirmFragment : ProgressDialogFragment(R.layout.fragment_confirm) {
         })
 
         vm.errorText.observe(viewLifecycleOwner, {
-            SnackbarUtil.showErrorSnackbar(view, it)
+            it.consume {
+                SnackbarUtil.showErrorSnackbar(view, it)
+            }
         })
 
         vm.destination.observe(viewLifecycleOwner, {

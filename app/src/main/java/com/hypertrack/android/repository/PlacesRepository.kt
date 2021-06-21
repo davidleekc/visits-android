@@ -14,11 +14,14 @@ import com.hypertrack.android.models.Integration
 import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.common.nullIfEmpty
+import com.hypertrack.android.utils.Meter
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.squareup.moshi.Json
 import com.squareup.moshi.Moshi
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 
 interface PlacesRepository {
@@ -40,13 +43,15 @@ class PlacesRepositoryImpl(
 ) : PlacesRepository {
 
     override suspend fun loadPage(pageToken: String?, gh: GeoHash?): GeofencesPage {
-        val res = apiClient.getGeofences(pageToken, gh.string())
-        val localGeofences =
-            res.geofences.map { LocalGeofence.fromGeofence(it, moshi, osUtilsProvider) }
-        return GeofencesPage(
-            localGeofences,
-            res.paginationToken
-        )
+        return withContext(Dispatchers.IO) {
+            val res = apiClient.getGeofences(pageToken, gh.string())
+            val localGeofences =
+                res.geofences.map { LocalGeofence.fromGeofence(it, moshi, osUtilsProvider) }
+            GeofencesPage(
+                localGeofences,
+                res.paginationToken
+            )
+        }
     }
 
     override suspend fun createGeofence(

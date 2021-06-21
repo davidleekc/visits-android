@@ -1,5 +1,6 @@
 package com.hypertrack.android.models.local
 
+import android.os.Parcelable
 import com.google.android.gms.maps.model.LatLng
 import com.hypertrack.android.api.Geofence
 import com.hypertrack.android.api.GeofenceMarker
@@ -7,12 +8,18 @@ import com.hypertrack.android.models.*
 import com.hypertrack.android.ui.common.nullIfEmpty
 import com.hypertrack.android.ui.common.toAddressString
 import com.hypertrack.android.ui.common.toShortAddressString
+import com.hypertrack.android.utils.Meter
 import com.hypertrack.android.utils.OsUtilsProvider
+import com.hypertrack.logistics.android.github.BuildConfig
+import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
+import kotlinx.android.parcel.Parcelize
 import java.time.ZonedDateTime
 
-class LocalGeofence(
-    private val geofence: Geofence,
+@JsonClass(generateAdapter = true)
+data class LocalGeofence(
+    val geofence: Geofence,
     val name: String?,
     val integration: Integration?,
     val shortAddress: String?,
@@ -60,31 +67,47 @@ class LocalGeofence(
             val metadata = geofence.metadata?.toMutableMap() ?: mutableMapOf()
             val metadataAddress = metadata.remove(GeofenceMetadata.KEY_ADDRESS) as String?
 
+            val place = if (BuildConfig.MOCK_MODE.not()) {
+                osUtilsProvider.getPlaceFromCoordinates(
+                    latitude = geofence.latitude,
+                    longitude = geofence.longitude
+                )
+            } else null
+
+            val shortAddress = geofence.address?.let { "${it.street}" }
+                ?: metadataAddress.nullIfEmpty()
+                ?: place?.toShortAddressString()
+            val fullAddress = geofence.address?.let { "${it.city}, ${it.street}" }
+                ?: metadataAddress.nullIfEmpty()
+                ?: place?.toAddressString()
+            val integration = metadata.remove(GeofenceMetadata.KEY_INTEGRATION)?.let {
+                try {
+                    moshi.adapter(GeofenceMetadata::class.java)
+                        .fromJsonValue(metadata)?.integration
+                } catch (_: Exception) {
+                    null
+                }
+            }
+
             return LocalGeofence(
                 geofence = geofence,
-                shortAddress = geofence.address?.let { "${it.street}" }
-                    ?: metadataAddress.nullIfEmpty()
-                    ?: osUtilsProvider.getPlaceFromCoordinates(
-                        latitude = geofence.latitude,
-                        longitude = geofence.longitude
-                    )?.toShortAddressString(),
-                fullAddress = geofence.address?.let { "${it.city}, ${it.street}" }
-                    ?: metadataAddress.nullIfEmpty()
-                    ?: osUtilsProvider.getPlaceFromCoordinates(
-                        latitude = geofence.latitude,
-                        longitude = geofence.longitude
-                    )?.toAddressString(),
+                shortAddress = shortAddress,
+                fullAddress = fullAddress,
                 name = metadata.remove(GeofenceMetadata.KEY_NAME) as String?,
-                integration = metadata.remove(GeofenceMetadata.KEY_INTEGRATION)?.let {
-                    try {
-                        moshi.adapter(GeofenceMetadata::class.java)
-                            .fromJsonValue(metadata)?.integration
-                    } catch (_: Exception) {
-                        null
-                    }
-                },
+                integration = integration,
                 metadata = metadata.filter { it.value is String } as Map<String, String>
             )
         }
+    }
+}
+
+@Parcelize
+class LocalGeofenceJson(private val jsonString: String) : Parcelable {
+    constructor(moshi: Moshi, localGeofence: LocalGeofence) : this(
+        moshi.adapter(LocalGeofence::class.java).toJson(localGeofence)
+    )
+
+    fun getValue(moshi: Moshi): LocalGeofence {
+        return moshi.adapter(LocalGeofence::class.java).fromJson(jsonString)!!
     }
 }

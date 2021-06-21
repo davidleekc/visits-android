@@ -53,6 +53,11 @@
         <action
             android:id="@+id/action_visitManagementFragment_to_addOrderFragment"
             app:destination="@id/addOrderFragment" />
+        <argument
+            android:name="addedData"
+            app:argType="com.hypertrack.android.ui.screens.visits_management.VisitsManagementFragment$AddedData"
+            app:nullable="true"
+            android:defaultValue="@null" />
     </fragment>
     <fragment
         android:id="@+id/visitDetailsFragment"

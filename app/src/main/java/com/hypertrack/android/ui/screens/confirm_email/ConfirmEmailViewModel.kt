@@ -5,7 +5,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.hypertrack.android.interactors.*
 import com.hypertrack.android.ui.base.BaseViewModel
+import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.base.SingleLiveEvent
+import com.hypertrack.android.ui.base.toConsumable
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.logistics.android.github.R
 import kotlinx.coroutines.launch
@@ -22,7 +24,7 @@ class ConfirmEmailViewModel(
 
     val loadingState = MutableLiveData<Boolean>()
     val proceedButtonEnabled = MutableLiveData<Boolean>(false)
-    val errorText = MutableLiveData<String>()
+    override val errorText = MutableLiveData<Consumable<String>>()
     val clipboardCode = SingleLiveEvent<String>()
 
     fun init(email: String) {
@@ -66,10 +68,14 @@ class ConfirmEmailViewModel(
                         )
                     }
                     is OtpWrongCode -> {
-                        errorText.postValue(osUtilsProvider.stringFromResource(R.string.wrong_code))
+                        errorText.postValue(
+                            osUtilsProvider.stringFromResource(R.string.wrong_code).toConsumable()
+                        )
                     }
                     is OtpError -> {
-                        errorText.postValue(res.exception.message)
+                        errorText.postValue(
+                            osUtilsProvider.getErrorMessage(res.exception).toConsumable()
+                        )
                     }
                 }
             }
@@ -93,7 +99,9 @@ class ConfirmEmailViewModel(
                     )
                 }
                 is ResendError -> {
-                    errorText.postValue(res.exception.message)
+                    errorText.postValue(
+                        osUtilsProvider.getErrorMessage(res.exception).toConsumable()
+                    )
                 }
             }
 

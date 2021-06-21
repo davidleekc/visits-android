@@ -90,7 +90,7 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
             displayTripOnMap(it)
         })
 
-        vm.errorBase.observe(viewLifecycleOwner, {
+        vm.errorText.observe(viewLifecycleOwner, {
             it.consume {
                 SnackbarUtil.showErrorSnackbar(view, it)
             }

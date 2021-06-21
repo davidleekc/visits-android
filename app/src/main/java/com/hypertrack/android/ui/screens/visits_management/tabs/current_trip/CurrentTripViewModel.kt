@@ -2,9 +2,11 @@ package com.hypertrack.android.ui.screens.visits_management.tabs.current_trip
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.util.Log
 import android.util.TypedValue
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavDirections
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -20,8 +22,8 @@ import com.hypertrack.android.repository.TripCreationError
 import com.hypertrack.android.repository.TripCreationSuccess
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.Consumable
-import com.hypertrack.android.ui.common.mixins.ClusterManagerMixin
-import com.hypertrack.android.ui.common.mixins.GeofenceClusterItem
+import com.hypertrack.android.ui.common.delegates.GeofenceClusterItem
+import com.hypertrack.android.ui.common.delegates.GeofencesMapDelegate
 import com.hypertrack.android.ui.common.nullIfEmpty
 import com.hypertrack.android.ui.screens.add_place.AddPlaceFragmentDirections
 import com.hypertrack.android.ui.screens.add_place.AddPlaceViewModel
@@ -32,6 +34,7 @@ import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.logistics.android.github.BuildConfig
 import com.hypertrack.logistics.android.github.R
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import net.sharewire.googlemapsclustering.ClusterManager
 
@@ -40,14 +43,19 @@ class CurrentTripViewModel(
     private val placesInteractor: PlacesInteractor,
     private val osUtilsProvider: OsUtilsProvider,
     private val locationProvider: DeviceLocationProvider
-) : BaseViewModel(), ClusterManagerMixin<GeofenceClusterItem> {
+) : BaseViewModel(osUtilsProvider) {
 
     private val map = MutableLiveData<GoogleMap>()
+    private lateinit var geofencesMapDelegate: GeofencesMapDelegate
 
-    private lateinit var clusterManager: ClusterManager<GeofenceClusterItem>
-    private val icon = GeofenceClusterItem.createIcon(osUtilsProvider)
-    private val clusterIcon = GeofenceClusterItem.createClusterIcon(osUtilsProvider)
-
+    override val exception = MediatorLiveData<Consumable<Exception>>().apply {
+        addSource(tripsInteractor.errorFlow.asLiveData()) {
+            postValue(it)
+        }
+        addSource(placesInteractor.errorFlow.asLiveData()) {
+            postValue(it)
+        }
+    }
     val trip = MediatorLiveData<LocalTrip?>().apply {
         addSource(tripsInteractor.currentTrip) {
             postValue(it)
@@ -59,12 +67,6 @@ class CurrentTripViewModel(
         loadingStateBase.postValue(true)
         viewModelScope.launch {
             tripsInteractor.refreshTrips()
-        }
-
-        placesInteractor.geofences.observeManaged {
-            map.value?.let { map ->
-                updateGeofencesOnMap(map, it.values.toList())
-            }
         }
     }
 
@@ -82,15 +84,14 @@ class CurrentTripViewModel(
         }
 
         googleMap.setOnCameraIdleListener {
-            placesInteractor.loadGeofencesForMap(googleMap.cameraPosition.target)
-            clusterManager.onCameraIdle()
+            geofencesMapDelegate.onCameraIdle()
         }
 
-        clusterManager = createClusterManager(
+        geofencesMapDelegate = GeofencesMapDelegate(
             context,
             googleMap,
-            icon = icon,
-            clusterIcon = clusterIcon
+            placesInteractor,
+            osUtilsProvider
         ) {
             it.snippet.nullIfEmpty()?.let { snippet ->
                 destination.postValue(
@@ -99,9 +100,6 @@ class CurrentTripViewModel(
                     )
                 )
             }
-        }
-        placesInteractor.geofences.value?.let {
-            updateGeofencesOnMap(googleMap, it.values.toList())
         }
 
         locationProvider.getCurrentLocation {
@@ -168,10 +166,9 @@ class CurrentTripViewModel(
         )
     }
 
-    private fun updateGeofencesOnMap(googleMap: GoogleMap, geofences: List<LocalGeofence>) {
-        clusterManager.setItems(geofences.map {
-            GeofenceClusterItem(it)
-        })
+    override fun onCleared() {
+        super.onCleared()
+        geofencesMapDelegate.onCleared()
     }
 
     //todo task

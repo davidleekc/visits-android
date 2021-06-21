@@ -1,6 +1,5 @@
 package com.hypertrack.android.ui.screens.sign_up
 
-import android.util.Patterns
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.amazonaws.AmazonServiceException
@@ -18,18 +17,18 @@ class SignUpViewModel(
     private val osUtilsProvider: OsUtilsProvider
 ) : BaseViewModel() {
 
-    val errorText = MutableLiveData<String?>()
+    val errorTextState = MutableLiveData<String?>()
     val page = MutableLiveData<Int>(0)
 
     fun onSignUpClicked(login: String, password: String, userAttributes: Map<String, String>) {
         when {
             password.length < 8 -> {
                 page.postValue(SignUpFragment.PAGE_USER)
-                errorText.postValue(osUtilsProvider.stringFromResource(R.string.password_too_short))
+                errorTextState.postValue(osUtilsProvider.stringFromResource(R.string.password_too_short))
             }
             !login.isEmail() -> {
                 page.postValue(SignUpFragment.PAGE_USER)
-                errorText.postValue(osUtilsProvider.stringFromResource(R.string.invalid_email))
+                errorTextState.postValue(osUtilsProvider.stringFromResource(R.string.invalid_email))
             }
             else -> {
                 viewModelScope.launch {
@@ -45,10 +44,10 @@ class SignUpViewModel(
                         is SignUpError -> {
                             when (res.exception) {
                                 is AmazonServiceException -> {
-                                    errorText.postValue(res.exception.errorMessage)
+                                    errorTextState.postValue(res.exception.errorMessage)
                                 }
                                 else -> {
-                                    errorText.postValue(res.exception.message)
+                                    errorTextState.postValue(res.exception.message)
                                 }
                             }
 
@@ -77,7 +76,7 @@ class SignUpViewModel(
             page.postValue(SignUpFragment.PAGE_INFO)
         } else {
             page.postValue(SignUpFragment.PAGE_USER)
-            errorText.postValue(osUtilsProvider.stringFromResource(R.string.invalid_email))
+            errorTextState.postValue(osUtilsProvider.stringFromResource(R.string.invalid_email))
         }
     }
 

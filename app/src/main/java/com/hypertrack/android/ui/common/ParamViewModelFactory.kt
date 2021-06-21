@@ -61,6 +61,7 @@ class ParamViewModelFactory<T>(
                     userScopeProvider.get().placesInteractor,
                     userScopeProvider.get().integrationsRepository,
                     osUtilsProvider,
+                    moshi
                 ) as T
             }
             AddOrderInfoViewModel::class.java -> AddOrderInfoViewModel(

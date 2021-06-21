@@ -82,7 +82,7 @@ class SignUpFragment : ProgressDialogFragment(R.layout.fragment_signup) {
             }
         })
 
-        vm.errorText.observe(viewLifecycleOwner, {
+        vm.errorTextState.observe(viewLifecycleOwner, {
             dismissProgress()
             incorrect.setGoneState(it == null)
             incorrect.text = it

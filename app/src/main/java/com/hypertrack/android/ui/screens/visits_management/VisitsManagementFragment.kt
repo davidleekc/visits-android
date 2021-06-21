@@ -14,6 +14,9 @@ import androidx.navigation.fragment.navArgs
 import androidx.viewpager.widget.ViewPager
 import com.hypertrack.android.models.Visit
 import com.hypertrack.android.models.VisitStatusGroup
+import com.hypertrack.android.models.local.LocalGeofence
+import com.hypertrack.android.models.local.LocalGeofenceJson
+import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.base.ProgressDialogFragment
 import com.hypertrack.android.ui.common.NotificationUtils
 import com.hypertrack.android.ui.common.SimplePageChangedListener
@@ -231,6 +234,11 @@ class VisitsManagementFragment : ProgressDialogFragment(R.layout.fragment_visits
             }
         }
     }
+
+    @Parcelize
+    class AddedData(
+        val geofence: LocalGeofenceJson? = null
+    ) : Parcelable
 
     companion object {
         const val TAG = "VisitsManagementAct"
