@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.9.16] - 2021-06-21
+### Added
+- Trips with multiple orders
+- Geofences are now displayed on the Current trip map
+
 ## [0.9.15] - 2021-06-19
 ### Added
 - Geofences are now displayed on the Add place map
