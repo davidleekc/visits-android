@@ -55,7 +55,7 @@ class SignInFragment : ProgressDialogFragment(R.layout.fragment_signin) {
             findNavController().navigate(it)
         }
 
-        vm.errorText.observe(viewLifecycleOwner, {
+        vm.errorTextState.observe(viewLifecycleOwner, {
             incorrect.text = it
         })
 

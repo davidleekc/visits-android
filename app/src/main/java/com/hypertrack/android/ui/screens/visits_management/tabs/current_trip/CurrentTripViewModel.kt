@@ -2,9 +2,11 @@ package com.hypertrack.android.ui.screens.visits_management.tabs.current_trip
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.util.Log
 import android.util.TypedValue
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavDirections
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -32,6 +34,7 @@ import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.logistics.android.github.BuildConfig
 import com.hypertrack.logistics.android.github.R
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import net.sharewire.googlemapsclustering.ClusterManager
 
@@ -40,10 +43,18 @@ class CurrentTripViewModel(
     private val placesInteractor: PlacesInteractor,
     private val osUtilsProvider: OsUtilsProvider,
     private val locationProvider: DeviceLocationProvider
-) : BaseViewModel(), ClusterManagerMixin<GeofenceClusterItem> {
+) : BaseViewModel(osUtilsProvider), ClusterManagerMixin<GeofenceClusterItem> {
 
     private val map = MutableLiveData<GoogleMap>()
 
+    override val exception = MediatorLiveData<Consumable<Exception>>().apply {
+        addSource(tripsInteractor.errorFlow.asLiveData()) {
+            postValue(it)
+        }
+        addSource(placesInteractor.errorFlow.asLiveData()) {
+            postValue(it)
+        }
+    }
     private lateinit var clusterManager: ClusterManager<GeofenceClusterItem>
     private val icon = GeofenceClusterItem.createIcon(osUtilsProvider)
     private val clusterIcon = GeofenceClusterItem.createClusterIcon(osUtilsProvider)
