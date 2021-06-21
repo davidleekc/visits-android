@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "artifactType": {
+    "type": "APK",
+    "kind": "Directory"
+  },
+  "applicationId": "com.hypertrack.logistics.android.github",
+  "variantName": "release",
+  "elements": [
+    {
+      "type": "SINGLE",
+      "filters": [],
+      "versionCode": 100005,
+      "versionName": "0.10.0-SNAPSHOT",
+      "outputFile": "app-release.apk"
+    }
+  ]
+}

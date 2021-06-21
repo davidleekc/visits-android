@@ -1,6 +1,7 @@
 package com.hypertrack.android.models
 
 import android.util.Log
+import com.google.android.gms.maps.model.LatLng
 import com.hypertrack.android.utils.Constants
 import com.hypertrack.android.utils.TimeDistanceFormatter
 import com.squareup.moshi.JsonClass
@@ -31,7 +32,12 @@ data class Summary(
 data class Location(
     val latitude: Double,
     val longitude: Double
-)
+) {
+    fun toLatLng() = LatLng(
+        latitude,
+        longitude
+    )
+}
 
 interface Marker {
     val type: MarkerType

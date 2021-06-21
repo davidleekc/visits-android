@@ -53,28 +53,8 @@ class OrdersListViewModelTest {
                 _status = OrderStatus.ONGOING.value
             ),
         )
-        val tripsInteractor: TripsInteractor = TripsInteractorImpl(
-            mockk() {
-                coEvery { getTrips() } returns listOf(
-                    createBaseTrip().copy(orders = backendOrders)
-                )
-            },
-            mockk() {
-                coEvery { getTrips() } returns listOf()
-                coEvery { saveTrips(any()) } returns Unit
-            },
-            mockk() {
-                coEvery { isPickUpAllowed } returns false
-            },
-            Injector.getMoshi(),
-            mockk<HyperTrackService> {
-                coEvery { sendPickedUp(any(), any()) } returns Unit
-            },
-            TestCoroutineScope(),
-            mockk(relaxed = true) {},
-            mockk(relaxed = true) {},
-            mockk(relaxed = true) {},
-            Dispatchers.Main
+        val tripsInteractor: TripsInteractor = TripInteractorTest.createTripInteractorImpl(
+            backendTrips = listOf(createBaseTrip().copy(orders = backendOrders))
         )
         runBlocking {
             tripsInteractor.refreshTrips()

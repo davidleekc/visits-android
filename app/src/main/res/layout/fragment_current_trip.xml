@@ -23,6 +23,7 @@
         android:gravity="center"
         android:textColor="@color/colorWhite"
         android:textSize="12sp"
+        android:visibility="gone"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -50,4 +51,85 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:id="@+id/lTrip"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <FrameLayout
+                android:id="@+id/content_frame"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <View
+                android:id="@+id/blocking_view"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                app:layout_constraintBottom_toBottomOf="@id/content_frame"
+                app:layout_constraintTop_toTopOf="@id/content_frame" />
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/location_button"
+                style="@style/FloatingActionButtonSmall"
+                app:layout_constraintBottom_toTopOf="@id/where_are_you"
+                app:layout_constraintRight_toRightOf="parent"
+                app:srcCompat="@drawable/ic_location_live" />
+
+            <TextView
+                android:id="@+id/offline"
+                style="@style/OfflineViewStyle"
+                android:visibility="gone"
+                app:layout_constraintBottom_toTopOf="@id/where_are_you"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent" />
+
+            <include
+                android:id="@+id/where_are_you"
+                layout="@layout/inflate_where_are_you_going"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:visibility="invisible"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <FrameLayout
+            android:id="@+id/bottom_holder"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_info_bottom"
+            android:elevation="6dp"
+            android:orientation="vertical"
+            android:visibility="invisible"
+            app:behavior_hideable="false"
+            app:behavior_peekHeight="140dp"
+            app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+
+            <include
+                layout="@layout/inflate_current_trip"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+
+        </FrameLayout>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+    <include
+        android:id="@+id/progress"
+        layout="@layout/progress_bar_white"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:visibility="visible" />
 </androidx.constraintlayout.widget.ConstraintLayout>

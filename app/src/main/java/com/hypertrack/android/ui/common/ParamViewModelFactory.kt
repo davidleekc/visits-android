@@ -10,44 +10,69 @@ import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.interactors.TripsInteractor
 import com.hypertrack.android.repository.AccountRepository
 import com.hypertrack.android.repository.PlacesRepository
+import com.hypertrack.android.ui.screens.add_order.AddOrderViewModel
+import com.hypertrack.android.ui.screens.add_order_info.AddOrderInfoViewModel
+import com.hypertrack.android.ui.screens.add_place_info.AddPlaceInfoViewModel
 import com.hypertrack.android.ui.screens.place_details.PlaceDetailsViewModel
-import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.android.ui.screens.order_details.OrderDetailsViewModel
-import com.hypertrack.android.utils.CrashReportsProvider
+import com.hypertrack.android.ui.screens.select_destination.DestinationData
+import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
+import com.hypertrack.android.utils.*
 import com.squareup.moshi.Moshi
 import kotlinx.coroutines.GlobalScope
+import javax.inject.Provider
 
 @Suppress("UNCHECKED_CAST")
 class ParamViewModelFactory<T>(
     private val param: T,
-    private val tripsInteractor: TripsInteractor,
-    private val placesInteractor: PlacesInteractor,
+    private val userScopeProvider: Provider<UserScope>,
     private val osUtilsProvider: OsUtilsProvider,
-    private val placesClient: PlacesClient,
     private val accountRepository: AccountRepository,
-    private val photoUploadQueueInteractor: PhotoUploadQueueInteractor,
     private val apiClient: ApiClient,
     private val moshi: Moshi,
-    private val crashReportsProvider: CrashReportsProvider
+    private val crashReportsProvider: CrashReportsProvider,
+    private val placesClient: PlacesClient,
+    private val deviceLocationProvider: DeviceLocationProvider,
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return when (modelClass) {
             PlaceDetailsViewModel::class.java -> PlaceDetailsViewModel(
                 geofenceId = param as String,
-                placesInteractor,
+                userScopeProvider.get().placesInteractor,
                 osUtilsProvider,
                 crashReportsProvider,
                 moshi
             ) as T
             OrderDetailsViewModel::class.java -> OrderDetailsViewModel(
                 orderId = param as String,
-                tripsInteractor,
-                photoUploadQueueInteractor,
+                userScopeProvider.get().tripsInteractor,
+                userScopeProvider.get().photoUploadQueueInteractor,
                 osUtilsProvider,
                 accountRepository,
                 apiClient,
                 GlobalScope
+            ) as T
+            AddPlaceInfoViewModel::class.java -> (param as DestinationData).let { destinationData ->
+                AddPlaceInfoViewModel(
+                    destinationData.latLng,
+                    initialAddress = destinationData.address,
+                    _name = destinationData.name,
+                    userScopeProvider.get().placesInteractor,
+                    userScopeProvider.get().integrationsRepository,
+                    osUtilsProvider,
+                ) as T
+            }
+            AddOrderInfoViewModel::class.java -> AddOrderInfoViewModel(
+                param as AddOrderInfoViewModel.Params,
+                userScopeProvider.get().tripsInteractor,
+                osUtilsProvider
+            ) as T
+            AddOrderViewModel::class.java -> AddOrderViewModel(
+                param as String,
+                placesClient,
+                deviceLocationProvider,
+                osUtilsProvider,
             ) as T
             else -> throw IllegalArgumentException("Can't instantiate class $modelClass")
         }

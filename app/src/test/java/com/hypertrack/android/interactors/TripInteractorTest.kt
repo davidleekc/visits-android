@@ -14,6 +14,7 @@ import com.hypertrack.android.models.local.TripStatus
 import com.hypertrack.android.observeAndAssertNull
 import com.hypertrack.android.observeAndGetValue
 import com.hypertrack.android.repository.AccountRepository
+import com.hypertrack.android.repository.TripsRepositoryImpl
 import com.hypertrack.android.repository.TripsStorage
 import com.hypertrack.android.utils.HyperTrackService
 import com.hypertrack.android.utils.Injector
@@ -21,6 +22,7 @@ import io.mockk.*
 import io.mockk.coVerify
 import junit.framework.Assert.*
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.runBlocking
@@ -525,17 +527,23 @@ class TripInteractorTest {
             },
             queueInteractor: PhotoUploadQueueInteractor = mockk(relaxed = true) {}
         ): TripsInteractorImpl {
-            return TripsInteractorImpl(
+            val tripsRepository = TripsRepositoryImpl(
                 apiClient,
                 tripStorage,
-                accountRepository,
-                Injector.getMoshi(),
                 hyperTrackService,
                 TestCoroutineScope(),
+                accountRepository.isPickUpAllowed
+            )
+
+            return TripsInteractorImpl(
+                tripsRepository,
+                apiClient,
+                hyperTrackService,
                 queueInteractor,
                 mockk(relaxed = true) {},
                 mockk(relaxed = true) {},
-                Dispatchers.Main
+                Dispatchers.Main,
+                TestCoroutineScope()
             )
         }
 

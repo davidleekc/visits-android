@@ -13,9 +13,12 @@ open class BaseViewModel : ViewModel() {
     val destination = SingleLiveEvent<NavDirections>()
     val popBackStack = SingleLiveEvent<Boolean>()
 
-    //todo remove loadingState form children and rename to loadingState
+    //todo remove loadingState from children and rename to loadingState
     open val loadingStateBase = MutableLiveData<Boolean>()
     open val errorBase = MutableLiveData<Consumable<String>>()
+
+    //todo
+    //val exceptionBase = SingleLiveEvent<Consumable<String>>()
 
     protected val observers = mutableListOf<Pair<LiveData<*>, Observer<*>>>()
 

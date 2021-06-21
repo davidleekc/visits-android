@@ -15,6 +15,7 @@ fun createBaseOrder(): Order {
         TripDestination(
             null,
             Point(listOf(42.0, 42.0)),
+            0,
             arrivedAt = "2020-02-02T20:20:02.020Z"
         ),
         OrderStatus.ONGOING.value,
@@ -35,6 +36,7 @@ fun createBaseTrip(): Trip {
         destination = TripDestination(
             null,
             Point(listOf(42.0, 42.0)),
+            0,
             arrivedAt = "2020-02-02T20:20:02.020Z"
         ),
         estimate = Estimate(

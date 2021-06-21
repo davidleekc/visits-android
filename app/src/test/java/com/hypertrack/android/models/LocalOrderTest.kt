@@ -27,6 +27,7 @@ class LocalOrderTest {
                 scheduledAt = null, destination = TripDestination(
                     null,
                     Point(listOf(42.0, 42.0)),
+                    0,
                     arrivedAt = "2020-02-02T20:20:02.020Z"
                 )
             ),

@@ -11,18 +11,22 @@ import com.hypertrack.android.ui.common.formatDateTime
 import com.squareup.moshi.JsonClass
 import java.time.Instant
 import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import java.time.temporal.ChronoUnit
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 @JsonClass(generateAdapter = true)
 data class LocalOrder(
     val id: String,
     val destination: TripDestination,
-    val status: OrderStatus,
     val scheduledAt: String?,
     val estimate: Estimate?,
     val _metadata: Metadata?,
+
+    var status: OrderStatus,
     //local
     //todo remove
     var isPickedUp: Boolean = true,
@@ -65,14 +69,24 @@ data class LocalOrder(
             ?: scheduledAt?.formatDateTime()
             ?: destinationLatLng.let { "${it.latitude}, ${it.longitude}" }
 
-    val etaString: String
+    val eta: ZonedDateTime?
         get() = estimate?.let {
             it.arriveAt?.let { arriveAt ->
-                DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
-                    .withLocale(Locale.getDefault())
-                    .withZone(ZoneId.systemDefault()).format(Instant.parse(arriveAt))
+                ZonedDateTime.parse(arriveAt)
             }
-        } ?: ""
+        }
+
+    val awaySeconds: Long?
+        get() = estimate?.let {
+            it.arriveAt?.let { arriveAt ->
+                ChronoUnit.SECONDS.between(
+                    ZonedDateTime.now(),
+                    ZonedDateTime.parse(arriveAt)
+                ).let {
+                    if (it < 0) null else it
+                }
+            }
+        }
 
     val metadataNote: String?
         get() = _metadata?.visitsAppMetadata?.note

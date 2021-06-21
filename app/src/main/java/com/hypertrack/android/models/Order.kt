@@ -14,12 +14,12 @@ import java.util.*
 @Suppress("UNCHECKED_CAST")
 @JsonClass(generateAdapter = true)
 data class Order(
-    @Json(name = "order_id") val id: String,
+    @field:Json(name = "order_id") val id: String,
     val destination: TripDestination,
-    @Json(name = "status") val _status: String,
-    @Json(name = "scheduled_at") val scheduledAt: String?,
+    @field:Json(name = "status") val _status: String,
+    @field:Json(name = "scheduled_at") val scheduledAt: String?,
     val estimate: Estimate?,
-    @Json(name = "metadata") val _metadata: Map<String, Any>?,
+    @field:Json(name = "metadata") val _metadata: Map<String, Any>?,
 ) {
 
     val status: OrderStatus
@@ -33,14 +33,25 @@ data class Order(
 
 @JsonClass(generateAdapter = true)
 data class Estimate(
-    @Json(name = "arrive_at") val arriveAt: String?,
+    @field:Json(name = "arrive_at") val arriveAt: String?,
     @field:Json(name = "route") val route: Route?
 )
 
 @JsonClass(generateAdapter = true)
 data class Route(
-    @field:Json(name = "remaining_duration") val remainingDuration: Int?
+    @field:Json(name = "remaining_duration") val remainingDuration: Int?,
+    val polyline: Polyline?
 )
+
+@JsonClass(generateAdapter = true)
+data class Polyline(
+    val type: String,
+    val coordinates: List<List<Double>>
+) {
+    fun getPolylinePoints(): List<LatLng> {
+        return coordinates.map { LatLng(it[1], it[0]) }
+    }
+}
 
 
 /*

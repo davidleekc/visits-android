@@ -97,35 +97,15 @@ object Injector {
     fun <T> provideParamVmFactory(param: T): ParamViewModelFactory<T> {
         return ParamViewModelFactory(
             param,
-            getUserScope().tripsInteractor,
-            getUserScope().placesInteractor,
+            { getUserScope() },
             getOsUtilsProvider(MyApplication.context),
-            placesClient,
             getAccountRepo(MyApplication.context),
-            getUserScope().photoUploadQueueInteractor,
             getVisitsApiClient(MyApplication.context),
             getMoshi(),
             crashReportsProvider,
+            placesClient,
+            getDeviceLocationProvider()
         )
-    }
-
-    fun provideAddPlaceInfoVmFactory(
-        latLng: LatLng,
-        address: String?,
-        name: String?,
-    ): ViewModelProvider.Factory {
-        return object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return AddPlaceInfoViewModel(
-                    latLng,
-                    initialAddress = address,
-                    _name = name,
-                    getUserScope().placesInteractor,
-                    getUserScope().integrationsRepository,
-                    getOsUtilsProvider(MyApplication.context),
-                ) as T
-            }
-        }
     }
 
     fun provideUserScopeViewModelFactory(): UserScopeViewModelFactory {
@@ -217,16 +197,14 @@ object Injector {
             )
 
             val tripsInteractor = TripsInteractorImpl(
+                getTripsRepository(),
                 getVisitsApiClient(MyApplication.context),
-                getMyPreferences(MyApplication.context),
-                getAccountRepo(MyApplication.context),
-                getMoshi(),
                 getHyperTrackService(MyApplication.context),
-                GlobalScope,
                 photoUploadQueueInteractor,
                 getImageDecoder(),
                 getOsUtilsProvider(MyApplication.context),
-                Dispatchers.IO
+                Dispatchers.IO,
+                GlobalScope
             )
 
             val driverRepository = getDriverRepo(context)
@@ -276,6 +254,16 @@ object Injector {
 
     private val placesClient: PlacesClient by lazy {
         Places.createClient(MyApplication.context)
+    }
+
+    private fun getTripsRepository(): TripsRepository {
+        return TripsRepositoryImpl(
+            getVisitsApiClient(MyApplication.context),
+            getMyPreferences(MyApplication.context),
+            getHyperTrackService(MyApplication.context),
+            GlobalScope,
+            getAccountRepo(MyApplication.context).isPickUpAllowed
+        )
     }
 
     private fun getFileRepository(): FileRepository {
@@ -355,7 +343,7 @@ object Injector {
         )
     }
 
-    private fun accessTokenRepository(context: Context) =
+    fun accessTokenRepository(context: Context) =
         (getMyPreferences(context).restoreRepository()
             ?: throw IllegalStateException("No access token repository was saved"))
 
@@ -444,7 +432,7 @@ object Injector {
 
 }
 
-private class UserScope(
+class UserScope(
     val historyRepository: HistoryRepository,
     val tripsInteractor: TripsInteractor,
     val placesInteractor: PlacesInteractor,

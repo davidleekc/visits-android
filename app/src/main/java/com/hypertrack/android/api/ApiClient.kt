@@ -3,6 +3,7 @@ package com.hypertrack.android.api
 import android.graphics.Bitmap
 import android.util.Log
 import com.fonfon.kgeohash.GeoHash
+import com.google.android.gms.maps.model.LatLng
 import com.hypertrack.android.models.*
 import com.hypertrack.android.models.local.OrderStatus
 import com.hypertrack.android.repository.AccessTokenRepository
@@ -24,6 +25,7 @@ import retrofit2.converter.scalars.ScalarsConverterFactory
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 class ApiClient(
@@ -200,6 +202,76 @@ class ApiClient(
             }
         } catch (t: Throwable) {
             CreateTripError(t)
+        }
+    }
+
+//    suspend fun createTripV1(tripParams: TripParams): Trip {
+//        try {
+//            val res = api.createTrip(tripParams)
+//            if (res.isSuccessful) {
+//                val trip = res.body()!!
+//                return trip
+//            } else {
+//                throw HttpException(res)
+//            }
+//        } catch (e: Throwable) {
+//            throw e
+//        }
+//    }
+
+    suspend fun createTrip(latLng: LatLng, address: String?): Trip {
+        try {
+            val res = api.createTrip(
+                TripParams(
+                    deviceId = deviceId,
+                    orders = listOf(
+                        OrderParams(
+                            orderId = UUID.randomUUID().toString(),
+                            destination = TripDestination(
+                                geometry = Point(
+                                    latitude = latLng.latitude,
+                                    longitude = latLng.longitude,
+                                ),
+                                address = address,
+                                radius = null
+                            )
+                        )
+                    )
+                )
+            )
+            if (res.isSuccessful) {
+                val trip = res.body()!!
+                return trip
+            } else {
+                throw HttpException(res)
+            }
+        } catch (e: Throwable) {
+            throw e
+        }
+    }
+
+    suspend fun addOrderToTrip(
+        tripId: String,
+        orderCreationParams: OrderCreationParams
+    ): Trip {
+        try {
+            with(
+                api.addOrderToTrip(
+                    tripId,
+                    AddOrderBody(
+                        deviceId = deviceId,
+                        orderCreationParams = listOf(orderCreationParams)
+                    )
+                )
+            ) {
+                if (isSuccessful) {
+                    return body()!!
+                } else {
+                    throw HttpException(this)
+                }
+            }
+        } catch (e: Exception) {
+            throw e
         }
     }
 

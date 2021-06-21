@@ -9,6 +9,7 @@ import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.interactors.TripsInteractor
 import com.hypertrack.android.repository.*
 import com.hypertrack.android.ui.screens.add_integration.AddIntegrationViewModel
+import com.hypertrack.android.ui.screens.add_order.AddOrderViewModel
 import com.hypertrack.android.ui.screens.add_place.AddPlaceViewModel
 import com.hypertrack.android.ui.screens.visits_management.VisitsManagementViewModel
 import com.hypertrack.android.ui.screens.visits_management.tabs.profile.ProfileViewModel
@@ -18,6 +19,7 @@ import com.hypertrack.android.utils.HyperTrackService
 import com.hypertrack.android.ui.screens.driver_id_input.DriverLoginViewModel
 import com.hypertrack.android.ui.screens.permission_request.PermissionRequestViewModel
 import com.hypertrack.android.ui.screens.select_destination.SelectDestinationViewModel
+import com.hypertrack.android.ui.screens.visits_management.tabs.current_trip.CurrentTripViewModel
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
 import com.hypertrack.android.ui.screens.visits_management.tabs.orders.OrdersListViewModel
 import com.hypertrack.android.ui.screens.visits_management.tabs.places.PlacesViewModel
@@ -59,6 +61,11 @@ class UserScopeViewModelFactory(
                 placesClient,
                 deviceLocationProvider,
                 placesInteractor
+            ) as T
+            CurrentTripViewModel::class.java -> CurrentTripViewModel(
+                tripsInteractor,
+                osUtilsProvider,
+                deviceLocationProvider
             ) as T
             SelectDestinationViewModel::class.java -> SelectDestinationViewModel(
                 osUtilsProvider,
