@@ -64,10 +64,12 @@ class UserScopeViewModelFactory(
             ) as T
             CurrentTripViewModel::class.java -> CurrentTripViewModel(
                 tripsInteractor,
+                placesInteractor,
                 osUtilsProvider,
                 deviceLocationProvider
             ) as T
             SelectDestinationViewModel::class.java -> SelectDestinationViewModel(
+                placesInteractor,
                 osUtilsProvider,
                 placesClient,
                 deviceLocationProvider
