@@ -1,12 +1,10 @@
 package com.hypertrack.android.ui.screens.add_place
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.location.Location
-import android.util.Log
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
@@ -17,24 +15,19 @@ import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.interactors.PlacesInteractorImpl
 import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.ui.base.Consumable
+import com.hypertrack.android.ui.common.mixins.ClusterManagerMixin
+import com.hypertrack.android.ui.common.mixins.GeofenceClusterItem
 import com.hypertrack.android.ui.common.nullIfEmpty
-import com.hypertrack.android.ui.base.BaseViewModel
-import com.hypertrack.android.ui.base.SingleLiveEvent
-import com.hypertrack.android.ui.base.ZipLiveData
-import com.hypertrack.android.ui.common.toAddressString
 import com.hypertrack.android.ui.screens.select_destination.DestinationData
 import com.hypertrack.android.ui.screens.select_destination.SelectDestinationViewModel
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
-import com.hypertrack.android.utils.MockData
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.logistics.android.github.BuildConfig
 import com.hypertrack.logistics.android.github.R
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import net.sharewire.googlemapsclustering.Cluster
 import net.sharewire.googlemapsclustering.ClusterItem
 import net.sharewire.googlemapsclustering.ClusterManager
-import net.sharewire.googlemapsclustering.IconGenerator
 
 
 class AddPlaceViewModel(
@@ -46,8 +39,11 @@ class AddPlaceViewModel(
     osUtilsProvider,
     placesClient,
     deviceLocationProvider
-) {
+), ClusterManagerMixin<GeofenceClusterItem> {
+
     private lateinit var clusterManager: ClusterManager<GeofenceClusterItem>
+    private val icon = GeofenceClusterItem.createIcon(osUtilsProvider)
+    private val clusterIcon = GeofenceClusterItem.createClusterIcon(osUtilsProvider)
 
     override val loadingStateBase = placesInteractor.isLoadingForLocation
 
@@ -76,18 +72,6 @@ class AddPlaceViewModel(
 //        }
     }
 
-    private val icon = BitmapDescriptorFactory.fromBitmap(
-        osUtilsProvider.bitmapFormResource(
-            R.drawable.ic_ht_departure_active
-        )
-    )
-
-    private val clusterIcon = BitmapDescriptorFactory.fromBitmap(
-        osUtilsProvider.bitmapFormResource(
-            R.drawable.ic_cluster
-        )
-    )
-
     override fun proceed(destinationData: DestinationData) {
         destination.postValue(
             AddPlaceFragmentDirections.actionAddPlaceFragmentToAddPlaceInfoFragment(
@@ -99,36 +83,20 @@ class AddPlaceViewModel(
 
     override fun onMapReady(context: Context, googleMap: GoogleMap) {
         super.onMapReady(context, googleMap)
-        clusterManager = ClusterManager<GeofenceClusterItem>(context, googleMap).apply {
-            setMinClusterSize(10)
-            setIconGenerator(object : IconGenerator<GeofenceClusterItem> {
-                override fun getClusterIcon(cluster: Cluster<GeofenceClusterItem>): BitmapDescriptor {
-                    return clusterIcon
-                }
-
-                override fun getClusterItemIcon(clusterItem: GeofenceClusterItem): BitmapDescriptor {
-                    return icon
-                }
-            })
-        }
-//
-        clusterManager.setCallbacks(object : ClusterManager.Callbacks<GeofenceClusterItem> {
-            override fun onClusterClick(cluster: Cluster<GeofenceClusterItem>): Boolean {
-                //todo
-                return true
-            }
-
-            override fun onClusterItemClick(clusterItem: GeofenceClusterItem): Boolean {
-                clusterItem.snippet.nullIfEmpty()?.let { snippet ->
-                    destination.postValue(
-                        AddPlaceFragmentDirections.actionAddPlaceFragmentToPlaceDetailsFragment(
-                            snippet
-                        )
+        clusterManager = createClusterManager(
+            context,
+            googleMap,
+            icon = icon,
+            clusterIcon = clusterIcon
+        ) { clusterItem: GeofenceClusterItem ->
+            clusterItem.snippet.nullIfEmpty()?.let { snippet ->
+                destination.postValue(
+                    AddPlaceFragmentDirections.actionAddPlaceFragmentToPlaceDetailsFragment(
+                        snippet
                     )
-                }
-                return true
+                )
             }
-        })
+        }
 
         placesInteractor.geofences.value?.let {
             addGeofencesToMap(googleMap, it.values.toList())
@@ -141,6 +109,7 @@ class AddPlaceViewModel(
         clusterManager.onCameraIdle()
     }
 
+    //todo rename to update?
     private fun addGeofencesToMap(googleMap: GoogleMap, geofences: List<LocalGeofence>) {
         if (BuildConfig.DEBUG.not() || !SHOW_DEBUG_DATA) {
             clusterManager.setItems(placesInteractor.geofences.value!!.values.map {
@@ -217,19 +186,6 @@ class AddPlaceViewModel(
 
     fun Location.toLatLng(): LatLng {
         return LatLng(latitude, longitude)
-    }
-
-    open class GeofenceClusterItem(
-        private val geofence: LocalGeofence
-    ) : ClusterItem {
-
-        override fun getLatitude(): Double = geofence.latLng.latitude
-
-        override fun getLongitude(): Double = geofence.latLng.longitude
-
-        override fun getTitle() = geofence.name
-
-        override fun getSnippet() = geofence.id
     }
 
     companion object {

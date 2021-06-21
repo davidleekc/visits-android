@@ -58,7 +58,7 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
 
         (childFragmentManager.findFragmentById(R.id.googleMap) as SupportMapFragment?)?.getMapAsync {
             map = it
-            vm.onMapReady(it)
+            vm.onMapReady(requireContext(), it)
         }
 
         bottomHolderSheetBehavior = BottomSheetBehavior.from(bottom_holder)
@@ -154,6 +154,7 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
         }
     }
 
+    //todo to view model
     private fun displayTripOnMap(trip: LocalTrip?) {
         if (this::map.isInitialized) {
             map.clear()
