@@ -5,10 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
 import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.model.BitmapDescriptor
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
-import com.google.android.gms.maps.model.MarkerOptions
-import com.google.android.gms.maps.model.PolygonOptions
+import com.google.android.gms.maps.model.*
 import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.interactors.PlacesInteractorImpl
 import com.hypertrack.android.models.local.LocalGeofence
@@ -16,10 +13,7 @@ import com.hypertrack.android.ui.common.ManagedObserver
 import com.hypertrack.android.ui.common.toLatLng
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.logistics.android.github.R
-import net.sharewire.googlemapsclustering.Cluster
-import net.sharewire.googlemapsclustering.ClusterItem
-import net.sharewire.googlemapsclustering.ClusterManager
-import net.sharewire.googlemapsclustering.IconGenerator
+import net.sharewire.googlemapsclustering.*
 
 class GeofencesMapDelegate(
     private val context: Context,
@@ -54,12 +48,38 @@ class GeofencesMapDelegate(
 
     fun onCameraIdle() {
         placesInteractor.loadGeofencesForMap(googleMap.cameraPosition.target)
+        clusterManager.onCameraIdle()
     }
 
     private fun updateGeofencesOnMap(googleMap: GoogleMap, geofences: List<LocalGeofence>) {
-        clusterManager.setItems(geofences.map {
-            GeofenceClusterItem(it)
-        })
+        //todo filter by viewport
+        googleMap.clear()
+        geofences.forEach {
+            it.radius?.let { radius ->
+                googleMap.addCircle(
+                    CircleOptions()
+                        .radius(radius.toDouble())
+                        .center(it.latLng)
+                        .strokeColor(
+                            osUtilsProvider.colorFromResource(
+                                R.color.colorHyperTrackGreenSemitransparent
+                            )
+                        )
+                )
+            }
+
+            googleMap.addMarker(
+                MarkerOptions()
+                    .icon(icon)
+                    .position(it.latLng)
+                    .anchor(0.5f, 0.5f)
+            )
+        }
+
+//        clusterManager.setItems(geofences.map {
+//            GeofenceClusterItem(it)
+//        })
+
 //        if (BuildConfig.DEBUG.not() || !SHOW_DEBUG_DATA) {
 //            clusterManager.setItems(placesInteractor.geofences.value!!.values.map {
 //                GeofenceClusterItem(
@@ -80,7 +100,12 @@ class GeofencesMapDelegate(
     }
 
     private fun createClusterManager(): ClusterManager<GeofenceClusterItem> {
-        return ClusterManager<GeofenceClusterItem>(context, googleMap).apply {
+        return ClusterManager<GeofenceClusterItem>(
+            context,
+            googleMap,
+            object : ClusterRenderer<GeofenceClusterItem>(context, googleMap) {
+
+            }).apply {
             setMinClusterSize(10)
             setIconGenerator(object : IconGenerator<GeofenceClusterItem> {
                 override fun getClusterIcon(cluster: Cluster<GeofenceClusterItem>): BitmapDescriptor {
