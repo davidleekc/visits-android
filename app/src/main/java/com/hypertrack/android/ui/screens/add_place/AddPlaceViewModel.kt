@@ -15,8 +15,7 @@ import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.interactors.PlacesInteractorImpl
 import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.ui.base.Consumable
-import com.hypertrack.android.ui.common.mixins.ClusterManagerMixin
-import com.hypertrack.android.ui.common.mixins.GeofenceClusterItem
+import com.hypertrack.android.ui.common.delegates.GeofenceClusterItem
 import com.hypertrack.android.ui.common.nullIfEmpty
 import com.hypertrack.android.ui.screens.select_destination.DestinationData
 import com.hypertrack.android.ui.screens.select_destination.SelectDestinationViewModel
@@ -40,7 +39,7 @@ class AddPlaceViewModel(
     osUtilsProvider,
     placesClient,
     deviceLocationProvider
-), ClusterManagerMixin<GeofenceClusterItem> {
+) {
 
     override val loadingStateBase = placesInteractor.isLoadingForLocation
 

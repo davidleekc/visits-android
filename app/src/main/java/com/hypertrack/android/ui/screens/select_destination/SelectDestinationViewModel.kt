@@ -24,8 +24,8 @@ import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.SingleLiveEvent
 import com.hypertrack.android.ui.base.ZipLiveData
-import com.hypertrack.android.ui.common.mixins.ClusterManagerMixin
-import com.hypertrack.android.ui.common.mixins.GeofenceClusterItem
+import com.hypertrack.android.ui.common.delegates.GeofenceClusterItem
+import com.hypertrack.android.ui.common.delegates.GeofencesMapDelegate
 import com.hypertrack.android.ui.common.nullIfEmpty
 import com.hypertrack.android.ui.common.toAddressString
 import com.hypertrack.android.ui.common.toLatLng
@@ -42,7 +42,7 @@ open class SelectDestinationViewModel(
     private val osUtilsProvider: OsUtilsProvider,
     private val placesClient: PlacesClient,
     private val deviceLocationProvider: DeviceLocationProvider,
-) : BaseViewModel(), ClusterManagerMixin<GeofenceClusterItem> {
+) : BaseViewModel() {
 
     private var firstLaunch: Boolean = true
     private var programmaticCameraMove: Boolean = false
@@ -61,9 +61,7 @@ open class SelectDestinationViewModel(
     private var token: AutocompleteSessionToken? = null
     private var bias: RectangularBounds? = null
 
-    private lateinit var clusterManager: ClusterManager<GeofenceClusterItem>
-    private val icon = GeofenceClusterItem.createIcon(osUtilsProvider)
-    private val clusterIcon = GeofenceClusterItem.createClusterIcon(osUtilsProvider)
+    private lateinit var geofencesMapDelegate: GeofencesMapDelegate
 
     init {
         deviceLocationProvider.getCurrentLocation {
@@ -98,19 +96,6 @@ open class SelectDestinationViewModel(
             }
         }
 
-        viewModelScope.launch {
-            placesInteractor.geofencesDiff.collect {
-                map.value?.let { map ->
-                    updateGeofencesOnMap(map, it)
-                }
-            }
-        }
-
-//        (placesInteractor as PlacesInteractorImpl).debugCacheState.observeManaged {
-//            map.value?.let {
-//                showMapDebugData()
-//            }
-//        }
     }
 
 
@@ -152,23 +137,19 @@ open class SelectDestinationViewModel(
             closeKeyboard.postValue(true)
         }
 
-        clusterManager = createClusterManager(
+        geofencesMapDelegate = GeofencesMapDelegate(
             context,
             googleMap,
-            icon = icon,
-            clusterIcon = clusterIcon
-        ) { clusterItem: GeofenceClusterItem ->
-            clusterItem.snippet.nullIfEmpty()?.let { snippet ->
+            placesInteractor,
+            osUtilsProvider
+        ) {
+            it.snippet.nullIfEmpty()?.let { snippet ->
                 destination.postValue(
                     AddPlaceFragmentDirections.actionAddPlaceFragmentToPlaceDetailsFragment(
                         snippet
                     )
                 )
             }
-        }
-
-        placesInteractor.geofences.value?.let {
-            updateGeofencesOnMap(googleMap, it.values.toList())
         }
     }
 
@@ -237,83 +218,6 @@ open class SelectDestinationViewModel(
             }
     }
 
-    private fun updateGeofencesOnMap(googleMap: GoogleMap, geofences: List<LocalGeofence>) {
-        clusterManager.setItems(geofences.map {
-            GeofenceClusterItem(it)
-        })
-//        if (BuildConfig.DEBUG.not() || !SHOW_DEBUG_DATA) {
-//            clusterManager.setItems(placesInteractor.geofences.value!!.values.map {
-//                GeofenceClusterItem(
-//                    it
-//                )
-//            })
-//        } else {
-//            googleMap.clear()
-//            showMapDebugData(googleMap)
-//            placesInteractor.geofences.value!!.values.forEach {
-//                googleMap.addMarker(
-//                    MarkerOptions().icon(
-//                        icon
-//                    ).position(it.latLng)
-//                )
-//            }
-//        }
-    }
-
-    private fun showMapDebugData(googleMap: GoogleMap) {
-        (placesInteractor as PlacesInteractorImpl).debugCacheState.value?.let { items ->
-            items.forEach {
-                val text = it.let { item ->
-                    when (item.status) {
-                        PlacesInteractorImpl.Status.COMPLETED -> "completed"
-                        PlacesInteractorImpl.Status.LOADING -> item.pageToken
-                            ?: "loading"
-                        PlacesInteractorImpl.Status.ERROR -> "error"
-                    }
-                }
-                googleMap.addMarker(
-                    MarkerOptions().anchor(0.5f, 0.5f).position(
-                        it.gh.toLocation().toLatLng()
-                    )
-                        .icon(createPureTextIcon(text))
-                )
-
-                it.gh.boundingBox
-                    .let { bb ->
-                        listOf(
-                            bb.bottomLeft,
-                            bb.bottomRight,
-                            bb.topRight,
-                            bb.topLeft,
-                            bb.bottomLeft
-                        ).map {
-                            it.toLatLng()
-                        }
-                    }
-                    .let {
-                        googleMap.addPolygon(PolygonOptions().strokeWidth(1f).addAll(it))
-                    }
-            }
-        }
-    }
-
-    private fun createPureTextIcon(text: String?): BitmapDescriptor? {
-        val textPaint = Paint().apply {
-            textSize = 50f
-        } // Adapt to your needs
-        val textWidth: Float = textPaint.measureText(text)
-        val textHeight: Float = textPaint.getTextSize()
-        val width = textWidth.toInt()
-        val height = textHeight.toInt()
-        val image: Bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(image)
-        canvas.translate(0f, height.toFloat())
-//        canvas.drawColor(Color.LTGRAY)
-        canvas.drawText(text ?: "null", 0f, 0f, textPaint)
-        return BitmapDescriptorFactory.fromBitmap(image)
-    }
-
-
     protected open fun proceed(destinationData: DestinationData) {
         goBackEvent.postValue(destinationData)
     }
@@ -321,7 +225,7 @@ open class SelectDestinationViewModel(
     protected open fun onCameraMoved(map: GoogleMap) {
         val region = map.projection.visibleRegion
         placesInteractor.loadGeofencesForMap(map.cameraPosition.target)
-        clusterManager.onCameraIdle()
+        geofencesMapDelegate.onCameraIdle()
     }
 
     private fun moveMapCamera(latitude: Double, longitude: Double) {
