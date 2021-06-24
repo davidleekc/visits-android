@@ -8,35 +8,28 @@ import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavDirections
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.model.CircleOptions
-import com.google.android.gms.maps.model.MarkerOptions
-import com.google.android.gms.maps.model.PolylineOptions
+import com.google.android.gms.maps.model.*
 import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.interactors.TripsInteractor
 import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.models.local.LocalTrip
+import com.hypertrack.android.models.local.OrderStatus
 import com.hypertrack.android.repository.TripCreationError
 import com.hypertrack.android.repository.TripCreationSuccess
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.Consumable
-import com.hypertrack.android.ui.common.delegates.GeofenceClusterItem
 import com.hypertrack.android.ui.common.delegates.GeofencesMapDelegate
 import com.hypertrack.android.ui.common.nullIfEmpty
-import com.hypertrack.android.ui.screens.add_place.AddPlaceFragmentDirections
-import com.hypertrack.android.ui.screens.add_place.AddPlaceViewModel
 import com.hypertrack.android.ui.screens.select_destination.DestinationData
 import com.hypertrack.android.ui.screens.visits_management.VisitsManagementFragmentDirections
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
 import com.hypertrack.android.utils.OsUtilsProvider
-import com.hypertrack.logistics.android.github.BuildConfig
 import com.hypertrack.logistics.android.github.R
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import net.sharewire.googlemapsclustering.ClusterManager
+import java.util.*
 
 class CurrentTripViewModel(
     private val tripsInteractor: TripsInteractor,
@@ -56,9 +49,16 @@ class CurrentTripViewModel(
             postValue(it)
         }
     }
-    val trip = MediatorLiveData<LocalTrip?>().apply {
-        addSource(tripsInteractor.currentTrip) {
-            postValue(it)
+    val trip = MediatorLiveData<LocalTrip?>()
+
+    init {
+        trip.addSource(tripsInteractor.currentTrip) {
+            trip.postValue(it)
+            map.value?.let { map -> displayTripOnMap(map, it) }
+            loadingStateBase.postValue(false)
+        }
+        trip.addSource(map) {
+            displayTripOnMap(it, trip.value)
             loadingStateBase.postValue(false)
         }
     }
@@ -69,6 +69,19 @@ class CurrentTripViewModel(
             tripsInteractor.refreshTrips()
         }
     }
+
+    val tripStartIcon = osUtilsProvider.bitmapDescriptorFromResource(
+        com.hypertrack.maps.google.R.drawable.starting_position
+    )
+    val activeOrderIcon = osUtilsProvider.bitmapDescriptorFromResource(
+        com.hypertrack.maps.google.R.drawable.destination
+    )
+    val completedOrderIcon = osUtilsProvider.bitmapDescriptorFromResource(
+        R.drawable.ic_order_completed
+    )
+    val canceledOrderIcon = osUtilsProvider.bitmapDescriptorFromResource(
+        R.drawable.ic_order_canceled
+    )
 
     @SuppressLint("MissingPermission")
     fun onMapReady(context: Context, googleMap: GoogleMap) {
@@ -87,18 +100,34 @@ class CurrentTripViewModel(
             geofencesMapDelegate.onCameraIdle()
         }
 
-        geofencesMapDelegate = GeofencesMapDelegate(
+        geofencesMapDelegate = object : GeofencesMapDelegate(
             context,
             googleMap,
             placesInteractor,
-            osUtilsProvider
-        ) {
-            it.snippet.nullIfEmpty()?.let { snippet ->
-                destination.postValue(
-                    VisitsManagementFragmentDirections.actionVisitManagementFragmentToPlaceDetailsFragment(
-                        snippet
+            osUtilsProvider,
+            {
+                it.snippet.nullIfEmpty()?.let { snippet ->
+                    destination.postValue(
+                        VisitsManagementFragmentDirections.actionVisitManagementFragmentToPlaceDetailsFragment(
+                            snippet
+                        )
                     )
-                )
+                }
+            }
+        ) {
+            override fun updateGeofencesOnMap(
+                googleMap: GoogleMap,
+                geofences: List<LocalGeofence>
+            ) {
+                if (trip.value == null) {
+                    super.updateGeofencesOnMap(googleMap, geofences)
+                }
+            }
+
+            override fun onCameraIdle() {
+                if (trip.value == null) {
+                    super.onCameraIdle()
+                }
             }
         }
 
@@ -169,6 +198,104 @@ class CurrentTripViewModel(
     override fun onCleared() {
         super.onCleared()
         geofencesMapDelegate.onCleared()
+    }
+
+    private fun displayTripOnMap(map: GoogleMap, trip: LocalTrip?) {
+        map.clear()
+        trip?.let { trip ->
+            trip.orders.firstOrNull()?.let { order ->
+                order.estimate?.route?.polyline?.getPolylinePoints()?.firstOrNull()?.let {
+                    map.addMarker(
+                        MarkerOptions()
+                            .position(it)
+                            .anchor(0.5f, 0.5f)
+                            .icon(tripStartIcon)
+                            .zIndex(100f)
+                    )
+                }
+            }
+
+            trip.ongoingOrgers.forEach { order ->
+                Log.v(
+                    "hypertrack-verbose",
+                    "${order.status}\n ${
+                        order.estimate?.route?.polyline?.getPolylinePoints().toString()
+                    }"
+                )
+                order.estimate?.route?.polyline?.getPolylinePoints()?.let {
+                    val options = if (order.status == OrderStatus.ONGOING) {
+                        PolylineOptions()
+                            .width(tripStyleAttrs.tripRouteWidth)
+                            .color(tripStyleAttrs.tripRouteColor)
+                            .pattern(
+                                Arrays.asList(
+                                    Dash(tripStyleAttrs.tripRouteWidth * 2),
+                                    Gap(tripStyleAttrs.tripRouteWidth)
+                                )
+                            )
+                    } else {
+                        PolylineOptions()
+                            .width(tripStyleAttrs.tripRouteWidth)
+                            .color(tripStyleAttrs.tripRouteColor)
+                            .pattern(
+                                Arrays.asList(
+                                    Dash(tripStyleAttrs.tripRouteWidth * 2),
+                                    Gap(tripStyleAttrs.tripRouteWidth)
+                                )
+                            )
+                    }
+
+                    map.addPolyline(options.addAll(it))
+                }
+
+                map.addMarker(
+                    MarkerOptions()
+                        .anchor(0.5f, 0.5f)
+                        .icon(
+                            when (order.status) {
+                                OrderStatus.ONGOING -> {
+                                    activeOrderIcon
+                                }
+                                OrderStatus.COMPLETED -> {
+                                    completedOrderIcon
+                                }
+                                OrderStatus.CANCELED, OrderStatus.UNKNOWN -> {
+                                    canceledOrderIcon
+                                }
+                            }
+                        )
+                        .position(order.destinationLatLng)
+                        .zIndex(100f)
+                )
+            }
+        }
+    }
+
+    private val tripStyleAttrs by lazy {
+        StyleAttrs().let { tripStyleAttrs ->
+            tripStyleAttrs.tripRouteWidth = tripRouteWidth
+            tripStyleAttrs.tripRouteColor =
+                osUtilsProvider.colorFromResource(com.hypertrack.maps.google.R.color.ht_route)
+            tripStyleAttrs
+        }
+    }
+
+    val tripRouteWidth by lazy {
+        TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP, 3f,
+            osUtilsProvider.getDisplayMetrics()
+        )
+    }
+    val accuracyStrokeWidth by lazy {
+        TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP, 1f,
+            osUtilsProvider.getDisplayMetrics()
+        )
+    }
+
+    private class StyleAttrs {
+        var tripRouteWidth = 0f
+        var tripRouteColor = 0
     }
 
     //todo task

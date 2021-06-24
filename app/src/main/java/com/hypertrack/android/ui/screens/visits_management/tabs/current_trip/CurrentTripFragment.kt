@@ -87,7 +87,6 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
             whereAreYouGoing.setGoneState(it != null)
             lTrip.setGoneState(it == null)
             it?.let { displayTrip(it) }
-            displayTripOnMap(it)
         })
 
         vm.errorText.observe(viewLifecycleOwner, {
@@ -124,6 +123,7 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
         }
     }
 
+    //todo to vm
     private fun displayTrip(trip: LocalTrip) {
         trip.nextOrder?.let { order ->
             order.shortAddress.toView(destination_address)
@@ -154,107 +154,7 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
         }
     }
 
-    //todo to view model
-    private fun displayTripOnMap(trip: LocalTrip?) {
-        if (this::map.isInitialized) {
-            map.clear()
-            trip?.let { trip ->
-                trip.orders.firstOrNull()?.let {
-                    it.estimate?.route?.polyline?.getPolylinePoints()?.firstOrNull()?.let {
-                        map.addMarker(
-                            MarkerOptions()
-                                .position(it)
-                                .anchor(0.5f, 0.5f)
-                                .icon(BitmapDescriptorFactory.fromResource(tripStyleAttrs.tripOriginIcon))
-                                .zIndex(100f)
-                        )
-                    }
-                }
 
-                trip.ongoingOrgers.forEach { order ->
-                    Log.v(
-                        "hypertrack-verbose",
-                        "${order.status}\n ${
-                            order.estimate?.route?.polyline?.getPolylinePoints().toString()
-                        }"
-                    )
-                    order.estimate?.route?.polyline?.getPolylinePoints()?.let {
-                        val options = if (order.status == OrderStatus.ONGOING) {
-                            PolylineOptions()
-                                .width(tripStyleAttrs.tripRouteWidth)
-                                .color(tripStyleAttrs.tripRouteColor)
-                                .pattern(
-                                    Arrays.asList(
-                                        Dash(tripStyleAttrs.tripRouteWidth * 2),
-                                        Gap(tripStyleAttrs.tripRouteWidth)
-                                    )
-                                )
-                        } else {
-                            PolylineOptions()
-                                .width(tripStyleAttrs.tripRouteWidth)
-                                .color(tripStyleAttrs.tripRouteColor)
-                                .pattern(
-                                    Arrays.asList(
-                                        Dash(tripStyleAttrs.tripRouteWidth * 2),
-                                        Gap(tripStyleAttrs.tripRouteWidth)
-                                    )
-                                )
-                        }
-
-                        map.addPolyline(options.addAll(it))
-                    }
-
-                    map.addMarker(
-                        MarkerOptions()
-                            .anchor(0.5f, 0.5f)
-                            .icon(
-                                BitmapDescriptorFactory.fromResource(
-                                    if (order.status == OrderStatus.ONGOING) {
-                                        tripStyleAttrs.tripDestinationIcon
-                                    } else {
-                                        R.drawable.ic_close
-                                    }
-                                )
-                            )
-                            .position(order.destinationLatLng)
-                            .zIndex(100f)
-                    )
-                }
-            }
-        }
-    }
-
-    private val tripStyleAttrs by lazy {
-        StyleAttrs().let { tripStyleAttrs ->
-            tripStyleAttrs.tripRouteWidth = tripRouteWidth
-            tripStyleAttrs.tripOriginIcon = com.hypertrack.maps.google.R.drawable.starting_position
-            tripStyleAttrs.tripDestinationIcon = com.hypertrack.maps.google.R.drawable.destination
-            tripStyleAttrs.tripRouteColor =
-                resources.getColor(com.hypertrack.maps.google.R.color.ht_route)
-            tripStyleAttrs
-        }
-    }
-
-    val tripRouteWidth by lazy {
-        TypedValue.applyDimension(
-            TypedValue.COMPLEX_UNIT_DIP, 3f,
-            resources.getDisplayMetrics()
-        )
-    }
-    val accuracyStrokeWidth by lazy {
-        TypedValue.applyDimension(
-            TypedValue.COMPLEX_UNIT_DIP, 1f,
-            resources.getDisplayMetrics()
-        )
-    }
-
-    private class StyleAttrs {
-        var tripRouteWidth = 0f
-        var tripOriginIcon = 0
-        var tripDestinationIcon = 0
-        var tripRouteColor = 0
-        var tripEndIcon = 0
-    }
 
     companion object {
         const val KEY_DESTINATION = "destination"
