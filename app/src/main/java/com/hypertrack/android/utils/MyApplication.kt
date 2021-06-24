@@ -76,7 +76,7 @@ class MyApplication : Application() {
         val TWMO_ENABLED = if (BuildConfig.DEBUG) {
             BuildConfig.TWMO_ENABLED
         } else {
-            false
+            true
         }
 
         val injector: Injector = Injector
