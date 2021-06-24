@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.9.17] - 2021-06-24
+### Fixed
+- Current trip not displaying on map
+
 ## [0.9.16] - 2021-06-21
 ### Added
 - Trips with multiple orders
