@@ -111,4 +111,13 @@ class MockApi(val remoteApi: ApiInterface) : ApiInterface by remoteApi {
         )
     }
 
+    override suspend fun getTrips(
+        deviceId: String,
+        paginationToken: String
+    ): Response<TripResponse> {
+        return Response.success(
+            Injector.getMoshi().adapter(TripResponse::class.java)
+                .fromJson(MockData.MOCK_TRIPS_JSON)
+        )
+    }
 }

@@ -8,7 +8,6 @@ import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavDirections
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.*
@@ -21,21 +20,15 @@ import com.hypertrack.android.repository.TripCreationError
 import com.hypertrack.android.repository.TripCreationSuccess
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.Consumable
-import com.hypertrack.android.ui.common.delegates.GeofenceClusterItem
 import com.hypertrack.android.ui.common.delegates.GeofencesMapDelegate
 import com.hypertrack.android.ui.common.nullIfEmpty
-import com.hypertrack.android.ui.screens.add_place.AddPlaceFragmentDirections
-import com.hypertrack.android.ui.screens.add_place.AddPlaceViewModel
 import com.hypertrack.android.ui.screens.select_destination.DestinationData
 import com.hypertrack.android.ui.screens.visits_management.VisitsManagementFragmentDirections
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
 import com.hypertrack.android.utils.OsUtilsProvider
-import com.hypertrack.logistics.android.github.BuildConfig
 import com.hypertrack.logistics.android.github.R
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import net.sharewire.googlemapsclustering.ClusterManager
 import java.util.*
 
 class CurrentTripViewModel(
@@ -76,6 +69,19 @@ class CurrentTripViewModel(
             tripsInteractor.refreshTrips()
         }
     }
+
+    val tripStartIcon = osUtilsProvider.bitmapDescriptorFromResource(
+        com.hypertrack.maps.google.R.drawable.starting_position
+    )
+    val activeOrderIcon = osUtilsProvider.bitmapDescriptorFromResource(
+        com.hypertrack.maps.google.R.drawable.destination
+    )
+    val completedOrderIcon = osUtilsProvider.bitmapDescriptorFromResource(
+        R.drawable.ic_order_completed
+    )
+    val canceledOrderIcon = osUtilsProvider.bitmapDescriptorFromResource(
+        R.drawable.ic_order_canceled
+    )
 
     @SuppressLint("MissingPermission")
     fun onMapReady(context: Context, googleMap: GoogleMap) {
@@ -197,13 +203,13 @@ class CurrentTripViewModel(
     private fun displayTripOnMap(map: GoogleMap, trip: LocalTrip?) {
         map.clear()
         trip?.let { trip ->
-            trip.orders.firstOrNull()?.let {
-                it.estimate?.route?.polyline?.getPolylinePoints()?.firstOrNull()?.let {
+            trip.orders.firstOrNull()?.let { order ->
+                order.estimate?.route?.polyline?.getPolylinePoints()?.firstOrNull()?.let {
                     map.addMarker(
                         MarkerOptions()
                             .position(it)
                             .anchor(0.5f, 0.5f)
-                            .icon(BitmapDescriptorFactory.fromResource(tripStyleAttrs.tripOriginIcon))
+                            .icon(tripStartIcon)
                             .zIndex(100f)
                     )
                 }
@@ -246,13 +252,17 @@ class CurrentTripViewModel(
                     MarkerOptions()
                         .anchor(0.5f, 0.5f)
                         .icon(
-                            BitmapDescriptorFactory.fromResource(
-                                if (order.status == OrderStatus.ONGOING) {
-                                    tripStyleAttrs.tripDestinationIcon
-                                } else {
-                                    R.drawable.ic_close
+                            when (order.status) {
+                                OrderStatus.ONGOING -> {
+                                    activeOrderIcon
                                 }
-                            )
+                                OrderStatus.COMPLETED -> {
+                                    completedOrderIcon
+                                }
+                                OrderStatus.CANCELED, OrderStatus.UNKNOWN -> {
+                                    canceledOrderIcon
+                                }
+                            }
                         )
                         .position(order.destinationLatLng)
                         .zIndex(100f)
@@ -264,8 +274,6 @@ class CurrentTripViewModel(
     private val tripStyleAttrs by lazy {
         StyleAttrs().let { tripStyleAttrs ->
             tripStyleAttrs.tripRouteWidth = tripRouteWidth
-            tripStyleAttrs.tripOriginIcon = com.hypertrack.maps.google.R.drawable.starting_position
-            tripStyleAttrs.tripDestinationIcon = com.hypertrack.maps.google.R.drawable.destination
             tripStyleAttrs.tripRouteColor =
                 osUtilsProvider.colorFromResource(com.hypertrack.maps.google.R.color.ht_route)
             tripStyleAttrs
@@ -287,10 +295,7 @@ class CurrentTripViewModel(
 
     private class StyleAttrs {
         var tripRouteWidth = 0f
-        var tripOriginIcon = 0
-        var tripDestinationIcon = 0
         var tripRouteColor = 0
-        var tripEndIcon = 0
     }
 
     //todo task

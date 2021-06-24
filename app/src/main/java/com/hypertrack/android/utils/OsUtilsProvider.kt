@@ -22,10 +22,11 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.toBitmap
+import com.google.android.gms.maps.model.BitmapDescriptor
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.hypertrack.android.decodeBase64Bitmap
 import com.hypertrack.android.models.Address
 import com.hypertrack.android.toBase64
-import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.logistics.android.github.BuildConfig
 import com.hypertrack.android.ui.screens.visits_management.tabs.livemap.TrackingPresenter
 import com.hypertrack.logistics.android.github.R
@@ -35,7 +36,6 @@ import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.*
-import kotlin.math.round
 
 class OsUtilsProvider(private val context: Context, private val crashReportsProvider: CrashReportsProvider) {
 
@@ -226,6 +226,10 @@ class OsUtilsProvider(private val context: Context, private val crashReportsProv
 
     fun getDisplayMetrics(): DisplayMetrics {
         return context.resources.displayMetrics
+    }
+
+    fun bitmapDescriptorFromResource(@DrawableRes res: Int): BitmapDescriptor {
+        return BitmapDescriptorFactory.fromResource(res)
     }
 
     companion object {

@@ -123,6 +123,7 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
         }
     }
 
+    //todo to vm
     private fun displayTrip(trip: LocalTrip) {
         trip.nextOrder?.let { order ->
             order.shortAddress.toView(destination_address)
