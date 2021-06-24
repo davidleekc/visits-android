@@ -11,6 +11,7 @@ import android.graphics.Bitmap
 import android.location.Geocoder
 import android.net.Uri
 import android.provider.MediaStore
+import android.util.DisplayMetrics
 import android.util.Log
 import android.widget.Toast
 import android.widget.Toast.LENGTH_SHORT
@@ -221,6 +222,10 @@ class OsUtilsProvider(private val context: Context, private val crashReportsProv
         val chooser = Intent.createChooser(sendIntent, sharingTitle, pendingIntent.intentSender)
         chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         context.startActivity(chooser)
+    }
+
+    fun getDisplayMetrics(): DisplayMetrics {
+        return context.resources.displayMetrics
     }
 
     companion object {

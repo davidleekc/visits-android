@@ -15,7 +15,7 @@ import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.logistics.android.github.R
 import net.sharewire.googlemapsclustering.*
 
-class GeofencesMapDelegate(
+open class GeofencesMapDelegate(
     private val context: Context,
     private val googleMap: GoogleMap,
     private val placesInteractor: PlacesInteractor,
@@ -46,12 +46,12 @@ class GeofencesMapDelegate(
 //        }
     }
 
-    fun onCameraIdle() {
+    open fun onCameraIdle() {
         placesInteractor.loadGeofencesForMap(googleMap.cameraPosition.target)
         clusterManager.onCameraIdle()
     }
 
-    private fun updateGeofencesOnMap(googleMap: GoogleMap, geofences: List<LocalGeofence>) {
+    protected open fun updateGeofencesOnMap(googleMap: GoogleMap, geofences: List<LocalGeofence>) {
         //todo filter by viewport
         googleMap.clear()
         geofences.forEach {
