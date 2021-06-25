@@ -16,9 +16,8 @@ class PermissionRequestViewModel(
     val showSkipButton = MutableLiveData(false)
 
     private fun onPermissionResult(activity: Activity) {
-        permissionsInteractor.checkPermissionsState(activity).let {
-            when (permissionsInteractor.checkPermissionsState(activity)
-                .getNextPermissionRequest()) {
+        permissionsInteractor.checkPermissionsState().let {
+            when (it.getNextPermissionRequest()) {
                 PermissionDestination.FOREGROUND_AND_TRACKING -> {
                     showPermissionsButton.postValue(true)
                 }

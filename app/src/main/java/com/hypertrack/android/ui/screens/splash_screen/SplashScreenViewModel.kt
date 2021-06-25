@@ -90,7 +90,7 @@ class SplashScreenViewModel(
     }
 
     private fun proceedToVisitsManagement(activity: Activity) {
-        when (permissionsInteractor.checkPermissionsState(activity)
+        when (permissionsInteractor.checkPermissionsState()
             .getNextPermissionRequest()) {
             PermissionDestination.PASS -> {
                 destination.postValue(SplashScreenFragmentDirections.actionGlobalVisitManagementFragment())

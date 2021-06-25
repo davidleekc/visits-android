@@ -75,7 +75,7 @@ class SignInViewModel(
     }
 
     private fun proceed(activity: Activity) {
-        when (permissionsInteractor.checkPermissionsState(activity).getNextPermissionRequest()) {
+        when (permissionsInteractor.checkPermissionsState().getNextPermissionRequest()) {
             PermissionDestination.PASS -> {
                 destination.postValue(SignInFragmentDirections.actionGlobalVisitManagementFragment())
             }

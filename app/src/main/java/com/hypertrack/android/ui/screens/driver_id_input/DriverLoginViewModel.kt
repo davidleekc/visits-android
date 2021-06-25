@@ -23,7 +23,7 @@ class DriverLoginViewModel(
             loadingState.postValue(true)
             // Log.d(TAG, "Proceeding with Driver Id $driverId")
             driverRepository.driverId = driverId
-            when (permissionsInteractor.checkPermissionsState(activity)
+            when (permissionsInteractor.checkPermissionsState()
                 .getNextPermissionRequest()) {
                 PermissionDestination.PASS -> {
                     destination.postValue(DriverIdInputFragmentDirections.actionGlobalVisitManagementFragment())

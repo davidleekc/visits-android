@@ -45,7 +45,8 @@
     <string name="pending">Pending</string>
     <string name="no_planned_visits">No trips assigned to you</string>
     <string name="device_deleted">"Device Deleted"</string>
-    <string name="generic_tracking_error">"Tracking Failure"</string>
+    <string name="generic_tracking_error">Tracking Failure</string>
+    <string name="permissions_not_granted">Permissions not granted</string>
     <string name="splashscreenlogo">splashScreenLogo</string>
     <string name="account_login_header_text">Sign into your account</string>
     <string name="login_hint">Cannot get login from the deeplink. Sign in or contact your manager to get the link.</string>

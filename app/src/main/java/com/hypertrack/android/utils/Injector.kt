@@ -372,6 +372,7 @@ object Injector {
         getMyPreferences(context).getAccountData().publishableKey
             ?: throw IllegalStateException("No publishableKey saved")
         val result = VisitsRepository(
+            getPermissionInteractor(),
             getOsUtilsProvider(context),
             getVisitsApiClient(context),
             getMyPreferences(context),
