@@ -68,7 +68,7 @@ class PlacesViewModel(
             updateJob = GlobalScope.launch {
                 try {
                     if (nextPageToken != null || placesPage.value == null) {
-                        Log.v("hypertrack-verbose", "** loading ${nextPageToken.hashCode()}")
+//                        Log.v("hypertrack-verbose", "** loading ${nextPageToken.hashCode()}")
                         loadingStateBase.postValue(true)
                         val res = placesInteractor.loadPage(nextPageToken)
                         nextPageToken = res.paginationToken
