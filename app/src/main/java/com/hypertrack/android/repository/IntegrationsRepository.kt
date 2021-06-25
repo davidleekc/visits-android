@@ -6,15 +6,20 @@ import androidx.lifecycle.MutableLiveData
 import com.hypertrack.android.api.ApiClient
 import com.hypertrack.android.models.Integration
 import com.hypertrack.android.ui.base.Consumable
+import com.hypertrack.android.utils.ResultEmptySuccess
+import com.hypertrack.android.utils.ResultError
+import com.hypertrack.android.utils.ResultSuccess
+import com.hypertrack.android.utils.ResultValue
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import java.lang.RuntimeException
 import kotlin.coroutines.coroutineContext
 
 interface IntegrationsRepository {
     val errorFlow: Flow<Consumable<Exception>>
-    suspend fun hasIntegrations(): Boolean?
+    suspend fun hasIntegrations(): ResultValue<Boolean>
     suspend fun getIntegrations(query: String): List<Integration>
     fun invalidateCache()
 }
@@ -30,18 +35,17 @@ class IntegrationsRepositoryImpl(
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
 
-    //todo handle null
-    override suspend fun hasIntegrations(): Boolean? {
+    override suspend fun hasIntegrations(): ResultValue<Boolean> {
         if (firstPage == null) {
             try {
                 firstPage = apiClient.getIntegrations(limit = 100)
-                return firstPage!!.isNotEmpty()
+                return ResultSuccess(firstPage!!.isNotEmpty())
             } catch (e: Exception) {
                 errorFlow.emit(Consumable(e))
-                return null
+                return ResultError(e)
             }
         } else {
-            return firstPage!!.isNotEmpty()
+            return ResultSuccess(firstPage!!.isNotEmpty())
         }
     }
 
@@ -62,4 +66,5 @@ class IntegrationsRepositoryImpl(
     override fun invalidateCache() {
         firstPage = null
     }
+
 }

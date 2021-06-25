@@ -40,8 +40,10 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.util.*
 
-
-class OsUtilsProvider(private val context: Context, private val crashReportsProvider: CrashReportsProvider) {
+class OsUtilsProvider(
+    private val context: Context,
+    private val crashReportsProvider: CrashReportsProvider
+) {
 
     val screenDensity: Float
         get() = Resources.getSystem().displayMetrics.density
@@ -203,6 +205,7 @@ class OsUtilsProvider(private val context: Context, private val crashReportsProv
     }
 
     fun getErrorMessage(e: Exception): String {
+        crashReportsProvider.logException(e)
         if (BuildConfig.DEBUG) {
             e.printStackTrace()
         }

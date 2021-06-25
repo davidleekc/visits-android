@@ -22,6 +22,9 @@ import com.hypertrack.android.ui.common.toAddressString
 import com.hypertrack.android.ui.screens.add_place.AddPlaceFragmentDirections
 import com.hypertrack.android.ui.screens.visits_management.VisitsManagementFragment
 import com.hypertrack.android.utils.OsUtilsProvider
+import com.hypertrack.android.utils.ResultEmptySuccess
+import com.hypertrack.android.utils.ResultError
+import com.hypertrack.android.utils.ResultSuccess
 import com.hypertrack.logistics.android.github.R
 import com.squareup.moshi.Moshi
 import kotlinx.coroutines.launch
@@ -37,7 +40,7 @@ class AddPlaceInfoViewModel(
     private val moshi: Moshi,
 ) : BaseViewModel() {
 
-    private var hasIntegrations = MutableLiveData<Boolean>(false)
+    private var hasIntegrations = MutableLiveData<Boolean?>(false)
 
     val loadingState = MutableLiveData<Boolean>(true)
 
@@ -82,12 +85,17 @@ class AddPlaceInfoViewModel(
         viewModelScope.launch {
             loadingState.postValue(true)
             val res = integrationsRepository.hasIntegrations()
-            if (res != null) {
-                hasIntegrations.postValue(res)
-                loadingState.postValue(false)
-            } else {
-                error.postValue(osUtilsProvider.stringFromResource(R.string.place_integration_error))
-                hasIntegrations.postValue(false)
+            when (res) {
+                is ResultSuccess -> {
+                    hasIntegrations.postValue(res.value)
+                    loadingState.postValue(false)
+                }
+                is ResultError -> {
+                    error.postValue(osUtilsProvider.stringFromResource(R.string.place_integration_error))
+                    error.postValue(osUtilsProvider.getErrorMessage(res.exception))
+                    loadingState.postValue(false)
+                    hasIntegrations.postValue(null)
+                }
             }
         }
     }
@@ -129,7 +137,9 @@ class AddPlaceInfoViewModel(
                 }
             }
         } else {
-            error.postValue(osUtilsProvider.getString(R.string.place_info_confirm_disabled))
+            if (hasIntegrations.value != null) {
+                error.postValue(osUtilsProvider.getString(R.string.place_info_confirm_disabled))
+            }
         }
     }
 
@@ -163,7 +173,7 @@ class AddPlaceInfoViewModel(
         return if (hasIntegrations.value == true) {
             integration.value != null
         } else {
-            true
+            hasIntegrations.value != null
         }
     }
 
