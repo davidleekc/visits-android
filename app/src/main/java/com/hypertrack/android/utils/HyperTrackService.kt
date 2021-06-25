@@ -121,6 +121,9 @@ class TrackingState(val crashReportsProvider: CrashReportsProvider? = null) :
             p0?.code == TrackingError.AUTHORIZATION_ERROR && p0.message.contains("trial ended") -> state.postValue(
                 TrackingStateValue.DEVICE_DELETED
             )
+            p0?.code == TrackingError.PERMISSION_DENIED_ERROR -> {
+                TrackingStateValue.PERMISIONS_DENIED
+            }
             else -> state.postValue(TrackingStateValue.ERROR)
         }
 
@@ -133,6 +136,6 @@ class TrackingState(val crashReportsProvider: CrashReportsProvider? = null) :
     }
 }
 
-enum class TrackingStateValue { TRACKING, ERROR, STOP, UNKNOWN, DEVICE_DELETED }
+enum class TrackingStateValue { TRACKING, ERROR, STOP, UNKNOWN, DEVICE_DELETED, PERMISIONS_DENIED }
 
 

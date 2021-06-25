@@ -29,7 +29,7 @@
             "radius": 30
           },
           "share_url": "https://trck.at/qxODeav",
-          "status": "cancelled",
+          "status": "ongoing",
           "departure": {
             "address": "4025, El Camino Way, Barron Park, Palo Alto, Santa Clara County, California, 94306, United States of America",
             "geometry": {
@@ -386,7 +386,7 @@
             "radius": 100
           },
           "share_url": "https://trck.at/vgl8JGq",
-          "status": "completed",
+          "status": "ongoing",
           "departure": {
             "address": "4025, El Camino Way, Barron Park, Palo Alto, Santa Clara County, California, 94306, United States of America",
             "geometry": {
@@ -1265,7 +1265,7 @@
             "radius": 100
           },
           "share_url": "https://trck.at/v2DKX5p",
-          "status": "ongoing",
+          "status": "completed",
           "departure": {
             "address": "4025, El Camino Way, Barron Park, Palo Alto, Santa Clara County, California, 94306, United States of America",
             "geometry": {

@@ -13,6 +13,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.*
 import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.interactors.TripsInteractor
+import com.hypertrack.android.models.Location
 import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.models.local.LocalTrip
 import com.hypertrack.android.models.local.OrderStatus
@@ -50,6 +51,7 @@ class CurrentTripViewModel(
         }
     }
     val trip = MediatorLiveData<LocalTrip?>()
+    val location = MutableLiveData<Location>()
 
     init {
         trip.addSource(tripsInteractor.currentTrip) {
@@ -68,6 +70,9 @@ class CurrentTripViewModel(
         viewModelScope.launch {
             tripsInteractor.refreshTrips()
         }
+        locationProvider.getCurrentLocation {
+            it?.let { location.postValue(it) }
+        }
     }
 
     val tripStartIcon = osUtilsProvider.bitmapDescriptorFromResource(
@@ -76,11 +81,11 @@ class CurrentTripViewModel(
     val activeOrderIcon = osUtilsProvider.bitmapDescriptorFromResource(
         com.hypertrack.maps.google.R.drawable.destination
     )
-    val completedOrderIcon = osUtilsProvider.bitmapDescriptorFromResource(
-        R.drawable.ic_order_completed
+    val completedOrderIcon = osUtilsProvider.bitmapDescriptorFromVectorResource(
+        R.drawable.ic_order_completed, R.color.colorHyperTrackGreen
     )
-    val canceledOrderIcon = osUtilsProvider.bitmapDescriptorFromResource(
-        R.drawable.ic_order_canceled
+    val canceledOrderIcon = osUtilsProvider.bitmapDescriptorFromVectorResource(
+        R.drawable.ic_order_canceled, R.color.colorHyperTrackGreen
     )
 
     @SuppressLint("MissingPermission")
@@ -131,9 +136,9 @@ class CurrentTripViewModel(
             }
         }
 
-        locationProvider.getCurrentLocation {
-            it?.let {
-                map.value?.moveCamera(CameraUpdateFactory.newLatLngZoom(it.toLatLng(), 15.0f))
+        location.observeManaged {
+            if (trip.value == null) {
+                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(it.toLatLng(), 15.0f))
             }
         }
 
@@ -203,25 +208,21 @@ class CurrentTripViewModel(
     private fun displayTripOnMap(map: GoogleMap, trip: LocalTrip?) {
         map.clear()
         trip?.let { trip ->
-            trip.orders.firstOrNull()?.let { order ->
-                order.estimate?.route?.polyline?.getPolylinePoints()?.firstOrNull()?.let {
-                    map.addMarker(
-                        MarkerOptions()
-                            .position(it)
-                            .anchor(0.5f, 0.5f)
-                            .icon(tripStartIcon)
-                            .zIndex(100f)
-                    )
-                }
+            val tripStart =
+                trip.orders.firstOrNull()?.estimate?.route?.polyline?.getPolylinePoints()
+                    ?.firstOrNull()
+
+            tripStart?.let {
+                map.addMarker(
+                    MarkerOptions()
+                        .position(it)
+                        .anchor(0.5f, 0.5f)
+                        .icon(tripStartIcon)
+                        .zIndex(100f)
+                )
             }
 
             trip.ongoingOrgers.forEach { order ->
-                Log.v(
-                    "hypertrack-verbose",
-                    "${order.status}\n ${
-                        order.estimate?.route?.polyline?.getPolylinePoints().toString()
-                    }"
-                )
                 order.estimate?.route?.polyline?.getPolylinePoints()?.let {
                     val options = if (order.status == OrderStatus.ONGOING) {
                         PolylineOptions()
@@ -267,6 +268,22 @@ class CurrentTripViewModel(
                         .position(order.destinationLatLng)
                         .zIndex(100f)
                 )
+
+
+            }
+
+            if (trip.ongoingOrgers.isNotEmpty()) {
+                val bounds = LatLngBounds.builder().apply {
+                    trip.ongoingOrgers.forEach { order ->
+                        include(order.destinationLatLng)
+                        order.estimate?.route?.polyline?.getPolylinePoints()?.forEach {
+                            include(it)
+                        }
+                    }
+                    tripStart?.let { include(it) }
+                    location.value?.let { include(it.toLatLng()) }
+                }.build()
+                map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100))
             }
         }
     }
@@ -298,7 +315,7 @@ class CurrentTripViewModel(
         var tripRouteColor = 0
     }
 
-    //todo task
+    //todo
 //    private fun onMapActive() {
 //        Log.d(LiveMapFragment.TAG, "onMapActive")
 //        gMap?.let {

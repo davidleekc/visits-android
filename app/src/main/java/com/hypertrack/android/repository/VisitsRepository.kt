@@ -6,7 +6,9 @@ import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import com.hypertrack.android.api.ApiClient
 import com.hypertrack.android.api.Trip
+import com.hypertrack.android.interactors.PermissionsInteractor
 import com.hypertrack.android.models.*
+import com.hypertrack.android.ui.screens.visits_management.StatusString
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
 import com.hypertrack.android.utils.AccountPreferencesProvider
 import com.hypertrack.android.utils.HyperTrackService
@@ -17,6 +19,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 class VisitsRepository(
+    private val permissionsInteractor: PermissionsInteractor,
     private val osUtilsProvider: OsUtilsProvider,
     private val apiClient: ApiClient,
     private val visitsStorage: VisitsStorage,
@@ -45,7 +48,11 @@ class VisitsRepository(
         get() = _hasOngoingLocalVisit
 
     val trackingState: LiveData<TrackingStateValue>
-        get() = hyperTrackService.state
+        get() = MediatorLiveData<TrackingStateValue>().apply {
+            addSource(hyperTrackService.state) {
+                postValue(it)
+            }
+        }
 
     private val _isTracking = MediatorLiveData<Boolean>()
 

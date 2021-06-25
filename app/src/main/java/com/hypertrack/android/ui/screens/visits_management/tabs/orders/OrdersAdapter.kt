@@ -29,6 +29,7 @@ class OrdersAdapter(
         return object : BaseContainerVh<LocalOrder>(view, baseClickListener) {
             override fun bind(item: LocalOrder) {
                 item.shortAddress.toView(containerView.tvAddress)
+                containerView.tvEta.setGoneState(item.status != OrderStatus.ONGOING)
                 if (item.eta != null) {
                     containerView.tvEta.setText(
                         MyApplication.context.getString(

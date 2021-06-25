@@ -47,7 +47,7 @@ class ConfirmEmailViewModel(
                 loadingState.postValue(false)
                 when (res) {
                     is OtpSuccess -> {
-                        when (permissionsInteractor.checkPermissionsState(activity)
+                        when (permissionsInteractor.checkPermissionsState()
                             .getNextPermissionRequest()) {
                             PermissionDestination.PASS -> {
                                 destination.postValue(ConfirmFragmentDirections.actionGlobalVisitManagementFragment())

@@ -10,11 +10,12 @@ import com.hypertrack.android.utils.MyApplication
 import javax.inject.Provider
 
 interface PermissionsInteractor {
-    fun checkPermissionsState(activity: Activity): PermissionsState
+    fun checkPermissionsState(): PermissionsState
     fun requestRequiredPermissions(activity: Activity)
     fun requestBackgroundLocationPermission(activity: Activity)
     fun isBackgroundLocationGranted(): Boolean
     fun isBasePermissionsGranted(): Boolean
+    fun isAllPermissionsGranted(): Boolean
 }
 
 class PermissionsInteractorImpl(
@@ -22,7 +23,7 @@ class PermissionsInteractorImpl(
 ) : PermissionsInteractor {
 
 
-    override fun checkPermissionsState(activity: Activity): PermissionsState {
+    override fun checkPermissionsState(): PermissionsState {
         return PermissionsState(
             activityTrackingGranted = isActivityGranted(),
             foregroundLocationGranted = hasPermission(Manifest.permission.ACCESS_FINE_LOCATION),
@@ -32,6 +33,10 @@ class PermissionsInteractorImpl(
 
     override fun isBasePermissionsGranted(): Boolean {
         return isActivityGranted() && hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+    }
+
+    override fun isAllPermissionsGranted(): Boolean {
+        return isBasePermissionsGranted() && isBackgroundLocationGranted()
     }
 
     private fun isActivityGranted(): Boolean {

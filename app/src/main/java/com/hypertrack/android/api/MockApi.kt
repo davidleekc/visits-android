@@ -19,7 +19,9 @@ import java.util.*
 @Suppress("BlockingMethodInNonBlockingContext")
 class MockApi(val remoteApi: ApiInterface) : ApiInterface by remoteApi {
 
-    private val fences = mutableListOf<Geofence>()
+//    private val fences = mutableListOf<Geofence>()
+private val fences = Injector.getMoshi().adapter(GeofenceResponse::class.java)
+    .fromJson(MockData.MOCK_GEOFENCES_JSON)!!.geofences.toMutableList()
 
     override suspend fun createGeofences(
         deviceId: String,
@@ -40,6 +42,7 @@ class MockApi(val remoteApi: ApiInterface) : ApiInterface by remoteApi {
         return Response.success(listOf(created))
     }
 
+    @Suppress("UNREACHABLE_CODE")
     override suspend fun getDeviceGeofences(
         deviceId: String,
         geohash: String?,
@@ -48,6 +51,9 @@ class MockApi(val remoteApi: ApiInterface) : ApiInterface by remoteApi {
         includeMarkers: Boolean,
         sortNearest: Boolean
     ): Response<GeofenceResponse> {
+        return Response.success(
+            GeofenceResponse(fences, null)
+        )
 //        return Response.success(
 //            Injector.getMoshi().adapter(GeofenceResponse::class.java)
 //                .fromJson(MockData.MOCK_GEOFENCES_JSON)
@@ -118,6 +124,28 @@ class MockApi(val remoteApi: ApiInterface) : ApiInterface by remoteApi {
         return Response.success(
             Injector.getMoshi().adapter(TripResponse::class.java)
                 .fromJson(MockData.MOCK_TRIPS_JSON)
+        )
+    }
+
+    override suspend fun completeOrder(tripId: String, orderId: String): Response<Void> {
+        delay(500)
+        return Response.success(null)
+    }
+
+    override suspend fun cancelOrder(tripId: String, orderId: String): Response<Void> {
+        delay(500)
+        return Response.success(null)
+    }
+
+    override suspend fun updateOrder(
+        tripId: String,
+        orderId: String,
+        order: OrderBody
+    ): Response<Trip> {
+        delay(500)
+        return Response.success(
+            Injector.getMoshi().adapter(TripResponse::class.java)
+                .fromJson(MockData.MOCK_TRIPS_JSON)!!.trips.first()
         )
     }
 }

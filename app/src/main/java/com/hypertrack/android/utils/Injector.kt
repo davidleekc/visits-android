@@ -167,8 +167,11 @@ object Injector {
                 GlobalScope
             )
             val hyperTrackService = getHyperTrackService(context)
+
+            val visitsRepo = getVisitsRepo(context)
+
             val photoUploadInteractor = PhotoUploadInteractorImpl(
-                getVisitsRepo(context),
+                visitsRepo,
                 getFileRepository(),
                 crashReportsProvider,
                 getImageDecoder(),
@@ -197,10 +200,18 @@ object Injector {
                 )
             )
 
-            val tripsInteractor = TripsInteractorImpl(
-                getTripsRepository(),
+            val tripsRepository = TripsRepositoryImpl(
                 getVisitsApiClient(MyApplication.context),
-                getHyperTrackService(MyApplication.context),
+                getMyPreferences(MyApplication.context),
+                hyperTrackService,
+                GlobalScope,
+                getAccountRepo(MyApplication.context).isPickUpAllowed
+            )
+
+            val tripsInteractor = TripsInteractorImpl(
+                tripsRepository,
+                getVisitsApiClient(MyApplication.context),
+                hyperTrackService,
                 photoUploadQueueInteractor,
                 getImageDecoder(),
                 getOsUtilsProvider(MyApplication.context),
@@ -218,7 +229,7 @@ object Injector {
                 placesInteractor,
                 integrationsRepository,
                 UserScopeViewModelFactory(
-                    getVisitsRepo(context),
+                    visitsRepo,
                     tripsInteractor,
                     placesInteractor,
                     integrationsRepository,
@@ -255,16 +266,6 @@ object Injector {
 
     private val placesClient: PlacesClient by lazy {
         Places.createClient(MyApplication.context)
-    }
-
-    private fun getTripsRepository(): TripsRepository {
-        return TripsRepositoryImpl(
-            getVisitsApiClient(MyApplication.context),
-            getMyPreferences(MyApplication.context),
-            getHyperTrackService(MyApplication.context),
-            GlobalScope,
-            getAccountRepo(MyApplication.context).isPickUpAllowed
-        )
     }
 
     private fun getFileRepository(): FileRepository {
@@ -372,6 +373,7 @@ object Injector {
         getMyPreferences(context).getAccountData().publishableKey
             ?: throw IllegalStateException("No publishableKey saved")
         val result = VisitsRepository(
+            getPermissionInteractor(),
             getOsUtilsProvider(context),
             getVisitsApiClient(context),
             getMyPreferences(context),

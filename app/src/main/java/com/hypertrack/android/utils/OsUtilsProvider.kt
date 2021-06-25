@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Resources
 import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.location.Geocoder
 import android.net.Uri
 import android.provider.MediaStore
@@ -15,20 +16,22 @@ import android.util.DisplayMetrics
 import android.util.Log
 import android.widget.Toast
 import android.widget.Toast.LENGTH_SHORT
+import androidx.annotation.ColorInt
 import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.hypertrack.android.decodeBase64Bitmap
 import com.hypertrack.android.models.Address
 import com.hypertrack.android.toBase64
-import com.hypertrack.logistics.android.github.BuildConfig
 import com.hypertrack.android.ui.screens.visits_management.tabs.livemap.TrackingPresenter
+import com.hypertrack.logistics.android.github.BuildConfig
 import com.hypertrack.logistics.android.github.R
 import java.io.File
 import java.io.IOException
@@ -36,6 +39,7 @@ import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.*
+
 
 class OsUtilsProvider(private val context: Context, private val crashReportsProvider: CrashReportsProvider) {
 
@@ -230,6 +234,22 @@ class OsUtilsProvider(private val context: Context, private val crashReportsProv
 
     fun bitmapDescriptorFromResource(@DrawableRes res: Int): BitmapDescriptor {
         return BitmapDescriptorFactory.fromResource(res)
+    }
+
+    fun bitmapDescriptorFromVectorResource(
+        @DrawableRes res: Int,
+        @ColorRes color: Int
+    ): BitmapDescriptor {
+        val vectorDrawable = ResourcesCompat.getDrawable(context.resources, res, null)
+        val bitmap = Bitmap.createBitmap(
+            vectorDrawable!!.intrinsicWidth,
+            vectorDrawable.intrinsicHeight, Bitmap.Config.ARGB_8888
+        )
+        val canvas = Canvas(bitmap)
+        vectorDrawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight())
+        DrawableCompat.setTint(vectorDrawable, colorFromResource(color))
+        vectorDrawable.draw(canvas)
+        return BitmapDescriptorFactory.fromBitmap(bitmap)
     }
 
     companion object {

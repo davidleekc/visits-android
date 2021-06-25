@@ -130,7 +130,7 @@ class PlacesInteractorImpl(
 
     private suspend fun loadPlacesPage(pageToken: String?, initial: Boolean): GeofencesPage {
         if (pageCache.containsKey(pageToken)) {
-            Log.v("hypertrack-verbose", "cached: ${pageToken.hashCode()}")
+//            Log.v("hypertrack-verbose", "cached: ${pageToken.hashCode()}")
             return GeofencesPage(
                 pageCache.getValue(pageToken).let {
                     if (pageToken == null && pendingCreatedGeofences.isNotEmpty()) {
@@ -150,10 +150,10 @@ class PlacesInteractorImpl(
         } else {
             val res =
                 if ((firstPageJob?.let { it.isActive || it.isCompleted } == true) && !initial) {
-                    Log.v("hypertrack-verbose", "waiting first job: ${pageToken.hashCode()}")
+//                    Log.v("hypertrack-verbose", "waiting first job: ${pageToken.hashCode()}")
                     firstPageJob!!.await()
                 } else {
-                    Log.v("hypertrack-verbose", "loading: ${pageToken.hashCode()}")
+//                    Log.v("hypertrack-verbose", "loading: ${pageToken.hashCode()}")
                     placesRepository.loadPage(pageToken).apply {
                         pageCache[pageToken] = this.geofences
                         addGeofencesToCache(geofences)

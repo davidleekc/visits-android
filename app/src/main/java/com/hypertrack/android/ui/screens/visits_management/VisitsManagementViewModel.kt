@@ -3,6 +3,7 @@ package com.hypertrack.android.ui.screens.visits_management
 import android.annotation.SuppressLint
 import android.util.Log
 import androidx.lifecycle.*
+import com.hypertrack.android.interactors.PermissionsInteractor
 import com.hypertrack.android.models.HistoryError
 import com.hypertrack.android.models.Visit
 import com.hypertrack.android.models.VisitListItem
@@ -90,9 +91,13 @@ class VisitsManagementViewModel(
             when (it) {
                 TrackingStateValue.TRACKING -> _statusBarColor.postValue(R.color.colorTrackingActive)
                 TrackingStateValue.STOP -> _statusBarColor.postValue(R.color.colorTrackingStopped)
-                TrackingStateValue.DEVICE_DELETED, TrackingStateValue.ERROR -> _statusBarColor.postValue(
-                    R.color.colorTrackingError
-                )
+                TrackingStateValue.DEVICE_DELETED,
+                TrackingStateValue.ERROR,
+                TrackingStateValue.PERMISIONS_DENIED -> {
+                    _statusBarColor.postValue(
+                        R.color.colorTrackingError
+                    )
+                }
                 else -> _statusBarColor.postValue(null)
             }
         }
@@ -111,6 +116,7 @@ class VisitsManagementViewModel(
                     TrackingStateValue.ERROR -> StatusString(R.string.generic_tracking_error)
                     TrackingStateValue.TRACKING -> StatusString(R.string.clocked_in)
                     TrackingStateValue.STOP -> StatusString(R.string.clocked_out)
+                    TrackingStateValue.PERMISIONS_DENIED -> StatusString(R.string.permissions_not_granted)
                     else -> StatusString(R.string.unknown_error)
                 }
             )
