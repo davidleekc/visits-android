@@ -45,8 +45,8 @@ object MockData {
                     MOCK_SUMMARY,
                     h.locations.coordinates.map {
                         Location(
-                            it.longitude,
-                            it.latitude
+                            latitude = it.latitude,
+                            longitude = it.longitude
                         ) to it.timestamp
                     },
                     mutableListOf<Marker>().apply {

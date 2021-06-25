@@ -140,9 +140,7 @@ class GoogleMapHistoryRenderer(
                 viewBounds?.let { bounds ->
                     googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, style.mapPadding))
                 }
-
             }
-
         }
     }
 
@@ -169,12 +167,12 @@ private fun Location.asLatLng(): LatLng = LatLng(latitude, longitude)
 private fun History.asPolylineOptions(): PolylineOptions = this
     .locationTimePoints
     .map { it.first }
-    .fold(PolylineOptions()) {
-            options, point ->  options.add(LatLng(point.latitude, point.longitude))
+    .fold(PolylineOptions()) { options, point ->
+        options.add(LatLng(point.latitude, point.longitude))
     }
 
 private fun Iterable<Location>.boundRect() : LatLngBounds {
-    val northEast = LatLng(this.map {it.latitude}.maxOrNull()!!, this.map {it.longitude}.maxOrNull()!!)
-    val southWest = LatLng(this.map {it.latitude}.minOrNull()!!, this.map {it.longitude}.minOrNull()!!)
-    return LatLngBounds(southWest, northEast)
+    return fold(LatLngBounds.builder()) { builder, point ->
+        builder.include(point.toLatLng())
+    }.build()
 }
