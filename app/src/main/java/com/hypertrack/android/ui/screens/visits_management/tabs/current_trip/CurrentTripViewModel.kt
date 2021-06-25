@@ -76,11 +76,11 @@ class CurrentTripViewModel(
     val activeOrderIcon = osUtilsProvider.bitmapDescriptorFromResource(
         com.hypertrack.maps.google.R.drawable.destination
     )
-    val completedOrderIcon = osUtilsProvider.bitmapDescriptorFromResource(
-        R.drawable.ic_order_completed
+    val completedOrderIcon = osUtilsProvider.bitmapDescriptorFromVectorResource(
+        R.drawable.ic_order_completed, R.color.colorHyperTrackGreen
     )
-    val canceledOrderIcon = osUtilsProvider.bitmapDescriptorFromResource(
-        R.drawable.ic_order_canceled
+    val canceledOrderIcon = osUtilsProvider.bitmapDescriptorFromVectorResource(
+        R.drawable.ic_order_canceled, R.color.colorHyperTrackGreen
     )
 
     @SuppressLint("MissingPermission")

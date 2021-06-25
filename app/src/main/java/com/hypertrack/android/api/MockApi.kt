@@ -126,4 +126,26 @@ private val fences = Injector.getMoshi().adapter(GeofenceResponse::class.java)
                 .fromJson(MockData.MOCK_TRIPS_JSON)
         )
     }
+
+    override suspend fun completeOrder(tripId: String, orderId: String): Response<Void> {
+        delay(500)
+        return Response.success(null)
+    }
+
+    override suspend fun cancelOrder(tripId: String, orderId: String): Response<Void> {
+        delay(500)
+        return Response.success(null)
+    }
+
+    override suspend fun updateOrder(
+        tripId: String,
+        orderId: String,
+        order: OrderBody
+    ): Response<Trip> {
+        delay(500)
+        return Response.success(
+            Injector.getMoshi().adapter(TripResponse::class.java)
+                .fromJson(MockData.MOCK_TRIPS_JSON)!!.trips.first()
+        )
+    }
 }
