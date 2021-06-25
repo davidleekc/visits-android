@@ -60,10 +60,12 @@ class MainActivity : NavActivity(), DeeplinkResultListener {
     override fun onResume() {
         super.onResume()
         inForeground = true
+        crashReportsProvider.log("activity resume")
     }
 
     override fun onPause() {
         inForeground = false
+        crashReportsProvider.log("activity pause")
         super.onPause()
     }
 

@@ -315,7 +315,7 @@ class CurrentTripViewModel(
         var tripRouteColor = 0
     }
 
-    //todo task
+    //todo
 //    private fun onMapActive() {
 //        Log.d(LiveMapFragment.TAG, "onMapActive")
 //        gMap?.let {
