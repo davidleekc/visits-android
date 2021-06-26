@@ -1,0 +1,73 @@
+package com.hypertrack.android.interactors
+
+import android.app.Activity
+import com.google.android.gms.maps.model.LatLng
+import com.hypertrack.android.api.TripDestination
+import com.hypertrack.android.models.local.LocalTrip
+import com.hypertrack.android.repository.AccessTokenRepository
+import com.hypertrack.android.repository.BasicAuthAccessTokenRepository
+import com.hypertrack.android.utils.CrashReportsProvider
+import com.hypertrack.android.utils.MyApplication
+import com.hypertrack.android.utils.OsUtilsProvider
+import com.hypertrack.logistics.android.github.BuildConfig
+import com.hypertrack.logistics.android.github.R
+import com.squareup.moshi.JsonClass
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.Types
+
+class FeedbackInteractor(
+    private val deviceId: String,
+    private val tripsInteractor: TripsInteractor,
+    private val moshi: Moshi,
+    private val osUtilsProvider: OsUtilsProvider,
+    private val crashReportsProvider: CrashReportsProvider
+) {
+    var savedFeedbackText: String = ""
+
+    fun sendFeedback(activity: Activity, text: String) {
+        logAppState()
+        val data = "Device ID: ${deviceId}"
+        osUtilsProvider.mailTo(
+            activity,
+            email = osUtilsProvider.stringFromResource(R.string.feedback_email),
+            subject = osUtilsProvider.stringFromResource(R.string.feedback_subject),
+            text = osUtilsProvider.stringFromResource(R.string.feedback_email_text, data, text),
+        )
+        crashReportsProvider.log(text)
+        crashReportsProvider.logException(ManuallyTriggeredException)
+    }
+
+    private fun logAppState() {
+        try {
+            //clear app state from any sensitive data (location, metadata, addresses, notes, etc)
+            val appState: Map<String, Any?> = mapOf(
+                "currentTrip" to tripsInteractor.currentTrip.value?.let { trip ->
+                    mapOf(
+                        "id" to trip.id,
+                        "status" to trip.status,
+                        "orders" to trip.orders.map { order ->
+                            mapOf(
+                                "id" to order.id,
+                                "status" to order.status,
+                            )
+                        }
+                    )
+                }
+            )
+            crashReportsProvider.log(
+                moshi.adapter<Map<String, Any?>>(
+                    Types.newParameterizedType(
+                        Map::class.java, String::class.java,
+                        Any::class.java
+                    )
+                ).toJson(appState)
+            )
+        } catch (e: Exception) {
+            if (BuildConfig.DEBUG) {
+                throw e
+            }
+        }
+    }
+}
+
+object ManuallyTriggeredException : Exception()

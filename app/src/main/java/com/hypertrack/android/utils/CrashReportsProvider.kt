@@ -52,5 +52,3 @@ class UserIdentifier(
     val driverId: String,
     val pubKey: String,
 )
-
-object ManuallyTriggeredException : Exception()

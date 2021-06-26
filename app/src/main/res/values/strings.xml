@@ -188,6 +188,12 @@
 
     <string name="select_destination">Select destination</string>
 
+    <string name="feedback_text">Enter description of your issue\n\nPlease include steps that is needed to perform to reproduce it (if it possible)</string>
+    <string name="feedback_send">Send feedback</string>
+    <string name="feedback_email">help@hypertrack.com</string>
+    <string name="feedback_subject">Visits app Android feedback</string>
+    <string name="feedback_email_text">-- Please attach screenshots that demonstrate the issue, if possible --\n\n %s \n\n %s</string>
+
     <string name="copied_to_clipboard">Copied to clipboard</string>
     <string name="active">Active</string>
     <string name="inactive">Inactive</string>

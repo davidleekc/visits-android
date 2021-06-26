@@ -6,6 +6,8 @@ import com.hypertrack.android.repository.AccountRepository
 import com.hypertrack.android.repository.DriverRepository
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.common.KeyValueItem
+import com.hypertrack.android.ui.screens.visits_management.VisitsManagementFragment
+import com.hypertrack.android.ui.screens.visits_management.VisitsManagementFragmentDirections
 import com.hypertrack.android.utils.*
 import com.hypertrack.logistics.android.github.BuildConfig
 import com.hypertrack.logistics.android.github.R
@@ -66,8 +68,7 @@ class ProfileViewModel(
     }
 
     fun onReportAnIssueClick() {
-        crashReportsProvider.logException(ManuallyTriggeredException)
-        osUtilsProvider.makeToast(R.string.profile_report_sent)
+        destination.postValue(VisitsManagementFragmentDirections.actionVisitManagementFragmentToSendFeedbackFragment())
     }
 
 }

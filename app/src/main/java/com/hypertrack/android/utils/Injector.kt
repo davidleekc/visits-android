@@ -223,15 +223,25 @@ object Injector {
 
             val accountRepository = getAccountRepo(context)
 
+            val feedbackInteractor = FeedbackInteractor(
+                accessTokenRepository.deviceId,
+                tripsInteractor,
+                getMoshi(),
+                getOsUtilsProvider(MyApplication.context),
+                crashReportsProvider
+            )
+
             userScope = UserScope(
                 historyRepository,
                 tripsInteractor,
                 placesInteractor,
+                feedbackInteractor,
                 integrationsRepository,
                 UserScopeViewModelFactory(
                     visitsRepo,
                     tripsInteractor,
                     placesInteractor,
+                    feedbackInteractor,
                     integrationsRepository,
                     historyRepository,
                     driverRepository,
@@ -345,7 +355,7 @@ object Injector {
         )
     }
 
-    fun accessTokenRepository(context: Context) =
+    fun accessTokenRepository(context: Context): BasicAuthAccessTokenRepository =
         (getMyPreferences(context).restoreRepository()
             ?: throw IllegalStateException("No access token repository was saved"))
 
@@ -439,6 +449,7 @@ class UserScope(
     val historyRepository: HistoryRepository,
     val tripsInteractor: TripsInteractor,
     val placesInteractor: PlacesInteractor,
+    val feedbackInteractor: FeedbackInteractor,
     val integrationsRepository: IntegrationsRepository,
     val userScopeViewModelFactory: UserScopeViewModelFactory,
     val photoUploadInteractor: PhotoUploadInteractor,

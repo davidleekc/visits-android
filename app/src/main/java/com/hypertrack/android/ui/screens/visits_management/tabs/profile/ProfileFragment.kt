@@ -3,6 +3,7 @@ package com.hypertrack.android.ui.screens.visits_management.tabs.profile
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import com.hypertrack.android.ui.MainActivity
 import com.hypertrack.android.ui.base.BaseFragment
 import com.hypertrack.android.ui.common.KeyValueAdapter
@@ -30,6 +31,10 @@ class ProfileFragment : BaseFragment<MainActivity>(R.layout.fragment_profile) {
 
         vm.profile.observe(viewLifecycleOwner, {
             adapter.updateItems(it)
+        })
+
+        vm.destination.observe(viewLifecycleOwner, {
+            findNavController().navigate(it)
         })
 
         bReportAnIssue.setOnClickListener {
