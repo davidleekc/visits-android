@@ -1,5 +1,8 @@
 # Changelog
 
+## [0.9.18] - 2021-06-25
+- Bugfixes
+
 ## [0.9.17] - 2021-06-24
 ### Fixed
 - Current trip not displaying on map
