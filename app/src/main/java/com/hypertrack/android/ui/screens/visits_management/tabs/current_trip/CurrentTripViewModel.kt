@@ -57,16 +57,13 @@ class CurrentTripViewModel(
         trip.addSource(tripsInteractor.currentTrip) {
             trip.postValue(it)
             map.value?.let { map -> displayTripOnMap(map, it) }
-            loadingStateBase.postValue(false)
         }
         trip.addSource(map) {
             displayTripOnMap(it, trip.value)
-            loadingStateBase.postValue(false)
         }
     }
 
     init {
-        loadingStateBase.postValue(true)
         viewModelScope.launch {
             tripsInteractor.refreshTrips()
         }
@@ -154,6 +151,7 @@ class CurrentTripViewModel(
 
     fun onDestinationResult(destinationData: DestinationData) {
         loadingStateBase.postValue(true)
+        Log.v("hypertrack-verbose", "true")
         GlobalScope.launch {
             when (val res =
                 tripsInteractor.createTrip(destinationData.latLng, destinationData.address)) {
@@ -164,6 +162,7 @@ class CurrentTripViewModel(
                 }
             }
             loadingStateBase.postValue(false)
+            Log.v("hypertrack-verbose", "false")
         }
     }
 
