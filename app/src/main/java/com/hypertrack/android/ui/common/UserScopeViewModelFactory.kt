@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.hypertrack.android.api.ApiClient
+import com.hypertrack.android.interactors.FeedbackInteractor
 import com.hypertrack.android.interactors.PermissionsInteractor
 import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.interactors.TripsInteractor
@@ -19,6 +20,7 @@ import com.hypertrack.android.utils.HyperTrackService
 import com.hypertrack.android.ui.screens.driver_id_input.DriverLoginViewModel
 import com.hypertrack.android.ui.screens.permission_request.PermissionRequestViewModel
 import com.hypertrack.android.ui.screens.select_destination.SelectDestinationViewModel
+import com.hypertrack.android.ui.screens.send_feedback.SendFeedbackViewModel
 import com.hypertrack.android.ui.screens.visits_management.tabs.current_trip.CurrentTripViewModel
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
 import com.hypertrack.android.ui.screens.visits_management.tabs.orders.OrdersListViewModel
@@ -32,6 +34,7 @@ class UserScopeViewModelFactory(
     private val visitsRepository: VisitsRepository,
     private val tripsInteractor: TripsInteractor,
     private val placesInteractor: PlacesInteractor,
+    private val feedbackInteractor: FeedbackInteractor,
     private val integrationsRepository: IntegrationsRepository,
     private val historyRepository: HistoryRepository,
     private val driverRepository: DriverRepository,
@@ -49,6 +52,10 @@ class UserScopeViewModelFactory(
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return when (modelClass) {
+            SendFeedbackViewModel::class.java -> SendFeedbackViewModel(
+                feedbackInteractor,
+                osUtilsProvider
+            ) as T
             OrdersListViewModel::class.java -> OrdersListViewModel(
                 tripsInteractor,
                 osUtilsProvider

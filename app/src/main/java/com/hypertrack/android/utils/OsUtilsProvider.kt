@@ -1,5 +1,6 @@
 package com.hypertrack.android.utils
 
+import android.app.Activity
 import android.app.PendingIntent
 import android.content.ClipData
 import android.content.ClipDescription.MIMETYPE_TEXT_PLAIN
@@ -16,7 +17,6 @@ import android.util.DisplayMetrics
 import android.util.Log
 import android.widget.Toast
 import android.widget.Toast.LENGTH_SHORT
-import androidx.annotation.ColorInt
 import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
@@ -39,6 +39,7 @@ import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.*
+
 
 class OsUtilsProvider(
     private val context: Context,
@@ -253,6 +254,18 @@ class OsUtilsProvider(
         DrawableCompat.setTint(vectorDrawable, colorFromResource(color))
         vectorDrawable.draw(canvas)
         return BitmapDescriptorFactory.fromBitmap(bitmap)
+    }
+
+    fun mailTo(activity: Activity, email: String, subject: String, text: String) {
+        val intent = Intent(Intent.ACTION_SENDTO)
+        intent.data = Uri.parse("mailto:") // only email apps should handle this
+
+        intent.putExtra(Intent.EXTRA_EMAIL, arrayOf(email))
+        intent.putExtra(Intent.EXTRA_SUBJECT, subject)
+        intent.putExtra(Intent.EXTRA_TEXT, text)
+        if (intent.resolveActivity(activity.packageManager) != null) {
+            activity.startActivity(intent)
+        }
     }
 
     companion object {

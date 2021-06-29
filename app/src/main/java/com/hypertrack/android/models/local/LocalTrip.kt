@@ -8,7 +8,7 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
-class LocalTrip(
+data class LocalTrip(
     val id: String,
     val status: TripStatus,
     val metadata: Map<String, String>,
