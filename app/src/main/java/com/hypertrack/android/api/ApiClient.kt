@@ -99,6 +99,7 @@ class ApiClient(
     suspend fun createGeofence(
         latitude: Double,
         longitude: Double,
+        radius: Int,
         metadata: GeofenceMetadata
     ): Response<List<Geofence>> {
         return api.createGeofences(
@@ -106,8 +107,9 @@ class ApiClient(
             GeofenceParams(
                 setOf(
                     GeofenceProperties(
-                        Point(listOf(longitude, latitude)),
-                        metadata.toMap(moshi), 100
+                        Point(latitude = latitude, longitude = longitude),
+                        metadata.toMap(moshi),
+                        radius
                     )
                 ), deviceId
             )

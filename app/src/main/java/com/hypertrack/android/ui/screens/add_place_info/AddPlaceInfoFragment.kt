@@ -13,7 +13,6 @@ import com.hypertrack.android.ui.base.ProgressDialogFragment
 import com.hypertrack.android.ui.common.*
 import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.logistics.android.github.R
-import kotlinx.android.synthetic.main.fragment_add_integration.*
 import kotlinx.android.synthetic.main.fragment_add_place_info.*
 import kotlinx.android.synthetic.main.fragment_add_place_info.confirm
 import kotlinx.android.synthetic.main.fragment_add_place_info.toolbar
@@ -51,15 +50,26 @@ class AddPlaceInfoFragment : ProgressDialogFragment(R.layout.fragment_add_place_
             vm.onMapReady(it)
         }
 
-        val listener = object : SimpleTextWatcher() {
+        val addressListener = object : SimpleTextWatcher() {
             override fun afterChanged(text: String) {
                 vm.onAddressChanged(text)
             }
         }
-        etAddress.addTextChangedListener(listener)
+        etAddress.addTextChangedListener(addressListener)
 
         vm.address.observe(viewLifecycleOwner, {
-            etAddress.silentUpdate(listener, it)
+            etAddress.silentUpdate(addressListener, it)
+        })
+
+        val radiusListener = object : SimpleTextWatcher() {
+            override fun afterChanged(text: String) {
+                vm.onRadiusChanged(text)
+            }
+        }
+        etRadius.addTextChangedListener(radiusListener)
+
+        vm.radius.observe(viewLifecycleOwner, {
+            etRadius.silentUpdate(radiusListener, it.toString())
         })
 
         vm.name.observe(viewLifecycleOwner, {
@@ -78,8 +88,10 @@ class AddPlaceInfoFragment : ProgressDialogFragment(R.layout.fragment_add_place_
             }
         })
 
-        vm.error.observe(viewLifecycleOwner, {
-            SnackbarUtil.showErrorSnackbar(view, it)
+        vm.errorHandler.errorText.observe(viewLifecycleOwner, {
+            it.consume {
+                SnackbarUtil.showErrorSnackbar(view, it)
+            }
         })
 
         vm.loadingState.observe(viewLifecycleOwner, {

@@ -1,5 +1,6 @@
 package com.hypertrack.android.ui.base
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.*
 import androidx.navigation.NavDirections
 import com.hypertrack.android.utils.OsUtilsProvider
@@ -85,5 +86,9 @@ class ErrorHandler(
 
     fun postText(e: String) {
         _errorText.postValue(Consumable(e))
+    }
+
+    fun postText(@StringRes res: Int) {
+        _errorText.postValue(Consumable(osUtilsProvider!!.stringFromResource(res)))
     }
 }

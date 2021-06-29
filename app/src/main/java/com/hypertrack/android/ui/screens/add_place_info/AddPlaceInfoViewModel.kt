@@ -1,6 +1,7 @@
 package com.hypertrack.android.ui.screens.add_place_info
 
 import android.annotation.SuppressLint
+import androidx.annotation.StringRes
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -38,14 +39,11 @@ class AddPlaceInfoViewModel(
     private val integrationsRepository: IntegrationsRepository,
     private val osUtilsProvider: OsUtilsProvider,
     private val moshi: Moshi,
-) : BaseViewModel() {
+) : BaseViewModel(osUtilsProvider) {
 
     private var hasIntegrations = MutableLiveData<Boolean?>(false)
 
     val loadingState = MutableLiveData<Boolean>(true)
-
-    //todo to baseVM
-    val error = SingleLiveEvent<String>()
 
     //todo persist state in create geofence scope
     val address = MutableLiveData<String?>().apply {
@@ -62,13 +60,21 @@ class AddPlaceInfoViewModel(
             postValue(_name)
         }
     }
+    val radius = MutableLiveData<Int>(PlacesInteractor.DEFAULT_RADIUS_METERS)
     val integration = MutableLiveData<Integration?>(null)
+
     val enableConfirmButton = MediatorLiveData<Boolean>().apply {
         addSource(hasIntegrations) {
-            postValue(shouldEnableConfirmButton())
+            postValue(validations.all { it.checkIfValid() })
         }
         addSource(integration) {
-            postValue(shouldEnableConfirmButton())
+            postValue(validations.all { it.checkIfValid() })
+        }
+        addSource(address) {
+            postValue(validations.all { it.checkIfValid() })
+        }
+        addSource(radius) {
+            postValue(validations.all { it.checkIfValid() })
         }
     }
 
@@ -81,6 +87,19 @@ class AddPlaceInfoViewModel(
         }
     }
 
+    private val validations = listOf(
+        Validation({ errorHandler.postText(R.string.add_place_geofence_radius_validation_error) }) {
+            radius.value?.let { radius -> radius > 50 && radius < 100000 } ?: false
+        },
+        Validation({ errorHandler.postText(R.string.place_info_confirm_disabled) }) {
+            if (hasIntegrations.value == true) {
+                integration.value != null
+            } else {
+                hasIntegrations.value != null
+            }
+        }
+    )
+
     init {
         viewModelScope.launch {
             loadingState.postValue(true)
@@ -91,8 +110,7 @@ class AddPlaceInfoViewModel(
                     loadingState.postValue(false)
                 }
                 is ResultError -> {
-                    error.postValue(osUtilsProvider.stringFromResource(R.string.place_integration_error))
-                    error.postValue(osUtilsProvider.getErrorMessage(res.exception))
+                    errorHandler.postException(res.exception)
                     loadingState.postValue(false)
                     hasIntegrations.postValue(null)
                 }
@@ -107,13 +125,14 @@ class AddPlaceInfoViewModel(
     }
 
     fun onConfirmClicked(name: String, address: String, description: String) {
-        if (enableConfirmButton.value!!) {
+        validations.ifValid {
             viewModelScope.launch {
                 loadingState.postValue(true)
 
                 val res = placesInteractor.createGeofence(
                     latitude = latLng.latitude,
                     longitude = latLng.longitude,
+                    radius = radius.value,
                     name = name,
                     address = address,
                     description = description,
@@ -132,18 +151,13 @@ class AddPlaceInfoViewModel(
                         )
                     }
                     is CreateGeofenceError -> {
-                        error.postValue(osUtilsProvider.getErrorMessage(res.e))
+                        errorHandler.postException(res.e)
                     }
                 }
-            }
-        } else {
-            if (hasIntegrations.value != null) {
-                error.postValue(osUtilsProvider.getString(R.string.place_info_confirm_disabled))
             }
         }
     }
 
-    //todo test
     fun onAddIntegration(): Boolean {
         return if (hasIntegrations.value == true) {
             destination.postValue(
@@ -164,16 +178,14 @@ class AddPlaceInfoViewModel(
     }
 
     fun onAddressChanged(address: String) {
-        if (this.address.value != address) {
-            this.address.postValue(address)
-        }
+        this.address.postValue(address)
     }
 
-    private fun shouldEnableConfirmButton(): Boolean {
-        return if (hasIntegrations.value == true) {
-            integration.value != null
-        } else {
-            hasIntegrations.value != null
+    fun onRadiusChanged(text: String) {
+        try {
+            radius.postValue(text.toInt())
+        } catch (e: Exception) {
+            errorHandler.postException(e)
         }
     }
 
@@ -184,8 +196,21 @@ class AddPlaceInfoViewModel(
             true
         }
     }
+}
 
-    companion object {
-        const val KEY_ADDRESS = "address"
+class Validation(val error: () -> Unit, val check: () -> Boolean) {
+    fun checkIfValid(): Boolean {
+        return check.invoke()
     }
 }
+
+fun List<Validation>.ifValid(action: () -> Unit) {
+    forEach {
+        if (!it.checkIfValid()) {
+            it.error.invoke()
+            return
+        }
+    }
+    action.invoke()
+}
+
