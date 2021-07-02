@@ -27,9 +27,11 @@ import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.LatLng
 import com.hypertrack.android.decodeBase64Bitmap
 import com.hypertrack.android.models.Address
 import com.hypertrack.android.toBase64
+import com.hypertrack.android.ui.common.LocationUtils
 import com.hypertrack.android.ui.screens.visits_management.tabs.livemap.TrackingPresenter
 import com.hypertrack.logistics.android.github.BuildConfig
 import com.hypertrack.logistics.android.github.R
@@ -266,6 +268,10 @@ class OsUtilsProvider(
         if (intent.resolveActivity(activity.packageManager) != null) {
             activity.startActivity(intent)
         }
+    }
+
+    fun distanceMeters(latLng: LatLng, latLng1: LatLng): Int {
+        return LocationUtils.distanceMeters(latLng, latLng1)!!
     }
 
     companion object {

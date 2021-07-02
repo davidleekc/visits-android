@@ -169,6 +169,7 @@
 
     <string name="add_place_confirm">Confirm</string>
     <string name="add_place_create">Create geofence</string>
+    <string name="add_place_confirm_adjacent">There is existing geofence near location where you want to create a new one. Are you sure you want to continue?</string>
     <string name="add_place_set_on_map">Set on map</string>
     <string name="add_place">Add place</string>
     <string name="add_place_address">Address</string>

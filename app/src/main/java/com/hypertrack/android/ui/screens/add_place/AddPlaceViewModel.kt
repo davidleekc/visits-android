@@ -1,32 +1,17 @@
 package com.hypertrack.android.ui.screens.add_place
 
-import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Paint
-import android.location.Location
 import androidx.lifecycle.MediatorLiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.model.*
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.hypertrack.android.interactors.PlacesInteractor
-import com.hypertrack.android.interactors.PlacesInteractorImpl
-import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.ui.base.Consumable
-import com.hypertrack.android.ui.common.delegates.GeofenceClusterItem
-import com.hypertrack.android.ui.common.nullIfEmpty
 import com.hypertrack.android.ui.screens.select_destination.DestinationData
 import com.hypertrack.android.ui.screens.select_destination.SelectDestinationViewModel
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
 import com.hypertrack.android.utils.OsUtilsProvider
-import com.hypertrack.logistics.android.github.BuildConfig
-import com.hypertrack.logistics.android.github.R
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import net.sharewire.googlemapsclustering.ClusterItem
-import net.sharewire.googlemapsclustering.ClusterManager
 
 
 class AddPlaceViewModel(
@@ -41,6 +26,8 @@ class AddPlaceViewModel(
     deviceLocationProvider
 ) {
 
+    val adjacentGeofenceDialog = MutableLiveData<Consumable<DestinationData>>()
+
     override val loadingStateBase = placesInteractor.isLoadingForLocation
 
     override val errorBase = MediatorLiveData<Consumable<String>>().apply {
@@ -52,6 +39,34 @@ class AddPlaceViewModel(
         }
     }
 
+    override fun onConfirmClicked(address: String) {
+        proceedCreation(
+            DestinationData(
+                map.value!!.cameraPosition.target,
+                address = address,
+                name = currentPlace?.name
+            )
+        )
+    }
+
+    fun proceedCreation(destinationData: DestinationData, confirmed: Boolean = false) {
+        viewModelScope.launch {
+            if (!confirmed) {
+                loadingStateBase.postValue(true)
+                val has = placesInteractor.hasAdjacentGeofence(destinationData.latLng)
+                loadingStateBase.postValue(false)
+                if (has) {
+                    adjacentGeofenceDialog.postValue(Consumable(destinationData))
+                    return@launch
+                } else {
+                    proceed(destinationData)
+                }
+            } else {
+                proceed(destinationData)
+            }
+        }
+    }
+
     override fun proceed(destinationData: DestinationData) {
         destination.postValue(
             AddPlaceFragmentDirections.actionAddPlaceFragmentToAddPlaceInfoFragment(
@@ -59,5 +74,6 @@ class AddPlaceViewModel(
             )
         )
     }
+
 
 }

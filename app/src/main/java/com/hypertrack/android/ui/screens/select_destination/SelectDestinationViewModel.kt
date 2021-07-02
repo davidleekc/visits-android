@@ -180,7 +180,7 @@ open class SelectDestinationViewModel(
             }
     }
 
-    fun onConfirmClicked(address: String) {
+    open fun onConfirmClicked(address: String) {
         proceed(
             DestinationData(
                 map.value!!.cameraPosition.target,

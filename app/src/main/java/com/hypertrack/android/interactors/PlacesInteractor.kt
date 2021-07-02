@@ -36,6 +36,8 @@ interface PlacesInteractor {
 
     suspend fun loadPage(pageToken: String?): GeofencesPage
 
+    suspend fun hasAdjacentGeofence(latLng: LatLng, radius: Int? = null): Boolean
+
     companion object {
         const val DEFAULT_RADIUS_METERS = 100
     }
@@ -89,6 +91,14 @@ class PlacesInteractorImpl(
 
     override fun getGeofence(geofenceId: String): LocalGeofence {
         return geofences.value!!.getValue(geofenceId)
+    }
+
+    override suspend fun hasAdjacentGeofence(latLng: LatLng, radius: Int?): Boolean {
+        return geofences.value!!.any { (_, geofence) ->
+            val distance = osUtilsProvider.distanceMeters(geofence.latLng, latLng)
+            return@any distance < geofence.radius!! + (radius
+                ?: PlacesInteractor.DEFAULT_RADIUS_METERS)
+        }
     }
 
     override fun invalidateCache() {
