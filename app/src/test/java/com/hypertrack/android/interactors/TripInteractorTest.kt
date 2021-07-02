@@ -389,18 +389,26 @@ class TripInteractorTest {
     }
 
     @Test
-    fun `it should update metadata before order completion or cancellation`() {
+    fun `it should update metadata before order completion or cancellation if it was changed`() {
         val backendTrips = listOf(
             createBaseTrip().copy(
                 tripId = "3", status = TripStatus.ACTIVE.value, orders = listOf(
                     createBaseOrder().copy(id = "1"),
                     createBaseOrder().copy(id = "2"),
+                    createBaseOrder().copy(id = "3"),
+                    createBaseOrder().copy(id = "4"),
+                    createBaseOrder().copy(id = "5"),
                 )
             ),
         )
-        val apiClient: ApiClient = mockk {
+        val apiClient: ApiClient = mockk(relaxed = true) {
             coEvery { getTrips() } returns backendTrips
             coEvery { completeTrip(any()) } returns TripCompletionSuccess
+            coEvery { completeOrder(any(), any()) } returns OrderCompletionSuccess
+            coEvery { cancelOrder(any(), any()) } returns OrderCompletionSuccess
+            coEvery { updateOrderMetadata(any(), any(), any()) } returns Response.success(
+                backendTrips.first()
+            )
         }
         val tripsInteractorImpl = createTripInteractorImpl(
             backendTrips = backendTrips,
@@ -410,19 +418,40 @@ class TripInteractorTest {
         runBlocking {
             tripsInteractorImpl.refreshTrips()
             tripsInteractorImpl.addPhotoToOrder("1", "")
-            tripsInteractorImpl.addPhotoToOrder("1", "")
             tripsInteractorImpl.updateOrderNote("1", "Note")
             tripsInteractorImpl.completeOrder("1")
+            tripsInteractorImpl.addPhotoToOrder("2", "")
+            tripsInteractorImpl.updateOrderNote("2", "Note")
             tripsInteractorImpl.cancelOrder("2")
+            tripsInteractorImpl.addPhotoToOrder("3", "")
+            tripsInteractorImpl.completeOrder("3")
+            tripsInteractorImpl.updateOrderNote("4", "Note")
+            tripsInteractorImpl.completeOrder("4")
+            tripsInteractorImpl.completeOrder("5")
 
             val list = mutableListOf<Metadata>()
-            coVerify {
+            coVerifyAll {
+                apiClient.getTrips()
+                apiClient.completeOrder(any(), any())
+                apiClient.cancelOrder(any(), any())
                 apiClient.updateOrderMetadata("1", "3", capture(list))
                 apiClient.updateOrderMetadata("2", "3", capture(list))
+                apiClient.updateOrderMetadata("3", "3", capture(list))
+                apiClient.updateOrderMetadata("4", "3", capture(list))
             }
             list[0].let {
                 assertEquals("Note", it.visitsAppMetadata.note)
-                assertEquals(2, it.visitsAppMetadata.photos!!.size)
+                assertEquals(1, it.visitsAppMetadata.photos!!.size)
+            }
+            list[1].let {
+                assertEquals("Note", it.visitsAppMetadata.note)
+                assertEquals(1, it.visitsAppMetadata.photos!!.size)
+            }
+            list[2].let {
+                assertEquals(1, it.visitsAppMetadata.photos!!.size)
+            }
+            list[3].let {
+                assertEquals("Note", it.visitsAppMetadata.note)
             }
         }
     }

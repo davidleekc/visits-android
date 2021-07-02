@@ -229,16 +229,27 @@ class TripsInteractorImpl(
 //                            }
 //                        }
                     } else {
-                        val mdRes = apiClient.updateOrderMetadata(
-                            orderId = orderId,
-                            tripId = trip.id,
-                            metadata = (order._metadata ?: Metadata.empty()).apply {
-                                visitsAppMetadata.note = order.note
-                                visitsAppMetadata.photos = order.photos.map { it.photoId }
-                            }
+                        val metadata = (order._metadata ?: Metadata.empty())
+
+                        println((metadata.visitsAppMetadata.photos ?: listOf())
+                            .hasSameContent(order.photos.map { it.photoId }.toList()).toString()
                         )
-                        if (!mdRes.isSuccessful) {
-                            throw HttpException(mdRes)
+                        if (
+                            metadata.visitsAppMetadata.note != order.note
+                            || !(metadata.visitsAppMetadata.photos ?: listOf())
+                                .hasSameContent(order.photos.map { it.photoId }.toList())
+                        ) {
+                            val mdRes = apiClient.updateOrderMetadata(
+                                orderId = orderId,
+                                tripId = trip.id,
+                                metadata = metadata.apply {
+                                    visitsAppMetadata.note = order.note
+                                    visitsAppMetadata.photos = order.photos.map { it.photoId }
+                                }
+                            )
+                            if (!mdRes.isSuccessful) {
+                                throw HttpException(mdRes)
+                            }
                         }
 
                         val res = if (!canceled) {
@@ -273,6 +284,11 @@ class TripsInteractorImpl(
         }
     }
 
+}
+
+fun <T> List<T>.hasSameContent(list: List<T>): Boolean {
+    if (this.isEmpty() && list.isEmpty()) return true
+    return containsAll(list) && list.containsAll(this)
 }
 
 sealed class AddOrderResult
