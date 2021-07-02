@@ -170,6 +170,9 @@ class TripsInteractorImpl(
         latLng: LatLng,
         address: String?
     ): AddOrderResult {
+        if (tripsRepository.trips.value!!.first { it.id == tripId }.isLegacy()) {
+            throw IllegalArgumentException("Can't add an order to a legacy v1 trip")
+        }
         return withContext(globalScope.coroutineContext) {
             try {
                 tripsRepository.addOrderToTrip(

@@ -26,6 +26,10 @@ data class LocalTrip(
         return orders.firstOrNull { it.id == orderId }
     }
 
+    fun isLegacy(): Boolean {
+        return orders.any { it.legacy }
+    }
+
 
 }
 
