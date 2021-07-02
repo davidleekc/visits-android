@@ -4,16 +4,12 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
 import android.util.TypedValue
-import androidx.lifecycle.MediatorLiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.asLiveData
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.*
 import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.interactors.TripsInteractor
-import com.hypertrack.android.models.Location
 import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.models.local.LocalTrip
 import com.hypertrack.android.models.local.OrderStatus
@@ -51,7 +47,7 @@ class CurrentTripViewModel(
         }
     }
     val trip = MediatorLiveData<LocalTrip?>()
-    val location = MutableLiveData<Location>()
+    val userLocation = MutableLiveData<LatLng?>()
 
     init {
         trip.addSource(tripsInteractor.currentTrip) {
@@ -68,7 +64,7 @@ class CurrentTripViewModel(
             tripsInteractor.refreshTrips()
         }
         locationProvider.getCurrentLocation {
-            it?.let { location.postValue(it) }
+            userLocation.postValue(it?.toLatLng())
         }
     }
 
@@ -133,9 +129,9 @@ class CurrentTripViewModel(
             }
         }
 
-        location.observeManaged {
-            if (trip.value == null) {
-                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(it.toLatLng(), 15.0f))
+        this.userLocation.observeManaged {
+            if (trip.value == null && it != null) {
+                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(it, DEFAULT_ZOOM))
             }
         }
 
@@ -197,6 +193,17 @@ class CurrentTripViewModel(
                 trip.value!!.id
             )
         )
+    }
+
+    fun onMyLocationClick() {
+        if (map.value != null && userLocation.value != null) {
+            map.value!!.animateCamera(
+                CameraUpdateFactory.newLatLngZoom(
+                    userLocation.value!!,
+                    DEFAULT_ZOOM
+                )
+            )
+        }
     }
 
     override fun onCleared() {
@@ -280,7 +287,7 @@ class CurrentTripViewModel(
                         }
                     }
                     tripStart?.let { include(it) }
-                    location.value?.let { include(it.toLatLng()) }
+                    this@CurrentTripViewModel.userLocation.value?.let { include(it) }
                 }.build()
                 map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100))
             }
@@ -336,6 +343,10 @@ class CurrentTripViewModel(
 //            }
 //        }
 //    }
+
+    companion object {
+        const val DEFAULT_ZOOM = 15f
+    }
 
 
 }

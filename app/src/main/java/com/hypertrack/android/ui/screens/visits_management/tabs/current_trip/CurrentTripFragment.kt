@@ -75,6 +75,10 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
             }
         }
 
+        vm.userLocation.observe(viewLifecycleOwner, {
+            location_button.setGoneState(it == null)
+        })
+
         vm.destination.observe(viewLifecycleOwner, {
             findNavController().navigate(it)
         })
@@ -117,6 +121,10 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
         endTripButton.setGoneState(BuildConfig.DEBUG.not())
         endTripButton.setOnClickListener {
             vm.onCompleteClick()
+        }
+
+        location_button.setOnClickListener {
+            vm.onMyLocationClick()
         }
     }
 
