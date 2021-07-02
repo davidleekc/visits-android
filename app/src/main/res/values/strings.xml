@@ -239,6 +239,7 @@
         <item quantity="other">times</item>
     </plurals>
     <plurals name="order">
+        <item quantity="zero">orders</item>
         <item quantity="one">order</item>
         <item quantity="other">orders</item>
     </plurals>

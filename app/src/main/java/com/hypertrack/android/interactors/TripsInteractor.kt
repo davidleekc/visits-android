@@ -1,5 +1,6 @@
 package com.hypertrack.android.interactors
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
@@ -21,6 +22,7 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import retrofit2.HttpException
 import java.util.*
+import kotlin.coroutines.coroutineContext
 
 interface TripsInteractor {
     val errorFlow: MutableSharedFlow<Consumable<Exception>>
@@ -205,6 +207,9 @@ class TripsInteractorImpl(
                                 OrderStatus.CANCELED
                             }
                         }
+                        globalScope.launch {
+                            refreshTrips()
+                        }
                         return OrderCompletionSuccess
                         //todo completion is disabled regarding to Indiabulls use-case
 //                        val res = apiClient.completeTrip(order.id)
@@ -249,6 +254,9 @@ class TripsInteractorImpl(
                                     OrderStatus.CANCELED
                                 }
                             }
+                        }
+                        globalScope.launch {
+                            refreshTrips()
                         }
                         return res
                     }

@@ -2,16 +2,13 @@ package com.hypertrack.android.ui.screens.visits_management.tabs.current_trip
 
 import android.os.Bundle
 import android.util.Log
-import android.util.TypedValue
 import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.*
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.hypertrack.android.models.local.LocalTrip
-import com.hypertrack.android.models.local.OrderStatus
 import com.hypertrack.android.ui.base.ProgressDialogFragment
 import com.hypertrack.android.ui.common.*
 import com.hypertrack.android.ui.screens.select_destination.DestinationData
@@ -25,7 +22,6 @@ import kotlinx.android.synthetic.main.fragment_current_trip.*
 import kotlinx.android.synthetic.main.inflate_current_trip.*
 import kotlinx.android.synthetic.main.progress_bar.*
 import java.time.format.DateTimeFormatter
-import java.util.*
 
 class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_trip) {
 
@@ -145,14 +141,11 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
             }
         }
 
-        trip.ongoingOrgers.let { orders ->
-            trips_count.setGoneState(orders.isEmpty())
+        trip.ongoingOrders.let { orders ->
             recycler_view.setGoneState(orders.isEmpty())
-            if (orders.size > 0) {
-                val text = getString(R.string.you_have_ongoing_orders)
-                val plural = resources.getQuantityString(R.plurals.order, orders.size)
-                trips_count!!.text = String.format(text, orders.size, plural)
-            }
+            val text = getString(R.string.you_have_ongoing_orders)
+            val plural = resources.getQuantityString(R.plurals.order, orders.size)
+            trips_count!!.text = String.format(text, orders.size, plural)
             ordersAdapter.updateItems(orders)
         }
     }

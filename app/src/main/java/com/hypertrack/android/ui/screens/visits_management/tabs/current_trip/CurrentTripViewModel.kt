@@ -221,7 +221,7 @@ class CurrentTripViewModel(
                 )
             }
 
-            trip.ongoingOrgers.forEach { order ->
+            trip.ongoingOrders.forEach { order ->
                 order.estimate?.route?.polyline?.getPolylinePoints()?.let {
                     val options = if (order.status == OrderStatus.ONGOING) {
                         PolylineOptions()
@@ -271,9 +271,9 @@ class CurrentTripViewModel(
 
             }
 
-            if (trip.ongoingOrgers.isNotEmpty()) {
+            if (trip.ongoingOrders.isNotEmpty()) {
                 val bounds = LatLngBounds.builder().apply {
-                    trip.ongoingOrgers.forEach { order ->
+                    trip.ongoingOrders.forEach { order ->
                         include(order.destinationLatLng)
                         order.estimate?.route?.polyline?.getPolylinePoints()?.forEach {
                             include(it)
