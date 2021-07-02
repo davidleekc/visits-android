@@ -91,7 +91,7 @@ interface ApiInterface {
         @Path("order_id") orderId: String,
     ): Response<Void>
 
-    @PUT("client/trips/{trip_id}/orders/{order_id}")
+    @PATCH("client/trips/{trip_id}/orders/{order_id}")
     suspend fun updateOrder(
         @Path("trip_id") tripId: String,
         @Path("order_id") orderId: String,

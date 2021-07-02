@@ -102,7 +102,7 @@ class OrderDetailsFragment : ProgressDialogFragment(R.layout.fragment_order_deta
             if (it) showProgress() else dismissProgress()
         })
 
-        vm.error.observe(viewLifecycleOwner, { err ->
+        vm.errorHandler.errorText.observe(viewLifecycleOwner, { err ->
             err.consume {
                 SnackbarUtil.showErrorSnackbar(view, it)
             }

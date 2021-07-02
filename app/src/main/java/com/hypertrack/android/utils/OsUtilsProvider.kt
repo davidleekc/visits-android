@@ -35,6 +35,7 @@ import com.hypertrack.android.ui.common.LocationUtils
 import com.hypertrack.android.ui.screens.visits_management.tabs.livemap.TrackingPresenter
 import com.hypertrack.logistics.android.github.BuildConfig
 import com.hypertrack.logistics.android.github.R
+import retrofit2.HttpException
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -209,11 +210,18 @@ class OsUtilsProvider(
 
     fun getErrorMessage(e: Exception): String {
         crashReportsProvider.logException(e)
-        if (BuildConfig.DEBUG) {
-            e.printStackTrace()
-        }
         return when (e) {
+            is HttpException -> {
+                val errorBody = e.response()?.errorBody()?.string()
+                if (MyApplication.DEBUG_MODE) {
+                    Log.v("hypertrack-verbose", errorBody.toString())
+                }
+                return errorBody.toString()
+            }
             else -> {
+                if (MyApplication.DEBUG_MODE) {
+                    e.printStackTrace()
+                }
                 e.format()
             }
         }

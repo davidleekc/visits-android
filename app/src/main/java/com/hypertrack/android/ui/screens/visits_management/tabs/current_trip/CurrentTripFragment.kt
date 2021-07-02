@@ -96,7 +96,6 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
         })
 
         vm.loadingStateBase.observe(viewLifecycleOwner, {
-            Log.v("hypertrack-verbose", "fragment $it")
             whereAreYouGoing.setGoneState(it)
             progress.setGoneState(!it)
             if (it) {

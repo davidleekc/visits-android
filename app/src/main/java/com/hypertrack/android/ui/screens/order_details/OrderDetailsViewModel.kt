@@ -22,6 +22,7 @@ import com.hypertrack.android.models.local.OrderStatus
 import com.hypertrack.android.repository.AccountRepository
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.Consumable
+import com.hypertrack.android.ui.base.ErrorHandler
 import com.hypertrack.android.ui.base.ZipLiveData
 import com.hypertrack.android.ui.common.KeyValueItem
 import com.hypertrack.android.ui.common.toHotTransformation
@@ -47,24 +48,13 @@ class OrderDetailsViewModel(
     private val accountRepository: AccountRepository,
     private val apiClient: ApiClient,
     private val globalScope: CoroutineScope
-) : BaseViewModel() {
+) : BaseViewModel(osUtilsProvider) {
 
-    val error = MediatorLiveData<Consumable<String?>>()
-
+    override val errorHandler =
+        ErrorHandler(osUtilsProvider, tripsInteractor.errorFlow.asLiveData())
     private val map = MutableLiveData<GoogleMap>()
 
     private val order = tripsInteractor.getOrderLiveData(orderId)
-
-    init {
-        error.addSource(tripsInteractor.errorFlow.asLiveData()) { err ->
-            error.postValue(err.map {
-                if (BuildConfig.DEBUG) {
-                    it.printStackTrace()
-                }
-                it.message
-            })
-        }
-    }
 
     val address = Transformations.map(order) { it.shortAddress }
     val photos = MediatorLiveData<List<PhotoItem>>().apply {
@@ -94,6 +84,9 @@ class OrderDetailsViewModel(
                         osUtilsProvider.stringFromResource(R.string.order_picked_up),
                         order.isPickedUp.toString()
                     )
+                }
+                if (MyApplication.DEBUG_MODE) {
+                    put("order_id", orderId)
                 }
             }.map {
                 KeyValueItem(it.key, it.value)
@@ -202,7 +195,7 @@ class OrderDetailsViewModel(
                 VisitDetailsFragment.REQUEST_IMAGE_CAPTURE
             )
         } catch (e: Exception) {
-            error.postValue(Consumable(osUtilsProvider.stringFromResource(R.string.cannot_create_file_msg)))
+            errorHandler.postText(R.string.cannot_create_file_msg)
         }
     }
 
@@ -230,13 +223,13 @@ class OrderDetailsViewModel(
     private fun handleOrderCompletionResult(res: OrderCompletionResponse) {
         when (res) {
             OrderCompletionCompleted -> {
-                error.postValue(Consumable(osUtilsProvider.stringFromResource(R.string.order_already_completed)))
+                errorHandler.postText(R.string.order_already_completed)
             }
             OrderCompletionCanceled -> {
-                error.postValue(Consumable(osUtilsProvider.stringFromResource(R.string.order_already_canceled)))
+                errorHandler.postText(R.string.order_already_canceled)
             }
             is OrderCompletionFailure -> {
-                error.postValue(Consumable(res.exception.message))
+                errorHandler.postException(res.exception)
             }
             else -> {
             }
