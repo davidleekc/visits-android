@@ -31,6 +31,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.hypertrack.android.decodeBase64Bitmap
 import com.hypertrack.android.models.Address
 import com.hypertrack.android.toBase64
+import com.hypertrack.android.ui.common.ClipboardUtil
 import com.hypertrack.android.ui.common.LocationUtils
 import com.hypertrack.android.ui.screens.visits_management.tabs.livemap.TrackingPresenter
 import com.hypertrack.logistics.android.github.BuildConfig
@@ -148,12 +149,7 @@ class OsUtilsProvider(
     }
 
     fun copyToClipboard(str: String) {
-        val manager =
-            MyApplication.context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        manager.setPrimaryClip(ClipData.newPlainText(str, str))
-        MyApplication.context.let {
-            Toast.makeText(it, it.getString(R.string.copied_to_clipboard), LENGTH_SHORT).show()
-        }
+        ClipboardUtil.copyToClipboard(str)
     }
 
     fun stringFromResource(@StringRes res: Int): String {
