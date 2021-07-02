@@ -78,15 +78,13 @@ class OrderDetailsViewModel(
     val metadata = Transformations.map(order) { order ->
         order.metadata
             .toMutableMap().apply {
+                put(osUtilsProvider.stringFromResource(R.string.order_id), orderId)
                 put(osUtilsProvider.stringFromResource(R.string.order_status), order.status.value)
                 if (accountRepository.isPickUpAllowed && order.status == OrderStatus.ONGOING) {
                     put(
                         osUtilsProvider.stringFromResource(R.string.order_picked_up),
                         order.isPickedUp.toString()
                     )
-                }
-                if (MyApplication.DEBUG_MODE) {
-                    put("order_id", orderId)
                 }
             }.map {
                 KeyValueItem(it.key, it.value)

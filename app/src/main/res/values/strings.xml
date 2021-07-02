@@ -145,6 +145,7 @@
     <string name="order_already_completed">Order is already completed</string>
     <string name="order_already_canceled">Order is already canceled</string>
     <string name="order_status">Status</string>
+    <string name="order_id">Order Id</string>
     <string name="order_picked_up">Picked up</string>
 
     <string name="places_no_places">You don\'t have Places yet</string>
