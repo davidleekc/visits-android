@@ -71,9 +71,18 @@ open class GeofencesMapDelegate(
             googleMap.addMarker(
                 MarkerOptions()
                     .icon(icon)
+                    .snippet(it.id)
                     .position(it.latLng)
                     .anchor(0.5f, 0.5f)
             )
+        }
+        googleMap.setOnMarkerClickListener {
+            it.snippet?.let {
+                placesInteractor.geofences.value?.get(it)?.let {
+                    onMarkerClickListener.invoke(GeofenceClusterItem(it))
+                }
+            }
+            return@setOnMarkerClickListener true
         }
 
 //        clusterManager.setItems(geofences.map {
