@@ -71,6 +71,8 @@ object Injector {
 
     private val serviceLocator = ServiceLocator(crashReportsProvider)
 
+    val batteryLevelMonitor = BatteryLevelMonitor(crashReportsProvider)
+
     fun getMoshi(): Moshi = Moshi.Builder()
         .add(HistoryCoordinateJsonAdapter())
         .add(GeometryJsonAdapter())

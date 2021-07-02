@@ -1,9 +1,11 @@
 package com.hypertrack.android.ui.screens.add_place_info
 
 import android.annotation.SuppressLint
+import android.content.DialogInterface
 import android.os.Bundle
 import android.view.MotionEvent
 import android.view.View
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -12,11 +14,12 @@ import com.hypertrack.android.models.Integration
 import com.hypertrack.android.ui.base.ProgressDialogFragment
 import com.hypertrack.android.ui.common.*
 import com.hypertrack.android.utils.MyApplication
+import com.hypertrack.android.utils.stringFromResource
 import com.hypertrack.logistics.android.github.R
-import kotlinx.android.synthetic.main.fragment_add_integration.*
 import kotlinx.android.synthetic.main.fragment_add_place_info.*
 import kotlinx.android.synthetic.main.fragment_add_place_info.confirm
 import kotlinx.android.synthetic.main.fragment_add_place_info.toolbar
+import kotlinx.android.synthetic.main.fragment_order_detail.*
 import kotlinx.android.synthetic.main.inflate_integration.*
 
 class AddPlaceInfoFragment : ProgressDialogFragment(R.layout.fragment_add_place_info) {
@@ -51,15 +54,26 @@ class AddPlaceInfoFragment : ProgressDialogFragment(R.layout.fragment_add_place_
             vm.onMapReady(it)
         }
 
-        val listener = object : SimpleTextWatcher() {
+        val addressListener = object : SimpleTextWatcher() {
             override fun afterChanged(text: String) {
                 vm.onAddressChanged(text)
             }
         }
-        etAddress.addTextChangedListener(listener)
+        etAddress.addTextChangedListener(addressListener)
 
         vm.address.observe(viewLifecycleOwner, {
-            etAddress.silentUpdate(listener, it)
+            etAddress.silentUpdate(addressListener, it)
+        })
+
+        val radiusListener = object : SimpleTextWatcher() {
+            override fun afterChanged(text: String) {
+                vm.onRadiusChanged(text)
+            }
+        }
+        etRadius.addTextChangedListener(radiusListener)
+
+        vm.radius.observe(viewLifecycleOwner, {
+            etRadius.silentUpdate(radiusListener, it.toString())
         })
 
         vm.name.observe(viewLifecycleOwner, {
@@ -78,8 +92,10 @@ class AddPlaceInfoFragment : ProgressDialogFragment(R.layout.fragment_add_place_
             }
         })
 
-        vm.error.observe(viewLifecycleOwner, {
-            SnackbarUtil.showErrorSnackbar(view, it)
+        vm.errorHandler.errorText.observe(viewLifecycleOwner, {
+            it.consume {
+                SnackbarUtil.showErrorSnackbar(view, it)
+            }
         })
 
         vm.loadingState.observe(viewLifecycleOwner, {

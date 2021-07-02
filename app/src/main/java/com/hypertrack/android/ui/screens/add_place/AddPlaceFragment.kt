@@ -4,14 +4,17 @@ import android.os.Bundle
 import android.text.Editable
 import android.util.Log
 import android.view.View
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.google.android.gms.maps.SupportMapFragment
 import com.hypertrack.android.ui.base.ProgressDialogFragment
 import com.hypertrack.android.ui.common.*
 import com.hypertrack.android.ui.common.Utils.isDoneAction
+import com.hypertrack.android.ui.screens.select_destination.DestinationData
 import com.hypertrack.android.ui.screens.select_destination.SelectDestinationFragment
 import com.hypertrack.android.utils.MyApplication
+import com.hypertrack.android.utils.stringFromResource
 import com.hypertrack.logistics.android.github.R
 import kotlinx.android.synthetic.main.fragment_select_destination.*
 
@@ -35,6 +38,24 @@ open class AddPlaceFragment : SelectDestinationFragment() {
                 SnackbarUtil.showErrorSnackbar(view, it)
             }
         })
+
+        vm.adjacentGeofenceDialog.observe(viewLifecycleOwner, {
+            it.consume {
+                createConfirmationDialog(it).show()
+            }
+        })
+    }
+
+    private fun createConfirmationDialog(destinationData: DestinationData): AlertDialog {
+        return AlertDialog.Builder(requireContext())
+            .setMessage(
+                R.string.add_place_confirm_adjacent.stringFromResource()
+            )
+            .setPositiveButton(R.string.yes) { dialog, which ->
+                vm.proceedCreation(destinationData, true)
+            }
+            .setNegativeButton(R.string.no, null)
+            .create()
     }
 
 }

@@ -125,6 +125,23 @@
                     android:text="@string/place_info_add_integration"
                     android:visibility="gone" />
 
+                <TextView
+                    android:id="@+id/textView8"
+                    style="@style/SmallTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/add_place_geofence_radius"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/mapView" />
+
+                <EditText
+                    android:id="@+id/etRadius"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ems="10"
+                    android:inputType="numberDecimal" />
+
                 <Space
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"

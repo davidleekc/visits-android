@@ -1,6 +1,5 @@
 package com.hypertrack.android.interactors
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.fonfon.kgeohash.GeoHash
@@ -9,7 +8,6 @@ import com.hypertrack.android.models.Integration
 import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.repository.*
 import com.hypertrack.android.ui.base.Consumable
-import com.hypertrack.android.utils.Meter
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.logistics.android.github.R
 import kotlinx.coroutines.*
@@ -31,11 +29,18 @@ interface PlacesInteractor {
         longitude: Double,
         name: String?,
         address: String?,
+        radius: Int?,
         description: String?,
         integration: Integration?
     ): CreateGeofenceResult
 
     suspend fun loadPage(pageToken: String?): GeofencesPage
+
+    suspend fun hasAdjacentGeofence(latLng: LatLng, radius: Int? = null): Boolean
+
+    companion object {
+        const val DEFAULT_RADIUS_METERS = 100
+    }
 }
 
 class PlacesInteractorImpl(
@@ -88,6 +93,14 @@ class PlacesInteractorImpl(
         return geofences.value!!.getValue(geofenceId)
     }
 
+    override suspend fun hasAdjacentGeofence(latLng: LatLng, radius: Int?): Boolean {
+        return geofences.value!!.any { (_, geofence) ->
+            val distance = osUtilsProvider.distanceMeters(geofence.latLng, latLng)
+            return@any distance < geofence.radius!! + (radius
+                ?: PlacesInteractor.DEFAULT_RADIUS_METERS)
+        }
+    }
+
     override fun invalidateCache() {
         invalidatePageCache()
         integrationsRepository.invalidateCache()
@@ -108,17 +121,19 @@ class PlacesInteractorImpl(
         longitude: Double,
         name: String?,
         address: String?,
+        radius: Int?,
         description: String?,
         integration: Integration?
     ): CreateGeofenceResult {
         return withContext(globalScope.coroutineContext) {
             placesRepository.createGeofence(
-                latitude,
-                longitude,
-                name,
-                address,
-                description,
-                integration
+                latitude = latitude,
+                longitude = longitude,
+                name = name,
+                address = address,
+                radius = radius ?: PlacesInteractor.DEFAULT_RADIUS_METERS,
+                description = description,
+                integration = integration
             ).apply {
                 if (this is CreateGeofenceSuccess) {
                     addGeofencesToCache(listOf(geofence))

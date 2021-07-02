@@ -28,6 +28,29 @@ object LocationUtils {
             return null
         }
     }
+
+    fun distanceMeters(latLng: LatLng?, latLng1: LatLng?): Int? {
+        try {
+            if (latLng != null && latLng1 != null
+                && !(latLng.latitude == 0.0 && latLng.longitude == 0.0)
+                && !(latLng1.latitude == 0.0 && latLng1.longitude == 0.0)
+            ) {
+                val res = FloatArray(3)
+                android.location.Location.distanceBetween(
+                    latLng.latitude,
+                    latLng.longitude,
+                    latLng1.latitude,
+                    latLng1.longitude,
+                    res
+                );
+                return res[0].toInt()
+            } else {
+                return null
+            }
+        } catch (_: Exception) {
+            return null
+        }
+    }
 }
 
 fun android.location.Location.toLatLng(): LatLng {

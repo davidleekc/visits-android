@@ -8,7 +8,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
 import com.google.android.libraries.places.api.Places
-import com.hypertrack.android.receivers.BatteryStateReceiver
 import com.hypertrack.logistics.android.github.BuildConfig
 import com.hypertrack.logistics.android.github.R
 import java.util.*
@@ -34,7 +33,7 @@ class MyApplication : Application() {
 
         buildNotificationChannels()
 
-        registerReceiver(BatteryStateReceiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+        injector.batteryLevelMonitor.init(this)
     }
 
     private fun buildNotificationChannels() {
@@ -78,6 +77,8 @@ class MyApplication : Application() {
         } else {
             true
         }
+
+        val DEBUG_MODE = BuildConfig.DEBUG
 
         val injector: Injector = Injector
 

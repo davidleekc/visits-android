@@ -1,26 +1,14 @@
 package com.hypertrack.android.repository
 
-import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import com.fonfon.kgeohash.GeoHash
-import com.google.android.gms.maps.model.LatLng
 import com.hypertrack.android.api.ApiClient
-import com.hypertrack.android.api.Geofence
-import com.hypertrack.android.api.GeofenceProperties
-import com.hypertrack.android.api.GeofenceResponse
 import com.hypertrack.android.models.GeofenceMetadata
 import com.hypertrack.android.models.Integration
 import com.hypertrack.android.models.local.LocalGeofence
-import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.common.nullIfEmpty
-import com.hypertrack.android.utils.Meter
 import com.hypertrack.android.utils.OsUtilsProvider
-import com.squareup.moshi.Json
 import com.squareup.moshi.Moshi
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 
@@ -29,6 +17,7 @@ interface PlacesRepository {
     suspend fun createGeofence(
         latitude: Double,
         longitude: Double,
+        radius: Int,
         name: String? = null,
         address: String? = null,
         description: String? = null,
@@ -57,6 +46,7 @@ class PlacesRepositoryImpl(
     override suspend fun createGeofence(
         latitude: Double,
         longitude: Double,
+        radius: Int,
         name: String?,
         address: String?,
         description: String?,
@@ -64,7 +54,10 @@ class PlacesRepositoryImpl(
     ): CreateGeofenceResult {
         try {
             val res = apiClient.createGeofence(
-                latitude, longitude, GeofenceMetadata(
+                latitude = latitude,
+                longitude = longitude,
+                radius = radius,
+                GeofenceMetadata(
                     name = name.nullIfEmpty() ?: integration?.name,
                     integration = integration,
                     description = description.nullIfEmpty(),

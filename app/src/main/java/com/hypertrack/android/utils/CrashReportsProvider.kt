@@ -1,6 +1,8 @@
 package com.hypertrack.android.utils
 
+import android.util.Log
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.hypertrack.logistics.android.github.BuildConfig
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import retrofit2.HttpException
@@ -17,6 +19,9 @@ interface CrashReportsProvider {
 
 class FirebaseCrashReportsProvider : CrashReportsProvider {
     override fun logException(e: Throwable, metadata: Map<String, String>) {
+//        if(MyApplication.DEBUG_MODE) {
+//            e.printStackTrace()
+//        }
         if (
             e !is HttpException
             && e !is SocketTimeoutException
@@ -37,6 +42,9 @@ class FirebaseCrashReportsProvider : CrashReportsProvider {
     }
 
     override fun log(txt: String) {
+//        if(MyApplication.DEBUG_MODE) {
+//            Log.v("hypertrack-verbose", txt)
+//        }
         FirebaseCrashlytics.getInstance().log(txt)
     }
 
