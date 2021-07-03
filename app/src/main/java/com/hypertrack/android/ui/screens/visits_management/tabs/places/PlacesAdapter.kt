@@ -8,6 +8,7 @@ import com.hypertrack.android.models.Location
 import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.ui.base.BaseAdapter
 import com.hypertrack.android.ui.common.*
+import com.hypertrack.android.ui.common.delegates.GeofenceAddressDelegate
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
 import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.android.utils.OsUtilsProvider
@@ -20,9 +21,10 @@ import java.time.ZonedDateTime
 class PlacesAdapter(
     private val osUtilsProvider: OsUtilsProvider,
     private val locationProvider: DeviceLocationProvider,
-    private val timeDistanceFormatter: TimeDistanceFormatter
-) :
-    BaseAdapter<PlaceItem, BaseAdapter.BaseVh<PlaceItem>>() {
+    private val timeDistanceFormatter: TimeDistanceFormatter,
+) : BaseAdapter<PlaceItem, BaseAdapter.BaseVh<PlaceItem>>() {
+
+    private val addressDelegate = GeofenceAddressDelegate(osUtilsProvider)
 
     override val itemLayoutResource: Int = R.layout.item_place
 
@@ -75,15 +77,14 @@ class PlacesAdapter(
                 }
 
                 val name = item.geofence.name
-                    ?: item.geofence.shortAddress
+                    ?: item.geofence.address
                     ?: osUtilsProvider.stringFromResource(
                         R.string.places_created,
                         item.geofence.createdAt.formatDateTime()
                     )
                 name.toView(containerView.tvTitle)
 
-                val address = item.geofence.shortAddress
-                    ?: osUtilsProvider.stringFromResource(R.string.places_no_address)
+                val address = addressDelegate.shortAddress(item.geofence)
                 address.toView(containerView.tvAddress)
 
                 containerView.tvDistance.setGoneState(location == null)

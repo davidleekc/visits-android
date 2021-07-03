@@ -72,7 +72,7 @@ class OrderDetailsViewModel(
                 put(osUtilsProvider.stringFromResource(R.string.order_id), orderId)
                 put(osUtilsProvider.stringFromResource(R.string.order_status), order.status.value)
                 put(
-                    osUtilsProvider.stringFromResource(R.string.order_coordinates),
+                    osUtilsProvider.stringFromResource(R.string.coordinates),
                     order.destinationLatLng.format()
                 )
                 if (accountRepository.isPickUpAllowed && order.status == OrderStatus.ONGOING) {

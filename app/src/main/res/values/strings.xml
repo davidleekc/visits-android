@@ -234,8 +234,9 @@
 
     <string name="tap_to_turn_location_settings">Tap to turn on location in settings</string>
     <string name="app_settings">App settings</string>
-    <string name="order_coordinates">Coordinates</string>
+    <string name="coordinates">Coordinates</string>
     <string name="address_not_available">Address is not available</string>
+    <string name="created_at">Created at</string>
 
     <plurals name="time">
         <item quantity="one">time</item>

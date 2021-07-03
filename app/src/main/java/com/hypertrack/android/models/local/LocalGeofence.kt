@@ -21,14 +21,11 @@ import java.time.ZonedDateTime
 data class LocalGeofence(
     val geofence: Geofence,
     val name: String?,
+    val address: String?,
     val integration: Integration?,
-    //todo migrate to AddressDelegate
-    val shortAddress: String?,
-    val fullAddress: String?,
     val metadata: Map<String, String>
 ) {
-
-    val id = geofence._id
+    val id = geofence.geofence_id
 
     val latitude: Double
         get() = geofence.geometry.latitude
@@ -65,22 +62,12 @@ data class LocalGeofence(
             moshi: Moshi,
             osUtilsProvider: OsUtilsProvider
         ): LocalGeofence {
+            //all parsed metadata fields should be removed to avoid duplication
             val metadata = geofence.metadata?.toMutableMap() ?: mutableMapOf()
+
             val metadataAddress = metadata.remove(GeofenceMetadata.KEY_ADDRESS) as String?
-
-            val place = if (BuildConfig.MOCK_MODE.not()) {
-                osUtilsProvider.getPlaceFromCoordinates(
-                    latitude = geofence.latitude,
-                    longitude = geofence.longitude
-                )
-            } else null
-
-            val shortAddress = geofence.address?.let { "${it.street}" }
+            val address = geofence.address.nullIfEmpty()
                 ?: metadataAddress.nullIfEmpty()
-                ?: place?.toShortAddressString()
-            val fullAddress = geofence.address?.let { "${it.city}, ${it.street}" }
-                ?: metadataAddress.nullIfEmpty()
-                ?: place?.toAddressString()
             val integration = metadata.remove(GeofenceMetadata.KEY_INTEGRATION)?.let {
                 try {
                     moshi.adapter(GeofenceMetadata::class.java)
@@ -92,9 +79,8 @@ data class LocalGeofence(
 
             return LocalGeofence(
                 geofence = geofence,
-                shortAddress = shortAddress,
-                fullAddress = fullAddress,
                 name = metadata.remove(GeofenceMetadata.KEY_NAME) as String?,
+                address = address,
                 integration = integration,
                 metadata = metadata.filter { it.value is String } as Map<String, String>
             )

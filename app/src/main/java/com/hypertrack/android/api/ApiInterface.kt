@@ -245,32 +245,19 @@ data class Geofence(
     @field:Json(name = "geometry") val geometry: Geometry,
     @field:Json(name = "markers") val marker: GeofenceMarkersResponse?,
     @field:Json(name = "radius") val radius: Int?,
+    @field:Json(name = "address") val address: String?,
     @field:Json(name = "archived") val archived: Boolean?,
-) : VisitDataSource {
+) {
 
-    override val latitude: Double
+    val latitude: Double
         get() = geometry.latitude
-    override val longitude: Double
+    val longitude: Double
         get() = geometry.longitude
-    override val _id: String
-        get() = geofence_id
-    override val customerNote: String
-        get() = metadata.toNote()
-    override val address: Address?
-        get() = null
-    override val createdAt: String
-        get() = created_at
-    override val visitedAt: String
+    val visitedAt: String
         get() = marker?.markers?.first()?.arrival?.recordedAt ?: ""
-    override val visitType
-        get() = VisitType.GEOFENCE
-    override val visitNamePrefixId: Int
-        get() = R.string.geofence_at
-    override val visitNameSuffix: String
-        get() = if (address == null) "[$longitude, $latitude]" else "$address"
+
     val type: String
         get() = geometry.type
-
 }
 
 class Point(
