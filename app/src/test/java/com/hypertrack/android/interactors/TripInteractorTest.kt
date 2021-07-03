@@ -14,6 +14,7 @@ import com.hypertrack.android.models.local.TripStatus
 import com.hypertrack.android.observeAndAssertNull
 import com.hypertrack.android.observeAndGetValue
 import com.hypertrack.android.repository.AccountRepository
+import com.hypertrack.android.repository.TripsRepository
 import com.hypertrack.android.repository.TripsRepositoryImpl
 import com.hypertrack.android.repository.TripsStorage
 import com.hypertrack.android.utils.HyperTrackService
@@ -351,7 +352,6 @@ class TripInteractorTest {
             tripsInteractorImpl.completeOrder("1")
             coVerifyAll {
                 apiClient.getTrips()
-                apiClient.updateOrderMetadata("1", "3", any())
                 apiClient.completeOrder("1", "3")
             }
         }
@@ -554,17 +554,17 @@ class TripInteractorTest {
             hyperTrackService: HyperTrackService = mockk(relaxed = true) {
                 coEvery { sendPickedUp(any(), any()) } returns Unit
             },
-            queueInteractor: PhotoUploadQueueInteractor = mockk(relaxed = true) {}
-        ): TripsInteractorImpl {
-            val tripsRepository = TripsRepositoryImpl(
+            queueInteractor: PhotoUploadQueueInteractor = mockk(relaxed = true) {},
+            tripsRepository: TripsRepository = TripsRepositoryImpl(
                 apiClient,
                 tripStorage,
                 hyperTrackService,
                 TestCoroutineScope(),
                 accountRepository.isPickUpAllowed
-            )
-
-            return TripsInteractorImpl(
+            ),
+            allowRefresh: () -> Boolean = { true }
+        ): TripsInteractorImpl {
+            return object : TripsInteractorImpl(
                 tripsRepository,
                 apiClient,
                 hyperTrackService,
@@ -573,7 +573,13 @@ class TripInteractorTest {
                 mockk(relaxed = true) {},
                 Dispatchers.Main,
                 TestCoroutineScope()
-            )
+            ) {
+                override suspend fun refreshTrips() {
+                    if (allowRefresh.invoke()) {
+                        super.refreshTrips()
+                    }
+                }
+            }
         }
 
         fun createBasePhotoForUpload(

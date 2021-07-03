@@ -60,8 +60,7 @@ class OrderDetailsViewModel(
     val note = MutableLiveData<String?>()
 
     init {
-        //todo check leaks
-        Transformations.map(order) { it.note ?: it.metadataNote }.observeForever {
+        Transformations.map(order) { it.note ?: it.metadataNote }.observeManaged {
             note.postValue(it)
         }
     }

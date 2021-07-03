@@ -2,6 +2,7 @@ package com.hypertrack.android.ui.common.delegates
 
 import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.models.local.LocalOrder
+import com.hypertrack.android.ui.common.formatDateTime
 import com.hypertrack.android.ui.common.toAddressString
 import com.hypertrack.android.ui.common.toShortAddressString
 import com.hypertrack.android.utils.OsUtilsProvider
@@ -18,6 +19,9 @@ class OrderAddressDelegate(val osUtilsProvider: OsUtilsProvider) {
             order.destinationLatLng.latitude,
             order.destinationLatLng.longitude
         )?.toShortAddressString()
+        ?: order.scheduledAt?.let {
+            osUtilsProvider.stringFromResource(R.string.order_scheduled_at, it.formatDateTime())
+        }
         ?: osUtilsProvider.stringFromResource(R.string.address_not_available)
     }
 

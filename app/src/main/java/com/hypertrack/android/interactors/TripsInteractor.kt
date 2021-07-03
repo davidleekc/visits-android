@@ -42,7 +42,7 @@ interface TripsInteractor {
     suspend fun addOrderToTrip(tripId: String, latLng: LatLng, address: String?): AddOrderResult
 }
 
-class TripsInteractorImpl(
+open class TripsInteractorImpl(
     private val tripsRepository: TripsRepository,
     private val apiClient: ApiClient,
     private val hyperTrackService: HyperTrackService,
@@ -230,10 +230,6 @@ class TripsInteractorImpl(
 //                        }
                     } else {
                         val metadata = (order._metadata ?: Metadata.empty())
-
-                        println((metadata.visitsAppMetadata.photos ?: listOf())
-                            .hasSameContent(order.photos.map { it.photoId }.toList()).toString()
-                        )
                         if (
                             metadata.visitsAppMetadata.note != order.note
                             || !(metadata.visitsAppMetadata.photos ?: listOf())
