@@ -97,6 +97,7 @@
 
     <string name="clocked_in">You are clocked in</string>
     <string name="clocked_out">You are clocked out</string>
+    <string name="directions_button">Show in Maps app</string>
 
     <string name="notification_important_channel_name">HyperTrack Important Notifications</string>
     <string name="notification_important_channel_description">HyperTrack Visits app notifications</string>
@@ -151,7 +152,6 @@
     <string name="places_no_places">You don\'t have Places yet</string>
     <string name="places_visited">Visited %s</string>
     <string name="places_last_visit">Last visit: %s</string>
-    <string name="places_directions_button">Show in Maps app</string>
     <string name="places_not_visited">Not visited</string>
     <string name="places_exit">Exit</string>
     <string name="places_enter">Enter</string>
@@ -234,6 +234,8 @@
 
     <string name="tap_to_turn_location_settings">Tap to turn on location in settings</string>
     <string name="app_settings">App settings</string>
+    <string name="order_coordinates">Coordinates</string>
+    <string name="address_not_available">Address is not available</string>
 
     <plurals name="time">
         <item quantity="one">time</item>

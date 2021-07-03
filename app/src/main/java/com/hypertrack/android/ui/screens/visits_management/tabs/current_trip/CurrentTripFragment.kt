@@ -1,7 +1,6 @@
 package com.hypertrack.android.ui.screens.visits_management.tabs.current_trip
 
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -132,7 +131,7 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
         bAddOrder.setGoneState(trip.isLegacy())
 
         trip.nextOrder?.let { order ->
-            order.shortAddress.toView(destination_address)
+            order.destinationAddress.toView(destination_address)
             (order.eta?.let {
                 timeDistanceFormatter.formatTime(it.format(DateTimeFormatter.ISO_INSTANT))
             } ?: R.string.orders_list_eta_unavailable.stringFromResource()).toView(

@@ -29,6 +29,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.hypertrack.android.decodeBase64Bitmap
 import com.hypertrack.android.models.Address
 import com.hypertrack.android.toBase64
+import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.common.ClipboardUtil
 import com.hypertrack.android.ui.common.LocationUtils
 import com.hypertrack.android.ui.screens.visits_management.tabs.livemap.TrackingPresenter
@@ -276,6 +277,23 @@ class OsUtilsProvider(
 
     fun distanceMeters(latLng: LatLng, latLng1: LatLng): Int {
         return LocationUtils.distanceMeters(latLng, latLng1)!!
+    }
+
+    fun getMapsIntent(latLng: LatLng): Intent? {
+        return try {
+//        val gmmIntentUri = Uri.parse("google.navigation:q=${geofence.value!!.latitude},${geofence.value!!.longitude}")
+
+            val googleMapsUrl = "https://www.google.com/maps/dir/?api=1&" +
+                    "destination=${latLng.latitude},${latLng.longitude}"
+
+            val gmmIntentUri = Uri.parse(googleMapsUrl)
+            val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
+//        mapIntent.setPackage("com.google.android.apps.maps")
+            mapIntent
+        } catch (e: Exception) {
+            crashReportsProvider.logException(e)
+            null
+        }
     }
 
     companion object {

@@ -19,7 +19,7 @@ class LocalOrderTest {
             null,
             null,
         ).apply {
-            assertEquals(scheduledAt.formatDateTime(), shortAddress)
+            assertEquals(scheduledAt.formatDateTime(), destinationAddress)
         }
 
         LocalOrder(
@@ -35,7 +35,7 @@ class LocalOrderTest {
             null,
             null
         ).apply {
-            assertEquals("42.0, 42.0", shortAddress)
+            assertEquals("42.0, 42.0", destinationAddress)
         }
     }
 

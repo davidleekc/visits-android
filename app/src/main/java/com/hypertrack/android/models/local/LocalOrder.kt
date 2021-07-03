@@ -62,12 +62,10 @@ data class LocalOrder(
         get() = _metadata?.otherMetadata ?: mapOf()
 
     val destinationLatLng: LatLng
-        get() = LatLng(destination?.geometry?.latitude, destination?.geometry?.longitude)
+        get() = LatLng(destination.geometry.latitude, destination.geometry.longitude)
 
-    val shortAddress: String
+    val destinationAddress: String?
         get() = destination.address
-            ?: scheduledAt?.formatDateTime()
-            ?: destinationLatLng.let { "${it.latitude}, ${it.longitude}" }
 
     val eta: ZonedDateTime?
         get() = estimate?.let {

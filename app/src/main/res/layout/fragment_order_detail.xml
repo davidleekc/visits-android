@@ -63,6 +63,20 @@
             android:paddingBottom="16dp">
 
 
+            <ImageView
+                android:id="@+id/bCopyAddress"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:paddingLeft="16dp"
+                android:paddingRight="16dp"
+                android:visibility="visible"
+                app:layout_constraintBottom_toTopOf="@+id/rvMetadata"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/tvTitleLocation"
+                app:srcCompat="@drawable/ic_copy"
+                app:tint="@color/minor_tint" />
+
             <androidx.fragment.app.FragmentContainerView
                 android:id="@+id/map"
                 android:name="com.google.android.gms.maps.SupportMapFragment"
@@ -119,12 +133,11 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                android:layout_marginEnd="16dp"
                 android:fontFamily="@font/medium"
                 android:text="@string/location"
                 android:textColor="@color/colorTitle"
                 android:textSize="20sp"
-                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/bCopyAddress"
                 app:layout_constraintStart_toEndOf="@id/ivLocation"
                 app:layout_constraintTop_toBottomOf="@id/tvCompleteTime"
                 app:layout_constraintTop_toTopOf="@id/ivLocation" />
@@ -150,6 +163,22 @@
                 tools:layout_editor_absoluteX="0dp" />
 
 
+            <TextView
+                android:id="@+id/bDirections"
+                style="@style/MinorButtonStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                android:fontFamily="@font/medium"
+                android:gravity="center"
+                android:padding="10dp"
+                android:text="@string/directions_button"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/rvMetadata" />
+
             <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/ivVisitNote"
                 android:layout_width="24dp"
@@ -158,7 +187,7 @@
                 android:layout_marginTop="16dp"
                 android:scaleType="fitCenter"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/rvMetadata"
+                app:layout_constraintTop_toBottomOf="@+id/bDirections"
                 app:srcCompat="@drawable/ic_file" />
 
             <androidx.appcompat.widget.AppCompatEditText

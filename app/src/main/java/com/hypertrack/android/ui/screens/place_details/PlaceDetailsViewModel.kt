@@ -10,12 +10,12 @@ import androidx.lifecycle.Transformations
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.CircleOptions
-import com.hypertrack.android.api.Geofence
 import com.hypertrack.android.api.GeofenceMarker
 import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.models.Integration
 import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.ui.base.BaseViewModel
+import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.base.ZipLiveData
 import com.hypertrack.android.ui.common.KeyValueItem
 import com.hypertrack.android.ui.common.formatDateTime
@@ -76,7 +76,7 @@ class PlaceDetailsViewModel(
         geofence.markers
     }
 
-    val externalMapsIntent = MutableLiveData<Intent>()
+    val externalMapsIntent = MutableLiveData<Consumable<Intent>>()
 
     init {
         //todo check leak
@@ -125,18 +125,9 @@ class PlaceDetailsViewModel(
     }
 
     fun onDirectionsClick() {
-        try {
-//        val gmmIntentUri = Uri.parse("google.navigation:q=${geofence.value!!.latitude},${geofence.value!!.longitude}")
-
-            val googleMapsUrl = "https://www.google.com/maps/dir/?api=1&" +
-                    "destination=${geofence.value!!.latitude},${geofence.value!!.longitude}"
-
-            val gmmIntentUri = Uri.parse(googleMapsUrl)
-            val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
-            externalMapsIntent.postValue(mapIntent)
-//        mapIntent.setPackage("com.google.android.apps.maps")
-        } catch (e: Exception) {
-            crashReportsProvider.logException(e)
+        val intent = osUtilsProvider.getMapsIntent(geofence.value!!.latLng)
+        intent?.let {
+            externalMapsIntent.postValue(Consumable(it))
         }
     }
 

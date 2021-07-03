@@ -22,6 +22,7 @@ data class LocalGeofence(
     val geofence: Geofence,
     val name: String?,
     val integration: Integration?,
+    //todo migrate to AddressDelegate
     val shortAddress: String?,
     val fullAddress: String?,
     val metadata: Map<String, String>
