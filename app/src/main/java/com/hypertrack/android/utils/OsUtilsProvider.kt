@@ -2,7 +2,6 @@ package com.hypertrack.android.utils
 
 import android.app.Activity
 import android.app.PendingIntent
-import android.content.ClipData
 import android.content.ClipDescription.MIMETYPE_TEXT_PLAIN
 import android.content.ClipboardManager
 import android.content.Context
@@ -16,7 +15,6 @@ import android.provider.MediaStore
 import android.util.DisplayMetrics
 import android.util.Log
 import android.widget.Toast
-import android.widget.Toast.LENGTH_SHORT
 import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
@@ -34,7 +32,6 @@ import com.hypertrack.android.toBase64
 import com.hypertrack.android.ui.common.ClipboardUtil
 import com.hypertrack.android.ui.common.LocationUtils
 import com.hypertrack.android.ui.screens.visits_management.tabs.livemap.TrackingPresenter
-import com.hypertrack.logistics.android.github.BuildConfig
 import com.hypertrack.logistics.android.github.R
 import retrofit2.HttpException
 import java.io.File
@@ -212,7 +209,10 @@ class OsUtilsProvider(
                 if (MyApplication.DEBUG_MODE) {
                     Log.v("hypertrack-verbose", errorBody.toString())
                 }
-                return errorBody.toString()
+                val path = e.response()?.raw()?.request?.let {
+                    "${it.method} ${it.url.encodedPath}"
+                }
+                return "${path.toString()}\n\n${errorBody.toString()}"
             }
             else -> {
                 if (MyApplication.DEBUG_MODE) {
