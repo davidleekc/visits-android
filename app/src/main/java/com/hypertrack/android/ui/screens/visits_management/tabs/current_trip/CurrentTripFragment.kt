@@ -58,6 +58,8 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
             vm.onDestinationResult(it.destinationData)
         }
 
+        vm.onViewCreated()
+
         (childFragmentManager.findFragmentById(R.id.googleMap) as SupportMapFragment?)?.getMapAsync {
             map = it
             vm.onMapReady(requireContext(), it)

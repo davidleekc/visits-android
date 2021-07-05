@@ -20,6 +20,7 @@ import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.common.delegates.GeofencesMapDelegate
 import com.hypertrack.android.ui.common.nullIfEmpty
 import com.hypertrack.android.ui.common.select_destination.DestinationData
+import com.hypertrack.android.ui.common.updateValue
 import com.hypertrack.android.ui.screens.visits_management.VisitsManagementFragmentDirections
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
 import com.hypertrack.android.utils.MyApplication
@@ -62,10 +63,6 @@ class CurrentTripViewModel(
         locationProvider.getCurrentLocation {
             userLocation.postValue(it?.toLatLng())
         }
-
-        viewModelScope.launch {
-            tripsInteractor.refreshTrips()
-        }
     }
 
     val tripStartIcon = osUtilsProvider.bitmapDescriptorFromResource(
@@ -80,6 +77,15 @@ class CurrentTripViewModel(
     val canceledOrderIcon = osUtilsProvider.bitmapDescriptorFromVectorResource(
         R.drawable.ic_order_canceled, R.color.colorHyperTrackGreen
     )
+
+    fun onViewCreated() {
+        if (loadingStateBase.value != true) {
+            viewModelScope.launch {
+                Log.v("hypertrack-verbose", "refresh")
+                tripsInteractor.refreshTrips()
+            }
+        }
+    }
 
     @SuppressLint("MissingPermission")
     fun onMapReady(context: Context, googleMap: GoogleMap) {
@@ -146,7 +152,7 @@ class CurrentTripViewModel(
     }
 
     fun onDestinationResult(destinationData: DestinationData) {
-        loadingStateBase.postValue(true)
+        loadingStateBase.updateValue(true)
         GlobalScope.launch {
             when (val res =
                 tripsInteractor.createTrip(destinationData.latLng, destinationData.address)) {
