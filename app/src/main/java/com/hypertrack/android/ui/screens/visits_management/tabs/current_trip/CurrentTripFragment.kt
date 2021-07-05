@@ -6,6 +6,7 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.hypertrack.android.models.local.LocalTrip
 import com.hypertrack.android.ui.base.ProgressDialogFragment
@@ -38,6 +39,18 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
     )
 
     private lateinit var map: GoogleMap
+    private val mapStyleActive by lazy {
+        MapStyleOptions.loadRawResourceStyle(
+            requireContext(),
+            R.raw.style_map
+        )
+    }
+    private val mapStyleInactive by lazy {
+        MapStyleOptions.loadRawResourceStyle(
+            requireContext(),
+            R.raw.style_map_silver
+        )
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -92,9 +105,12 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
         })
 
         vm.trip.observe(viewLifecycleOwner, {
-            whereAreYouGoing.setGoneState(it != null)
             lTrip.setGoneState(it == null)
             it?.let { displayTrip(it) }
+        })
+
+        vm.showWhereAreYouGoing.observe(viewLifecycleOwner, {
+            whereAreYouGoing.setGoneState(!it)
         })
 
         vm.errorText.observe(viewLifecycleOwner, {
@@ -110,6 +126,18 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
                 loader.playAnimation()
             } else {
                 loader.cancelAnimation()
+            }
+        })
+
+        vm.mapActiveState.observe(viewLifecycleOwner, {
+            it?.let {
+                map.setMapStyle(
+                    if (it) {
+                        mapStyleActive
+                    } else {
+                        mapStyleInactive
+                    }
+                )
             }
         })
 
@@ -164,7 +192,6 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
             ordersAdapter.updateItems(orders)
         }
     }
-
 
 
     companion object {

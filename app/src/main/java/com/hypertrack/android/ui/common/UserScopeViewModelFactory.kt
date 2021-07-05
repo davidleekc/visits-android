@@ -73,7 +73,8 @@ class UserScopeViewModelFactory(
                 tripsInteractor,
                 placesInteractor,
                 osUtilsProvider,
-                deviceLocationProvider
+                deviceLocationProvider,
+                hyperTrackService
             ) as T
             SelectDestinationViewModel::class.java -> SelectDestinationViewModel(
                 placesInteractor,

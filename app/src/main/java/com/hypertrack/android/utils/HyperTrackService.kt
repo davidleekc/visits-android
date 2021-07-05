@@ -3,6 +3,7 @@ package com.hypertrack.android.utils
 import android.location.Location
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Transformations
 import com.hypertrack.android.models.Visit
 import com.hypertrack.android.models.VisitStatus
 import com.hypertrack.android.models.local.LocalOrder
@@ -42,6 +43,10 @@ class HyperTrackService(
 
     val state: LiveData<TrackingStateValue>
         get() = listener.state
+
+    val isTracking: LiveData<Boolean> = Transformations.map(state) {
+        it == TrackingStateValue.TRACKING
+    }
 
     fun sendCompletionEvent(visit: Visit) {
         val payload = mapOf(
