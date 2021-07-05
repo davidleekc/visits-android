@@ -22,14 +22,17 @@ import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.android.utils.stringFromResource
 import com.hypertrack.logistics.android.github.R
 import kotlinx.android.synthetic.main.fragment_order_detail.*
+import kotlinx.android.synthetic.main.fragment_order_detail.bDirections
 import kotlinx.android.synthetic.main.fragment_order_detail.divider
 import kotlinx.android.synthetic.main.fragment_order_detail.etVisitNote
 import kotlinx.android.synthetic.main.fragment_order_detail.ivBack
+import kotlinx.android.synthetic.main.fragment_order_detail.rvMetadata
 import kotlinx.android.synthetic.main.fragment_order_detail.rvPhotos
 import kotlinx.android.synthetic.main.fragment_order_detail.tvAddress
 import kotlinx.android.synthetic.main.fragment_order_detail.tvCancel
 import kotlinx.android.synthetic.main.fragment_order_detail.tvPickUp
 import kotlinx.android.synthetic.main.fragment_order_detail.tvTakePicture
+import kotlinx.android.synthetic.main.fragment_place_details.*
 import kotlinx.android.synthetic.main.fragment_visit_detail.*
 
 
@@ -102,7 +105,7 @@ class OrderDetailsFragment : ProgressDialogFragment(R.layout.fragment_order_deta
             if (it) showProgress() else dismissProgress()
         })
 
-        vm.error.observe(viewLifecycleOwner, { err ->
+        vm.errorHandler.errorText.observe(viewLifecycleOwner, { err ->
             err.consume {
                 SnackbarUtil.showErrorSnackbar(view, it)
             }
@@ -111,6 +114,12 @@ class OrderDetailsFragment : ProgressDialogFragment(R.layout.fragment_order_deta
         vm.photos.observe(viewLifecycleOwner) {
             displayPhotos(it)
         }
+
+        vm.externalMapsIntent.observe(viewLifecycleOwner, {
+            it.consume {
+                mainActivity().startActivity(it)
+            }
+        })
 
         tvTakePicture.setOnClickListener {
             vm.onAddPhotoClicked(mainActivity(), etVisitNote.textString())
@@ -132,6 +141,13 @@ class OrderDetailsFragment : ProgressDialogFragment(R.layout.fragment_order_deta
             vm.onPickUpClicked()
         }
 
+        bDirections.setOnClickListener {
+            vm.onDirectionsClick()
+        }
+
+        bCopyAddress.setOnClickListener {
+            vm.onCopyAddressClick()
+        }
     }
 
     private fun createCancelDialog(): AlertDialog {

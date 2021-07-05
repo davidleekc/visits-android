@@ -2,7 +2,6 @@ package com.hypertrack.android.utils
 
 import android.app.Activity
 import android.app.PendingIntent
-import android.content.ClipData
 import android.content.ClipDescription.MIMETYPE_TEXT_PLAIN
 import android.content.ClipboardManager
 import android.content.Context
@@ -16,7 +15,6 @@ import android.provider.MediaStore
 import android.util.DisplayMetrics
 import android.util.Log
 import android.widget.Toast
-import android.widget.Toast.LENGTH_SHORT
 import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
@@ -31,10 +29,12 @@ import com.google.android.gms.maps.model.LatLng
 import com.hypertrack.android.decodeBase64Bitmap
 import com.hypertrack.android.models.Address
 import com.hypertrack.android.toBase64
+import com.hypertrack.android.ui.base.Consumable
+import com.hypertrack.android.ui.common.ClipboardUtil
 import com.hypertrack.android.ui.common.LocationUtils
 import com.hypertrack.android.ui.screens.visits_management.tabs.livemap.TrackingPresenter
-import com.hypertrack.logistics.android.github.BuildConfig
 import com.hypertrack.logistics.android.github.R
+import retrofit2.HttpException
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -116,6 +116,10 @@ class OsUtilsProvider(
         }
     }
 
+    fun getPlaceFromCoordinates(latLng: LatLng): android.location.Address? {
+        return getPlaceFromCoordinates(latLng.latitude, latLng.longitude)
+    }
+
     fun makeToast(@StringRes txtRes: Int) {
         makeToast(txtRes.stringFromResource())
     }
@@ -147,12 +151,7 @@ class OsUtilsProvider(
     }
 
     fun copyToClipboard(str: String) {
-        val manager =
-            MyApplication.context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        manager.setPrimaryClip(ClipData.newPlainText(str, str))
-        MyApplication.context.let {
-            Toast.makeText(it, it.getString(R.string.copied_to_clipboard), LENGTH_SHORT).show()
-        }
+        ClipboardUtil.copyToClipboard(str)
     }
 
     fun stringFromResource(@StringRes res: Int): String {
@@ -209,11 +208,21 @@ class OsUtilsProvider(
 
     fun getErrorMessage(e: Exception): String {
         crashReportsProvider.logException(e)
-        if (BuildConfig.DEBUG) {
-            e.printStackTrace()
-        }
         return when (e) {
+            is HttpException -> {
+                val errorBody = e.response()?.errorBody()?.string()
+                if (MyApplication.DEBUG_MODE) {
+                    Log.v("hypertrack-verbose", errorBody.toString())
+                }
+                val path = e.response()?.raw()?.request?.let {
+                    "${it.method} ${it.url.encodedPath}"
+                }
+                return "${path.toString()}\n\n${errorBody.toString()}"
+            }
             else -> {
+                if (MyApplication.DEBUG_MODE) {
+                    e.printStackTrace()
+                }
                 e.format()
             }
         }
@@ -272,6 +281,23 @@ class OsUtilsProvider(
 
     fun distanceMeters(latLng: LatLng, latLng1: LatLng): Int {
         return LocationUtils.distanceMeters(latLng, latLng1)!!
+    }
+
+    fun getMapsIntent(latLng: LatLng): Intent? {
+        return try {
+//        val gmmIntentUri = Uri.parse("google.navigation:q=${geofence.value!!.latitude},${geofence.value!!.longitude}")
+
+            val googleMapsUrl = "https://www.google.com/maps/dir/?api=1&" +
+                    "destination=${latLng.latitude},${latLng.longitude}"
+
+            val gmmIntentUri = Uri.parse(googleMapsUrl)
+            val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
+//        mapIntent.setPackage("com.google.android.apps.maps")
+            mapIntent
+        } catch (e: Exception) {
+            crashReportsProvider.logException(e)
+            null
+        }
     }
 
     companion object {

@@ -5,6 +5,7 @@ import com.hypertrack.android.api.MainCoroutineScopeRule
 import com.hypertrack.android.createBaseOrder
 import com.hypertrack.android.createBaseTrip
 import com.hypertrack.android.interactors.TripInteractorTest
+import com.hypertrack.android.models.local.LocalOrder
 import com.hypertrack.android.models.local.OrderStatus
 import com.hypertrack.android.observeAndGetValue
 import com.hypertrack.android.ui.screens.order_details.OrderDetailsViewModel
@@ -12,6 +13,7 @@ import com.hypertrack.android.ui.screens.visits_management.tabs.orders.OrdersLis
 import io.mockk.mockk
 import junit.framework.Assert.*
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
@@ -63,19 +65,20 @@ class ComplexTripsTest {
             tripsInteractor.refreshTrips()
             assertNotNull(tripsInteractor.getOrder("1"))
 
-            detailsVm1.onCompleteClicked()
-            listVm.orders.observeAndGetValue().first { it.id == "1" }.let {
-                assertEquals(OrderStatus.COMPLETED, it.status)
+            val captured = mutableListOf<List<LocalOrder>>()
+            listVm.orders.observeForever {
+                captured.add(it)
             }
-            listVm.orders.observeAndGetValue().first { it.id == "2" }.let {
-                assertEquals(OrderStatus.ONGOING, it.status)
+
+            detailsVm1.onCompleteClicked()
+            captured.removeLast()
+            captured.last().first { it.id == "1" }.let {
+                assertEquals(OrderStatus.COMPLETED, it.status)
             }
 
             detailsVm2.onCancelClicked()
-            listVm.orders.observeAndGetValue().first { it.id == "1" }.let {
-                assertEquals(OrderStatus.COMPLETED, it.status)
-            }
-            listVm.orders.observeAndGetValue().first { it.id == "2" }.let {
+            captured.removeLast()
+            captured.last().first { it.id == "2" }.let {
                 assertEquals(OrderStatus.CANCELED, it.status)
             }
         }

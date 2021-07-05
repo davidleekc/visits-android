@@ -4,16 +4,12 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
 import android.util.TypedValue
-import androidx.lifecycle.MediatorLiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.asLiveData
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.*
 import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.interactors.TripsInteractor
-import com.hypertrack.android.models.Location
 import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.models.local.LocalTrip
 import com.hypertrack.android.models.local.OrderStatus
@@ -21,11 +17,16 @@ import com.hypertrack.android.repository.TripCreationError
 import com.hypertrack.android.repository.TripCreationSuccess
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.Consumable
+import com.hypertrack.android.ui.base.ZipLiveData
 import com.hypertrack.android.ui.common.delegates.GeofencesMapDelegate
 import com.hypertrack.android.ui.common.nullIfEmpty
-import com.hypertrack.android.ui.screens.select_destination.DestinationData
+import com.hypertrack.android.ui.common.requireValue
+import com.hypertrack.android.ui.common.select_destination.DestinationData
+import com.hypertrack.android.ui.common.updateValue
 import com.hypertrack.android.ui.screens.visits_management.VisitsManagementFragmentDirections
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
+import com.hypertrack.android.utils.HyperTrackService
+import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.logistics.android.github.R
 import kotlinx.coroutines.GlobalScope
@@ -36,8 +37,17 @@ class CurrentTripViewModel(
     private val tripsInteractor: TripsInteractor,
     private val placesInteractor: PlacesInteractor,
     private val osUtilsProvider: OsUtilsProvider,
-    private val locationProvider: DeviceLocationProvider
+    private val locationProvider: DeviceLocationProvider,
+    private val hyperTrackService: HyperTrackService
 ) : BaseViewModel(osUtilsProvider) {
+
+    private val isTracking = MediatorLiveData<Boolean>().apply {
+        addSource(hyperTrackService.isTracking) {
+            if (value != it) {
+                updateValue(it)
+            }
+        }
+    }
 
     private val map = MutableLiveData<GoogleMap>()
     private lateinit var geofencesMapDelegate: GeofencesMapDelegate
@@ -51,24 +61,70 @@ class CurrentTripViewModel(
         }
     }
     val trip = MediatorLiveData<LocalTrip?>()
-    val location = MutableLiveData<Location>()
-
-    init {
-        trip.addSource(tripsInteractor.currentTrip) {
-            trip.postValue(it)
-            map.value?.let { map -> displayTripOnMap(map, it) }
+    val userLocation = MutableLiveData<LatLng?>()
+    val showWhereAreYouGoing: LiveData<Boolean> = ZipLiveData(isTracking, trip).let {
+        Transformations.map(it) { (isTracking, trip) ->
+            trip != null && isTracking
         }
-        trip.addSource(map) {
-            displayTripOnMap(it, trip.value)
+    }
+    val mapActiveState: LiveData<Boolean?> = ZipLiveData(isTracking, map).let {
+        Transformations.map(it) { (isTracking, map) ->
+            if (map != null) {
+                isTracking
+            } else {
+                null
+            }
         }
     }
 
     init {
-        viewModelScope.launch {
-            tripsInteractor.refreshTrips()
+        trip.addSource(tripsInteractor.currentTrip) {
+            if (isTracking.requireValue()) {
+                trip.postValue(it)
+                map.value?.let { map -> displayTripOnMap(map, it) }
+            }
         }
+        trip.addSource(map) {
+            if (isTracking.requireValue()) {
+                displayTripOnMap(it, trip.value)
+            }
+        }
+        trip.addSource(isTracking) {
+            if (it) {
+                map.value?.let {
+                    tripsInteractor.currentTrip.value?.let { trip ->
+                        this.trip.postValue(trip)
+                        displayTripOnMap(map.requireValue(), trip)
+                    }
+                }
+            } else {
+                trip.postValue(null)
+            }
+        }
+
+        mapActiveState.observeManaged {
+            if (it != null) {
+                //todo check geofences delegate
+                if (it) {
+                    val trip = tripsInteractor.currentTrip
+                    if (trip.value != null) {
+                        animateMapCameraToTrip(trip.value!!, map.requireValue())
+                    } else {
+                        if (userLocation.value != null) {
+                            animateMapCameraToUser(map.requireValue(), userLocation.value!!)
+                        }
+                    }
+                } else {
+                    map.requireValue().clear()
+                    if (userLocation.value != null) {
+                        animateMapCameraToUser(map.requireValue(), userLocation.value!!)
+                    }
+                }
+            }
+        }
+
         locationProvider.getCurrentLocation {
-            it?.let { location.postValue(it) }
+            userLocation.postValue(it?.toLatLng())
         }
     }
 
@@ -84,6 +140,14 @@ class CurrentTripViewModel(
     val canceledOrderIcon = osUtilsProvider.bitmapDescriptorFromVectorResource(
         R.drawable.ic_order_canceled, R.color.colorHyperTrackGreen
     )
+
+    fun onViewCreated() {
+        if (loadingStateBase.value != true) {
+            viewModelScope.launch {
+                tripsInteractor.refreshTrips()
+            }
+        }
+    }
 
     @SuppressLint("MissingPermission")
     fun onMapReady(context: Context, googleMap: GoogleMap) {
@@ -133,9 +197,9 @@ class CurrentTripViewModel(
             }
         }
 
-        location.observeManaged {
-            if (trip.value == null) {
-                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(it.toLatLng(), 15.0f))
+        this.userLocation.observeManaged {
+            if (trip.value == null && it != null) {
+                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(it, DEFAULT_ZOOM))
             }
         }
 
@@ -145,13 +209,12 @@ class CurrentTripViewModel(
     fun onWhereAreYouGoingClick() {
         destination.postValue(
             VisitsManagementFragmentDirections
-                .actionVisitManagementFragmentToSelectDestinationFragment()
+                .actionVisitManagementFragmentToSelectTripDestinationFragment()
         )
     }
 
     fun onDestinationResult(destinationData: DestinationData) {
-        loadingStateBase.postValue(true)
-        Log.v("hypertrack-verbose", "true")
+        loadingStateBase.updateValue(true)
         GlobalScope.launch {
             when (val res =
                 tripsInteractor.createTrip(destinationData.latLng, destinationData.address)) {
@@ -162,7 +225,6 @@ class CurrentTripViewModel(
                 }
             }
             loadingStateBase.postValue(false)
-            Log.v("hypertrack-verbose", "false")
         }
     }
 
@@ -199,6 +261,12 @@ class CurrentTripViewModel(
         )
     }
 
+    fun onMyLocationClick() {
+        if (map.value != null && userLocation.value != null) {
+            animateMapCameraToUser(map.requireValue(), userLocation.value!!)
+        }
+    }
+
     override fun onCleared() {
         super.onCleared()
         geofencesMapDelegate.onCleared()
@@ -221,7 +289,7 @@ class CurrentTripViewModel(
                 )
             }
 
-            trip.ongoingOrgers.forEach { order ->
+            trip.ongoingOrders.forEach { order ->
                 order.estimate?.route?.polyline?.getPolylinePoints()?.let {
                     val options = if (order.status == OrderStatus.ONGOING) {
                         PolylineOptions()
@@ -267,24 +335,39 @@ class CurrentTripViewModel(
                         .position(order.destinationLatLng)
                         .zIndex(100f)
                 )
-
-
             }
 
-            if (trip.ongoingOrgers.isNotEmpty()) {
-                val bounds = LatLngBounds.builder().apply {
-                    trip.ongoingOrgers.forEach { order ->
-                        include(order.destinationLatLng)
-                        order.estimate?.route?.polyline?.getPolylinePoints()?.forEach {
-                            include(it)
-                        }
-                    }
-                    tripStart?.let { include(it) }
-                    location.value?.let { include(it.toLatLng()) }
-                }.build()
-                map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100))
-            }
+            animateMapCameraToTrip(trip, map)
         }
+    }
+
+    private fun animateMapCameraToTrip(trip: LocalTrip, map: GoogleMap) {
+        val tripStart =
+            trip.orders.firstOrNull()?.estimate?.route?.polyline?.getPolylinePoints()
+                ?.firstOrNull()
+
+        if (trip.ongoingOrders.isNotEmpty()) {
+            val bounds = LatLngBounds.builder().apply {
+                trip.ongoingOrders.forEach { order ->
+                    include(order.destinationLatLng)
+                    order.estimate?.route?.polyline?.getPolylinePoints()?.forEach {
+                        include(it)
+                    }
+                }
+                tripStart?.let { include(it) }
+                this@CurrentTripViewModel.userLocation.value?.let { include(it) }
+            }.build()
+            map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100))
+        }
+    }
+
+    private fun animateMapCameraToUser(map: GoogleMap, userLocation: LatLng) {
+        map.animateCamera(
+            CameraUpdateFactory.newLatLngZoom(
+                userLocation,
+                DEFAULT_ZOOM
+            )
+        )
     }
 
     private val tripStyleAttrs by lazy {
@@ -314,28 +397,8 @@ class CurrentTripViewModel(
         var tripRouteColor = 0
     }
 
-    //todo
-//    private fun onMapActive() {
-//        Log.d(LiveMapFragment.TAG, "onMapActive")
-//        gMap?.let {
-//            if (currentMapStyle != mapStyleOptions) {
-//                Log.d(LiveMapFragment.TAG, "applying active style")
-//                it.setMapStyle(mapStyleOptions)
-//                currentMapStyle = mapStyleOptions
-//            }
-//        }
-//    }
-//
-//    private fun onMapDisabled() {
-//        Log.d(LiveMapFragment.TAG, "onMapDisabled")
-//        gMap?.let {
-//            if (currentMapStyle != mapStyleOptionsSilver) {
-//                Log.d(LiveMapFragment.TAG, "applying active style")
-//                it.setMapStyle(mapStyleOptionsSilver)
-//                currentMapStyle = mapStyleOptionsSilver
-//            }
-//        }
-//    }
-
+    companion object {
+        const val DEFAULT_ZOOM = 15f
+    }
 
 }

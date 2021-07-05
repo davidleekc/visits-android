@@ -48,19 +48,14 @@
             app:nullable="true"
             android:defaultValue="@null" />
         <action
-            android:id="@+id/action_visitManagementFragment_to_selectDestinationFragment"
-            app:destination="@id/selectDestinationFragment" />
-        <action
             android:id="@+id/action_visitManagementFragment_to_addOrderFragment"
             app:destination="@id/addOrderFragment" />
-        <argument
-            android:name="addedData"
-            app:argType="com.hypertrack.android.ui.screens.visits_management.VisitsManagementFragment$AddedData"
-            app:nullable="true"
-            android:defaultValue="@null" />
         <action
             android:id="@+id/action_visitManagementFragment_to_sendFeedbackFragment"
             app:destination="@id/sendFeedbackFragment" />
+        <action
+            android:id="@+id/action_visitManagementFragment_to_selectTripDestinationFragment"
+            app:destination="@id/selectTripDestinationFragment" />
     </fragment>
     <fragment
         android:id="@+id/visitDetailsFragment"
@@ -155,10 +150,6 @@
         android:label="add_integration_fragment"
         tools:layout="@layout/fragment_add_integration" />
     <fragment
-        android:id="@+id/selectDestinationFragment"
-        android:name="com.hypertrack.android.ui.screens.select_destination.SelectDestinationFragment"
-        android:label="SelectDestinationFragment" />
-    <fragment
         android:id="@+id/addOrderFragment"
         android:name="com.hypertrack.android.ui.screens.add_order.AddOrderFragment"
         android:label="AddOrderFragment">
@@ -167,6 +158,7 @@
             app:destination="@id/addOrderInfoFragment" />
         <argument
             android:name="tripId"
+            app:nullable="true"
             app:argType="string" />
     </fragment>
     <fragment
@@ -175,10 +167,12 @@
         android:label="AddOrderInfoFragment">
         <argument
             android:name="destinationData"
-            app:argType="com.hypertrack.android.ui.screens.select_destination.DestinationData" />
+            app:argType="com.hypertrack.android.ui.common.select_destination.DestinationData" />
         <argument
             android:name="tripId"
-            app:argType="string" />
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
     </fragment>
     <fragment
         android:id="@+id/addPlaceInfoFragment"
@@ -189,10 +183,18 @@
             app:destination="@id/addIntegrationFragment" />
         <argument
             android:name="destinationData"
-            app:argType="com.hypertrack.android.ui.screens.select_destination.DestinationData" />
+            app:argType="com.hypertrack.android.ui.common.select_destination.DestinationData" />
     </fragment>
     <fragment
         android:id="@+id/sendFeedbackFragment"
         android:name="com.hypertrack.android.ui.screens.send_feedback.SendFeedbackFragment"
         android:label="SendFeedbackFragment" />
+    <fragment
+        android:id="@+id/selectTripDestinationFragment"
+        android:name="com.hypertrack.android.ui.screens.select_trip_destination.SelectTripDestinationFragment"
+        android:label="SelectTripDestinationFragment">
+        <action
+            android:id="@+id/action_selectTripDestinationFragment_to_addOrderInfoFragment"
+            app:destination="@id/addOrderInfoFragment" />
+    </fragment>
 </navigation>

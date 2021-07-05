@@ -22,6 +22,7 @@ import com.hypertrack.android.ui.common.NotificationUtils
 import com.hypertrack.android.ui.common.SimplePageChangedListener
 import com.hypertrack.android.ui.common.SnackbarUtil
 import com.hypertrack.android.ui.common.Tab
+import com.hypertrack.android.ui.common.select_destination.DestinationData
 import com.hypertrack.android.ui.screens.visits_management.tabs.current_trip.CurrentTripFragment
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.MapViewFragment
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.MapViewFragmentOld
@@ -42,7 +43,7 @@ import kotlinx.android.synthetic.main.fragment_visits_management.*
 
 class VisitsManagementFragment : ProgressDialogFragment(R.layout.fragment_visits_management) {
 
-    private val args: VisitsManagementFragmentArgs by navArgs()
+    val args: VisitsManagementFragmentArgs by navArgs()
 
     private val tabsMap = mapOf(
         Tab.MAP to if (MyApplication.TWMO_ENABLED) {
@@ -234,11 +235,6 @@ class VisitsManagementFragment : ProgressDialogFragment(R.layout.fragment_visits
             }
         }
     }
-
-    @Parcelize
-    class AddedData(
-        val geofence: LocalGeofenceJson? = null
-    ) : Parcelable
 
     companion object {
         const val TAG = "VisitsManagementAct"

@@ -4,6 +4,8 @@ import android.location.Address
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.Place
 import com.hypertrack.android.models.Location
+import kotlin.math.pow
+import kotlin.math.round
 
 object LocationUtils {
     fun distanceMeters(location: Location?, location1: Location?): Int? {
@@ -57,19 +59,35 @@ fun android.location.Location.toLatLng(): LatLng {
     return LatLng(latitude, longitude)
 }
 
-fun Address.toAddressString(): String {
-    val localityString = (locality?.let { "$it, " } ?: "")
-    val address = if (thoroughfare == null) {
-        " ${latitude}, ${longitude}"
+fun Address.toNullableAddressString(): String? {
+    if (thoroughfare == null) {
+        return null
     } else {
-        " $thoroughfare${subThoroughfare?.let { ", $it" } ?: ""}"
+        return toAddressString()
+    }
+}
+
+fun Address.toAddressString(disableCoordinatesFallback: Boolean = false): String {
+    val localityString = locality.wrapIfPresent(end = ",")
+    val address = if (thoroughfare == null) {
+        if (!disableCoordinatesFallback) {
+            " ${LatLng(latitude, longitude).format()}"
+        } else {
+            ""
+        }
+    } else {
+        " $thoroughfare${subThoroughfare.wrapIfPresent(start = ",")}"
     }
     return "$localityString$address"
 }
 
-fun Address.toShortAddressString(): String {
+fun Address.toShortAddressString(disableCoordinatesFallback: Boolean = false): String {
     val address = if (thoroughfare == null) {
-        "${latitude}, ${longitude}"
+        if (!disableCoordinatesFallback) {
+            " ${LatLng(latitude, longitude).format()}"
+        } else {
+            locality
+        }
     } else {
         "$thoroughfare${subThoroughfare?.let { ", $it" } ?: ""}"
     }
@@ -91,10 +109,22 @@ fun Place.toAddressString(): String {
 
     val localityString = (locality?.let { "$it, " } ?: "")
     val address = if (thoroughfare == null) {
-        " ${latLng?.latitude}, ${latLng?.longitude}"
+        latLng?.format() ?: ""
     } else {
         " $thoroughfare${subThoroughfare?.let { ", $it" } ?: ""}"
     }
     return "$localityString$address"
+}
+
+fun Double.roundToSign(n: Int): Double {
+    return round(this * 10.0.pow(n)) / (10.0.pow(n))
+}
+
+fun LatLng.format(): String {
+    return "${latitude.roundToSign(5)}, ${longitude.roundToSign(5)}"
+}
+
+fun String?.wrapIfPresent(start: String? = null, end: String? = null): String {
+    return this?.let { "${start.wrapIfPresent()}$it${end.wrapIfPresent()}" } ?: ""
 }
 

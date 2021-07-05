@@ -1,4 +1,4 @@
-package com.hypertrack.android.ui.screens.add_order
+package com.hypertrack.android.ui.screens.select_trip_destination
 
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.hypertrack.android.interactors.PlacesInteractor
@@ -7,9 +7,7 @@ import com.hypertrack.android.ui.common.select_destination.SelectDestinationView
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
 import com.hypertrack.android.utils.OsUtilsProvider
 
-
-class AddOrderViewModel(
-    private val tripId: String,
+class SelectTripDestinationViewModel(
     private val placesInteractor: PlacesInteractor,
     private val placesClient: PlacesClient,
     private val deviceLocationProvider: DeviceLocationProvider,
@@ -22,9 +20,11 @@ class AddOrderViewModel(
 ) {
     override fun proceed(destinationData: DestinationData) {
         destination.postValue(
-            AddOrderFragmentDirections.actionAddOrderFragmentToAddOrderInfoFragment(
-                destinationData, tripId
-            )
+            SelectTripDestinationFragmentDirections
+                .actionSelectTripDestinationFragmentToAddOrderInfoFragment(
+                    destinationData,
+                    tripId = null
+                )
         )
     }
 }

@@ -1,5 +1,6 @@
 package com.hypertrack.android.interactors
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
@@ -21,6 +22,7 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import retrofit2.HttpException
 import java.util.*
+import kotlin.coroutines.coroutineContext
 
 interface TripsInteractor {
     val errorFlow: MutableSharedFlow<Consumable<Exception>>
@@ -40,7 +42,7 @@ interface TripsInteractor {
     suspend fun addOrderToTrip(tripId: String, latLng: LatLng, address: String?): AddOrderResult
 }
 
-class TripsInteractorImpl(
+open class TripsInteractorImpl(
     private val tripsRepository: TripsRepository,
     private val apiClient: ApiClient,
     private val hyperTrackService: HyperTrackService,
@@ -170,6 +172,9 @@ class TripsInteractorImpl(
         latLng: LatLng,
         address: String?
     ): AddOrderResult {
+        if (tripsRepository.trips.value!!.first { it.id == tripId }.isLegacy()) {
+            throw IllegalArgumentException("Can't add an order to a legacy v1 trip")
+        }
         return withContext(globalScope.coroutineContext) {
             try {
                 tripsRepository.addOrderToTrip(
@@ -202,6 +207,9 @@ class TripsInteractorImpl(
                                 OrderStatus.CANCELED
                             }
                         }
+                        globalScope.launch {
+                            refreshTrips()
+                        }
                         return OrderCompletionSuccess
                         //todo completion is disabled regarding to Indiabulls use-case
 //                        val res = apiClient.completeTrip(order.id)
@@ -221,16 +229,23 @@ class TripsInteractorImpl(
 //                            }
 //                        }
                     } else {
-                        val mdRes = apiClient.updateOrderMetadata(
-                            orderId = orderId,
-                            tripId = trip.id,
-                            metadata = (order._metadata ?: Metadata.empty()).apply {
-                                visitsAppMetadata.note = order.note
-                                visitsAppMetadata.photos = order.photos.map { it.photoId }
+                        val metadata = (order._metadata ?: Metadata.empty())
+                        if (
+                            metadata.visitsAppMetadata.note != order.note
+                            || !(metadata.visitsAppMetadata.photos ?: listOf())
+                                .hasSameContent(order.photos.map { it.photoId }.toList())
+                        ) {
+                            val mdRes = apiClient.updateOrderMetadata(
+                                orderId = orderId,
+                                tripId = trip.id,
+                                metadata = metadata.apply {
+                                    visitsAppMetadata.note = order.note
+                                    visitsAppMetadata.photos = order.photos.map { it.photoId }
+                                }
+                            )
+                            if (!mdRes.isSuccessful) {
+                                throw HttpException(mdRes)
                             }
-                        )
-                        if (!mdRes.isSuccessful) {
-                            throw HttpException(mdRes)
                         }
 
                         val res = if (!canceled) {
@@ -247,6 +262,9 @@ class TripsInteractorImpl(
                                 }
                             }
                         }
+                        globalScope.launch {
+                            refreshTrips()
+                        }
                         return res
                     }
                 }
@@ -262,6 +280,11 @@ class TripsInteractorImpl(
         }
     }
 
+}
+
+fun <T> List<T>.hasSameContent(list: List<T>): Boolean {
+    if (this.isEmpty() && list.isEmpty()) return true
+    return containsAll(list) && list.containsAll(this)
 }
 
 sealed class AddOrderResult

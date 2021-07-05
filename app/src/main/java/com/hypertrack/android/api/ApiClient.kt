@@ -207,20 +207,6 @@ class ApiClient(
         }
     }
 
-//    suspend fun createTripV1(tripParams: TripParams): Trip {
-//        try {
-//            val res = api.createTrip(tripParams)
-//            if (res.isSuccessful) {
-//                val trip = res.body()!!
-//                return trip
-//            } else {
-//                throw HttpException(res)
-//            }
-//        } catch (e: Throwable) {
-//            throw e
-//        }
-//    }
-
     suspend fun createTrip(latLng: LatLng, address: String?): Trip {
         try {
             val res = api.createTrip(

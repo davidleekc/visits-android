@@ -1,4 +1,4 @@
-package com.hypertrack.android.ui.screens.select_destination
+package com.hypertrack.android.ui.common.select_destination
 
 import android.os.Bundle
 import android.os.Parcelable
@@ -46,7 +46,7 @@ open class SelectDestinationFragment :
             vm.onPlaceItemClick(this.adapter.getItem(position))
         }
 
-        val watcher = object : DisablableTextWatcher() {
+        val watcher = object : SimpleTextWatcher() {
             override fun afterChanged(text: String) {
                 vm.onSearchQueryChanged(text)
             }
@@ -62,7 +62,7 @@ open class SelectDestinationFragment :
             } else false
         }
 
-        vm.places.observe(viewLifecycleOwner, {
+        vm.placesResults.observe(viewLifecycleOwner, {
             adapter.clear()
             adapter.addAll(it)
             adapter.notifyDataSetChanged()
@@ -73,12 +73,10 @@ open class SelectDestinationFragment :
             SnackbarUtil.showErrorSnackbar(view, it)
         })
 
-        vm.searchText.observe(viewLifecycleOwner, {
-            watcher.disabled = true
-            search.setText(it)
-            search.setSelection(search.textString().length)
-            watcher.disabled = false
+        vm.address.observe(viewLifecycleOwner, {
             Utils.hideKeyboard(mainActivity())
+            search.silentUpdate(watcher, it)
+            search.setSelection(search.textString().length)
         })
 
         vm.destination.observe(viewLifecycleOwner, {
@@ -103,26 +101,14 @@ open class SelectDestinationFragment :
         confirm.show()
 
         confirm.setOnClickListener {
-            vm.onConfirmClicked(search.textString())
-        }
-    }
-
-    //todo change to custom edittext and silent update
-    abstract class DisablableTextWatcher : SimpleTextWatcher() {
-        var disabled = false
-
-        override fun afterTextChanged(s: Editable?) {
-            if (!disabled) {
-                afterChanged((s ?: "").toString())
-            }
-
+            vm.onConfirmClicked()
         }
     }
 
 }
 
 @Parcelize
-class DestinationData(
+data class DestinationData(
     val latLng: LatLng,
     val address: String? = null,
     val name: String? = null

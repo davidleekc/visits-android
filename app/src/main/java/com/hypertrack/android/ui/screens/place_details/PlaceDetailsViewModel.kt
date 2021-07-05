@@ -3,23 +3,23 @@ package com.hypertrack.android.ui.screens.place_details
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Color
-import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.CircleOptions
-import com.hypertrack.android.api.Geofence
 import com.hypertrack.android.api.GeofenceMarker
 import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.models.Integration
 import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.ui.base.BaseViewModel
+import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.base.ZipLiveData
 import com.hypertrack.android.ui.common.KeyValueItem
+import com.hypertrack.android.ui.common.delegates.GeofenceAddressDelegate
+import com.hypertrack.android.ui.common.format
 import com.hypertrack.android.ui.common.formatDateTime
-import com.hypertrack.android.ui.common.toAddressString
 import com.hypertrack.android.utils.CrashReportsProvider
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.logistics.android.github.R
@@ -32,6 +32,8 @@ class PlaceDetailsViewModel(
     private val crashReportsProvider: CrashReportsProvider,
     private val moshi: Moshi
 ) : BaseViewModel() {
+
+    private val addressDelegate = GeofenceAddressDelegate(osUtilsProvider)
 
     private val map = MutableLiveData<GoogleMap>()
 
@@ -46,26 +48,25 @@ class PlaceDetailsViewModel(
     }
 
     val address = Transformations.map(geofence) { geofence ->
-        geofence.fullAddress ?: osUtilsProvider.getPlaceFromCoordinates(
-            geofence.latitude,
-            geofence.longitude
-        )?.toAddressString()
+        addressDelegate.fullAddress(geofence)
     }
 
     val metadata: LiveData<List<KeyValueItem>> = Transformations.map(geofence) { geofence ->
-        (geofence.metadata?.filter { it.value is String } ?: mapOf())
-            .toMutableMap().apply {
-                put(
-                    osUtilsProvider.stringFromResource(R.string.place_visits_count),
-                    geofence.visitsCount.toString()
-                )
-                put("created_at", geofence.createdAt.formatDateTime())
-                put(
-                    "coordinates",
-                    "${"%.5f".format(geofence.latitude)}, ${"%.5f".format(geofence.longitude)}"
-                )
-            }
-            .map { KeyValueItem(it.key, it.value as String) }.toList()
+        geofence.metadata.toMutableMap().apply {
+            put(
+                osUtilsProvider.stringFromResource(R.string.place_visits_count),
+                geofence.visitsCount.toString()
+            )
+            put(
+                osUtilsProvider.stringFromResource(R.string.created_at),
+                geofence.createdAt.formatDateTime()
+            )
+            put(
+                osUtilsProvider.stringFromResource(R.string.coordinates),
+                geofence.latLng.format()
+            )
+        }
+            .map { KeyValueItem(it.key, it.value) }.toList()
     }
 
     val integration: LiveData<Integration?> = Transformations.map(geofence) {
@@ -76,7 +77,7 @@ class PlaceDetailsViewModel(
         geofence.markers
     }
 
-    val externalMapsIntent = MutableLiveData<Intent>()
+    val externalMapsIntent = MutableLiveData<Consumable<Intent>>()
 
     init {
         //todo check leak
@@ -125,18 +126,9 @@ class PlaceDetailsViewModel(
     }
 
     fun onDirectionsClick() {
-        try {
-//        val gmmIntentUri = Uri.parse("google.navigation:q=${geofence.value!!.latitude},${geofence.value!!.longitude}")
-
-            val googleMapsUrl = "https://www.google.com/maps/dir/?api=1&" +
-                    "destination=${geofence.value!!.latitude},${geofence.value!!.longitude}"
-
-            val gmmIntentUri = Uri.parse(googleMapsUrl)
-            val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
-            externalMapsIntent.postValue(mapIntent)
-//        mapIntent.setPackage("com.google.android.apps.maps")
-        } catch (e: Exception) {
-            crashReportsProvider.logException(e)
+        val intent = osUtilsProvider.getMapsIntent(geofence.value!!.latLng)
+        intent?.let {
+            externalMapsIntent.postValue(Consumable(it))
         }
     }
 

@@ -3,7 +3,6 @@ package com.hypertrack.android.view_models
 import android.app.Activity
 import androidx.appcompat.app.AppCompatActivity
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.hypertrack.android.api.ApiClient
 import com.hypertrack.android.api.MainCoroutineScopeRule
@@ -14,30 +13,23 @@ import com.hypertrack.android.interactors.*
 import com.hypertrack.android.interactors.TripInteractorTest.Companion.createMockApiClient
 import com.hypertrack.android.models.Metadata
 import com.hypertrack.android.models.Order
-import com.hypertrack.android.models.TripCompletionSuccess
 import com.hypertrack.android.models.local.LocalOrder
 import com.hypertrack.android.models.local.LocalTrip
 import com.hypertrack.android.models.local.OrderStatus
 import com.hypertrack.android.models.local.TripStatus
 import com.hypertrack.android.observeAndGetValue
-import com.hypertrack.android.repository.TripsStorage
 import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.common.KeyValueItem
 import com.hypertrack.android.ui.common.formatUnderscore
 import com.hypertrack.android.ui.screens.order_details.OrderDetailsViewModel
-import com.hypertrack.android.ui.screens.order_details.PhotoItem
 import com.hypertrack.android.ui.screens.visit_details.VisitDetailsFragment
-import com.hypertrack.android.utils.HyperTrackService
 import com.hypertrack.logistics.android.github.R
-import com.hypertrack.sdk.HyperTrack
 import io.mockk.*
 import junit.framework.Assert.*
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.TestCoroutineScope
 import org.junit.Rule
 import org.junit.Test
 import retrofit2.Response
@@ -104,13 +96,17 @@ class OrdersDetailsViewModelTest {
             ),
         )
 
+        var allowRefresh = true
         val pickUpAllowed = true
         val tripsInteractor: TripsInteractor = TripInteractorTest.createTripInteractorImpl(
             backendTrips = listOf(createBaseTrip().copy(orders = backendOrders)),
             accountRepository = mockk() { coEvery { isPickUpAllowed } returns pickUpAllowed }
-        )
+        ) {
+            allowRefresh
+        }
         runBlocking {
             tripsInteractor.refreshTrips()
+            allowRefresh = false
 
             createVm("ONGOING", tripsInteractor, pickUpAllowed).let {
                 it.onCompleteClicked()
@@ -137,13 +133,17 @@ class OrdersDetailsViewModelTest {
             ),
         )
 
+        var allowRefresh = true
         val pickUpAllowed = true
         val tripsInteractor: TripsInteractor = TripInteractorTest.createTripInteractorImpl(
             backendTrips = listOf(createBaseTrip().copy(orders = backendOrders)),
             accountRepository = mockk() { coEvery { isPickUpAllowed } returns pickUpAllowed }
-        )
+        ) {
+            allowRefresh
+        }
         runBlocking {
             tripsInteractor.refreshTrips()
+            allowRefresh = false
 
             createVm("ONGOING", tripsInteractor, pickUpAllowed).let {
                 it.onCancelClicked()

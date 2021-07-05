@@ -84,7 +84,9 @@ class PlaceDetailsFragment : ProgressDialogFragment(R.layout.fragment_place_deta
         })
 
         vm.externalMapsIntent.observe(viewLifecycleOwner, {
-            mainActivity().startActivity(it)
+            it.consume {
+                mainActivity().startActivity(it)
+            }
         })
 
 //        srlPlaces.setOnRefreshListener {

@@ -36,6 +36,7 @@ private val fences = Injector.getMoshi().adapter(GeofenceResponse::class.java)
             params.geofences.first().geometry,
             null,
             100,
+            "",
             false,
         )
         fences.add(created)

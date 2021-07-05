@@ -19,11 +19,15 @@ data class LocalTrip(
     val nextOrder: LocalOrder?
         get() = orders.firstOrNull()
 
-    val ongoingOrgers: List<LocalOrder>
+    val ongoingOrders: List<LocalOrder>
         get() = orders.filter { it.status == OrderStatus.ONGOING }
 
     fun getOrder(orderId: String): LocalOrder? {
         return orders.firstOrNull { it.id == orderId }
+    }
+
+    fun isLegacy(): Boolean {
+        return orders.any { it.legacy }
     }
 
 

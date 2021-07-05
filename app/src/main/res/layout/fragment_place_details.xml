@@ -170,7 +170,7 @@
                     android:fontFamily="@font/medium"
                     android:gravity="center"
                     android:padding="10dp"
-                    android:text="@string/places_directions_button"
+                    android:text="@string/directions_button"
                     android:textColor="@color/colorWhite"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"

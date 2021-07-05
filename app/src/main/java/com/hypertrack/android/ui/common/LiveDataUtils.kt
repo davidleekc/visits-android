@@ -14,3 +14,12 @@ class HotLiveDataTransformation<T>(val liveData: LiveData<T>) {
         liveData.observeForever {}
     }
 }
+
+fun <T> LiveData<T>.requireValue(): T {
+    return this.value!!
+}
+
+fun <T> MutableLiveData<T>.updateValue(value: T) {
+    this.value = value
+    postValue(value)
+}

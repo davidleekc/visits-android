@@ -1,17 +1,14 @@
 package com.hypertrack.android.ui.screens.visits_management.tabs.orders
 
 import android.view.View
-import com.hypertrack.android.models.Order
 import com.hypertrack.android.models.local.LocalOrder
 import com.hypertrack.android.models.local.OrderStatus
 import com.hypertrack.android.ui.base.BaseAdapter
-import com.hypertrack.android.ui.common.KeyValueItem
 import com.hypertrack.android.ui.common.setGoneState
 import com.hypertrack.android.ui.common.toView
 import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.android.utils.TimeDistanceFormatter
 import com.hypertrack.logistics.android.github.R
-import kotlinx.android.synthetic.main.item_key_value.view.*
 import kotlinx.android.synthetic.main.item_order.view.*
 import java.time.format.DateTimeFormatter
 
@@ -28,7 +25,7 @@ class OrdersAdapter(
     ): BaseVh<LocalOrder> {
         return object : BaseContainerVh<LocalOrder>(view, baseClickListener) {
             override fun bind(item: LocalOrder) {
-                item.shortAddress.toView(containerView.tvAddress)
+                item.destinationAddress.toView(containerView.tvAddress)
                 containerView.tvEta.setGoneState(item.status != OrderStatus.ONGOING)
                 if (item.eta != null) {
                     containerView.tvEta.setText(
