@@ -10,7 +10,8 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.hypertrack.android.models.local.LocalTrip
 import com.hypertrack.android.ui.base.ProgressDialogFragment
 import com.hypertrack.android.ui.common.*
-import com.hypertrack.android.ui.screens.select_destination.DestinationData
+import com.hypertrack.android.ui.common.select_destination.DestinationData
+import com.hypertrack.android.ui.screens.visits_management.VisitsManagementFragment
 import com.hypertrack.android.ui.screens.visits_management.tabs.orders.OrdersAdapter
 import com.hypertrack.android.utils.Injector
 import com.hypertrack.android.utils.MyApplication
@@ -50,6 +51,12 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
                         ?.set(KEY_DESTINATION, null)
                 }
             }
+
+        //check if there is intent to create trip
+        MyApplication.injector.tripCreationScope?.let {
+            MyApplication.injector.tripCreationScope = null
+            vm.onDestinationResult(it.destinationData)
+        }
 
         (childFragmentManager.findFragmentById(R.id.googleMap) as SupportMapFragment?)?.getMapAsync {
             map = it

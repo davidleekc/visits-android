@@ -19,9 +19,10 @@ import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.common.delegates.GeofencesMapDelegate
 import com.hypertrack.android.ui.common.nullIfEmpty
-import com.hypertrack.android.ui.screens.select_destination.DestinationData
+import com.hypertrack.android.ui.common.select_destination.DestinationData
 import com.hypertrack.android.ui.screens.visits_management.VisitsManagementFragmentDirections
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
+import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.logistics.android.github.R
 import kotlinx.coroutines.GlobalScope
@@ -57,14 +58,13 @@ class CurrentTripViewModel(
         trip.addSource(map) {
             displayTripOnMap(it, trip.value)
         }
-    }
 
-    init {
-        viewModelScope.launch {
-            tripsInteractor.refreshTrips()
-        }
         locationProvider.getCurrentLocation {
             userLocation.postValue(it?.toLatLng())
+        }
+
+        viewModelScope.launch {
+            tripsInteractor.refreshTrips()
         }
     }
 
@@ -141,13 +141,12 @@ class CurrentTripViewModel(
     fun onWhereAreYouGoingClick() {
         destination.postValue(
             VisitsManagementFragmentDirections
-                .actionVisitManagementFragmentToSelectDestinationFragment()
+                .actionVisitManagementFragmentToSelectTripDestinationFragment()
         )
     }
 
     fun onDestinationResult(destinationData: DestinationData) {
         loadingStateBase.postValue(true)
-        Log.v("hypertrack-verbose", "true")
         GlobalScope.launch {
             when (val res =
                 tripsInteractor.createTrip(destinationData.latLng, destinationData.address)) {
@@ -158,7 +157,6 @@ class CurrentTripViewModel(
                 }
             }
             loadingStateBase.postValue(false)
-            Log.v("hypertrack-verbose", "false")
         }
     }
 
@@ -347,6 +345,5 @@ class CurrentTripViewModel(
     companion object {
         const val DEFAULT_ZOOM = 15f
     }
-
 
 }

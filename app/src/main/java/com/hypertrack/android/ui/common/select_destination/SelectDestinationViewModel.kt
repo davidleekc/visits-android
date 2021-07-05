@@ -1,12 +1,9 @@
-package com.hypertrack.android.ui.screens.select_destination
+package com.hypertrack.android.ui.common.select_destination
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Paint
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.Transformations
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.*
@@ -18,23 +15,18 @@ import com.google.android.libraries.places.api.net.FetchPlaceResponse
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.hypertrack.android.interactors.PlacesInteractor
-import com.hypertrack.android.interactors.PlacesInteractorImpl
 import com.hypertrack.android.models.Location
-import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.SingleLiveEvent
 import com.hypertrack.android.ui.base.ZipLiveData
-import com.hypertrack.android.ui.common.delegates.GeofenceClusterItem
 import com.hypertrack.android.ui.common.delegates.GeofencesMapDelegate
 import com.hypertrack.android.ui.common.nullIfEmpty
+import com.hypertrack.android.ui.common.requireValue
 import com.hypertrack.android.ui.common.toAddressString
-import com.hypertrack.android.ui.common.toLatLng
+import com.hypertrack.android.ui.common.toNullableAddressString
 import com.hypertrack.android.ui.screens.add_place.AddPlaceFragmentDirections
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
 import com.hypertrack.android.utils.OsUtilsProvider
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
-import net.sharewire.googlemapsclustering.ClusterManager
 
 
 open class SelectDestinationViewModel(
@@ -46,10 +38,22 @@ open class SelectDestinationViewModel(
 
     private var firstLaunch: Boolean = true
     private var programmaticCameraMove: Boolean = false
-    private val currentLocation = MutableLiveData<Location>()
-    val places = MutableLiveData<List<GooglePlaceModel>>()
-    val map = MutableLiveData<GoogleMap>()
-    val searchText = MutableLiveData<String>()
+    private val userLocation = MutableLiveData<Location>()
+    protected val map = MutableLiveData<GoogleMap>()
+
+    private val selectedLocation = MutableLiveData<LatLng>()
+    val address = Transformations.map(selectedLocation) {
+        if (currentPlace != null) {
+            currentPlace!!.toAddressString()
+        } else {
+            osUtilsProvider.getPlaceFromCoordinates(
+                it.latitude,
+                it.longitude,
+            )?.toAddressString()
+        }
+    }
+
+    val placesResults = MutableLiveData<List<GooglePlaceModel>>()
     val error = SingleLiveEvent<String>()
     val closeKeyboard = SingleLiveEvent<Boolean>()
 
@@ -65,37 +69,33 @@ open class SelectDestinationViewModel(
 
     init {
         deviceLocationProvider.getCurrentLocation {
-            currentLocation.postValue(it)
+            userLocation.postValue(it)
         }
     }
 
     init {
-        ZipLiveData(currentLocation, map).apply {
-            //todo check leak
-            observeManaged { pair ->
-                if (map.value!!.cameraPosition.target.latitude
-                    < 0.1 && map.value!!.cameraPosition.target.longitude < 0.1
-                ) {
-                    pair.first.let { location ->
-                        map.value!!.moveCamera(
-                            CameraUpdateFactory.newLatLngZoom(
-                                LatLng(
-                                    location.latitude,
-                                    location.longitude
-                                ), 13f
-                            )
+        ZipLiveData(userLocation, map).observeManaged { pair ->
+            if (map.value!!.cameraPosition.target.latitude
+                < 0.1 && map.value!!.cameraPosition.target.longitude < 0.1
+            ) {
+                pair.first.let { location ->
+                    map.value!!.moveCamera(
+                        CameraUpdateFactory.newLatLngZoom(
+                            LatLng(
+                                location.latitude,
+                                location.longitude
+                            ), 13f
                         )
+                    )
 
-                        bias = RectangularBounds.newInstance(
-                            LatLng(location.latitude - 0.1, location.longitude + 0.1),  // SW
-                            LatLng(location.latitude + 0.1, location.longitude - 0.1) // NE
-                        )
-                    }
-
+                    bias = RectangularBounds.newInstance(
+                        LatLng(location.latitude - 0.1, location.longitude + 0.1),  // SW
+                        LatLng(location.latitude + 0.1, location.longitude - 0.1) // NE
+                    )
                 }
+
             }
         }
-
     }
 
 
@@ -112,17 +112,13 @@ open class SelectDestinationViewModel(
             map.value?.let {
                 onCameraMoved(it)
             }
-            if (/*!firstLaunch &&*/ !programmaticCameraMove) {
-                map.value?.cameraPosition?.target?.let {
+            map.value?.cameraPosition?.target?.let {
+                if (!programmaticCameraMove) {
                     currentPlace = null
-                    searchText.postValue(
-                        osUtilsProvider.getPlaceFromCoordinates(
-                            it.latitude,
-                            it.longitude,
-                        )?.toAddressString()
-                    )
                 }
+                selectedLocation.postValue(it)
             }
+
             firstLaunch = false
             programmaticCameraMove = false
         }
@@ -133,7 +129,7 @@ open class SelectDestinationViewModel(
         }
 
         googleMap.setOnMapClickListener {
-            places.postValue(listOf())
+            placesResults.postValue(listOf())
             closeKeyboard.postValue(true)
         }
 
@@ -155,6 +151,7 @@ open class SelectDestinationViewModel(
 
     fun onSearchQueryChanged(query: String) {
         currentPlace = null
+
         // Create a new token for the autocomplete session. Pass this to FindAutocompletePredictionsRequest,
         // and once again when the user makes a selection (for example when calling selectPlace()).
         if (token == null) {
@@ -166,25 +163,25 @@ open class SelectDestinationViewModel(
             .setSessionToken(token)
             .setQuery(query)
             .setLocationBias(bias)
-        currentLocation.value?.let {
+        userLocation.value?.let {
             requestBuilder.setOrigin(LatLng(it.latitude, it.longitude))
         }
 
         placesClient.findAutocompletePredictions(requestBuilder.build())
             .addOnSuccessListener { response ->
-                places.postValue(GooglePlaceModel.from(response.autocompletePredictions))
+                placesResults.postValue(GooglePlaceModel.from(response.autocompletePredictions))
             }
             .addOnFailureListener { e ->
-                places.postValue(listOf())
+                placesResults.postValue(listOf())
                 error.postValue(e.message)
             }
     }
 
-    open fun onConfirmClicked(address: String) {
+    open fun onConfirmClicked() {
         proceed(
             DestinationData(
                 map.value!!.cameraPosition.target,
-                address = address,
+                address = getAddress(),
                 name = currentPlace?.name
             )
         )
@@ -207,8 +204,7 @@ open class SelectDestinationViewModel(
                 place.latLng?.let { ll ->
                     map.value!!.let {
                         currentPlace = place
-                        places.postValue(listOf())
-                        searchText.postValue(place.toAddressString())
+                        placesResults.postValue(listOf())
                         moveMapCamera(ll.latitude, ll.longitude)
                     }
                 }
@@ -220,6 +216,12 @@ open class SelectDestinationViewModel(
 
     protected open fun proceed(destinationData: DestinationData) {
         goBackEvent.postValue(destinationData)
+    }
+
+    protected fun getAddress(): String? {
+        return osUtilsProvider
+            .getPlaceFromCoordinates(selectedLocation.requireValue())
+            ?.toNullableAddressString()
     }
 
     protected open fun onCameraMoved(map: GoogleMap) {
@@ -238,10 +240,6 @@ open class SelectDestinationViewModel(
                 ), 13f
             )
         )
-    }
-
-    companion object {
-        const val SHOW_DEBUG_DATA = false
     }
 
 }

@@ -59,19 +59,35 @@ fun android.location.Location.toLatLng(): LatLng {
     return LatLng(latitude, longitude)
 }
 
-fun Address.toAddressString(): String {
-    val localityString = (locality?.let { "$it, " } ?: "")
-    val address = if (thoroughfare == null) {
-        " ${LatLng(latitude, longitude).format()}"
+fun Address.toNullableAddressString(): String? {
+    if (thoroughfare == null) {
+        return null
     } else {
-        " $thoroughfare${subThoroughfare?.let { ", $it" } ?: ""}"
+        return toAddressString()
+    }
+}
+
+fun Address.toAddressString(disableCoordinatesFallback: Boolean = false): String {
+    val localityString = locality.wrapIfPresent(end = ",")
+    val address = if (thoroughfare == null) {
+        if (!disableCoordinatesFallback) {
+            " ${LatLng(latitude, longitude).format()}"
+        } else {
+            ""
+        }
+    } else {
+        " $thoroughfare${subThoroughfare.wrapIfPresent(start = ",")}"
     }
     return "$localityString$address"
 }
 
-fun Address.toShortAddressString(): String {
+fun Address.toShortAddressString(disableCoordinatesFallback: Boolean = false): String {
     val address = if (thoroughfare == null) {
-        " ${LatLng(latitude, longitude).format()}"
+        if (!disableCoordinatesFallback) {
+            " ${LatLng(latitude, longitude).format()}"
+        } else {
+            locality
+        }
     } else {
         "$thoroughfare${subThoroughfare?.let { ", $it" } ?: ""}"
     }
@@ -106,5 +122,9 @@ fun Double.roundToSign(n: Int): Double {
 
 fun LatLng.format(): String {
     return "${latitude.roundToSign(5)}, ${longitude.roundToSign(5)}"
+}
+
+fun String?.wrapIfPresent(start: String? = null, end: String? = null): String {
+    return this?.let { "${start.wrapIfPresent()}$it${end.wrapIfPresent()}" } ?: ""
 }
 

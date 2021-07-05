@@ -18,6 +18,7 @@ import com.hypertrack.android.ui.common.ParamViewModelFactory
 import com.hypertrack.android.ui.common.Tab
 import com.hypertrack.android.ui.common.UserScopeViewModelFactory
 import com.hypertrack.android.ui.common.ViewModelFactory
+import com.hypertrack.android.ui.common.select_destination.DestinationData
 import com.hypertrack.android.ui.screens.add_place_info.AddPlaceInfoViewModel
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.*
 import com.hypertrack.android.utils.injection.CustomFragmentFactory
@@ -62,6 +63,7 @@ class ServiceLocator(val crashReportsProvider: CrashReportsProvider) {
 object Injector {
 
     private var userScope: UserScope? = null
+    var tripCreationScope: TripCreationScope? = null
 
     private var visitsRepository: VisitsRepository? = null
 
@@ -446,6 +448,10 @@ object Injector {
     }
 
 }
+
+class TripCreationScope(
+    val destinationData: DestinationData
+)
 
 class UserScope(
     val historyRepository: HistoryRepository,

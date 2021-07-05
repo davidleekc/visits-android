@@ -10,7 +10,6 @@ import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.interactors.TripsInteractor
 import com.hypertrack.android.repository.*
 import com.hypertrack.android.ui.screens.add_integration.AddIntegrationViewModel
-import com.hypertrack.android.ui.screens.add_order.AddOrderViewModel
 import com.hypertrack.android.ui.screens.add_place.AddPlaceViewModel
 import com.hypertrack.android.ui.screens.visits_management.VisitsManagementViewModel
 import com.hypertrack.android.ui.screens.visits_management.tabs.profile.ProfileViewModel
@@ -19,7 +18,8 @@ import com.hypertrack.android.utils.CrashReportsProvider
 import com.hypertrack.android.utils.HyperTrackService
 import com.hypertrack.android.ui.screens.driver_id_input.DriverLoginViewModel
 import com.hypertrack.android.ui.screens.permission_request.PermissionRequestViewModel
-import com.hypertrack.android.ui.screens.select_destination.SelectDestinationViewModel
+import com.hypertrack.android.ui.common.select_destination.SelectDestinationViewModel
+import com.hypertrack.android.ui.screens.select_trip_destination.SelectTripDestinationViewModel
 import com.hypertrack.android.ui.screens.send_feedback.SendFeedbackViewModel
 import com.hypertrack.android.ui.screens.visits_management.tabs.current_trip.CurrentTripViewModel
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
@@ -119,6 +119,12 @@ class UserScopeViewModelFactory(
                 accountRepository,
                 osUtilsProvider,
                 crashReportsProvider,
+            ) as T
+            SelectTripDestinationViewModel::class.java -> SelectTripDestinationViewModel(
+                placesInteractor,
+                placesClient,
+                deviceLocationProvider,
+                osUtilsProvider,
             ) as T
             else -> throw IllegalArgumentException("Can't instantiate class $modelClass")
         }

@@ -143,10 +143,7 @@ class AddPlaceInfoViewModel(
                     is CreateGeofenceSuccess -> {
                         destination.postValue(
                             AddPlaceFragmentDirections.actionGlobalVisitManagementFragment(
-                                tab = Tab.PLACES,
-                                addedData = VisitsManagementFragment.AddedData(
-                                    geofence = LocalGeofenceJson(moshi, res.geofence)
-                                )
+                                Tab.PLACES
                             )
                         )
                     }

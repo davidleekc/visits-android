@@ -1,4 +1,4 @@
-package com.hypertrack.android.ui.screens.select_destination;
+package com.hypertrack.android.ui.common.select_destination;
 
 
 import android.content.Context;

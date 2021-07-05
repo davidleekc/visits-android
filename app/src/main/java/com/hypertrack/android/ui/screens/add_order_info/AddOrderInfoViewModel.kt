@@ -10,12 +10,15 @@ import com.hypertrack.android.interactors.AddOrderError
 import com.hypertrack.android.interactors.AddOrderSuccess
 import com.hypertrack.android.interactors.TripsInteractor
 import com.hypertrack.android.ui.base.BaseViewModel
-import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.base.SingleLiveEvent
 import com.hypertrack.android.ui.common.Tab
+import com.hypertrack.android.ui.common.select_destination.DestinationData
 import com.hypertrack.android.ui.common.toAddressString
-import com.hypertrack.android.ui.screens.select_destination.DestinationData
+import com.hypertrack.android.ui.common.toNullableAddressString
+import com.hypertrack.android.ui.screens.add_order.AddOrderFragmentDirections
+import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.android.utils.OsUtilsProvider
+import com.hypertrack.android.utils.TripCreationScope
 import com.hypertrack.logistics.android.github.NavGraphDirections
 import kotlinx.coroutines.launch
 
@@ -40,7 +43,8 @@ class AddOrderInfoViewModel(
                 destinationData.latLng.latitude,
                 destinationData.latLng.longitude
             )?.let {
-                postValue(it.toAddressString())
+                //todo set edittext hint with partial address
+                postValue(it.toNullableAddressString())
             }
         }
     }
@@ -54,24 +58,32 @@ class AddOrderInfoViewModel(
 
     fun onConfirmClicked(address: String) {
         if (enableConfirmButton.value!!) {
-            viewModelScope.launch {
-                loadingStateBase.postValue(true)
-                val res = tripsInteractor.addOrderToTrip(
-                    tripId = params.tripId,
-                    destinationData.latLng,
-                    address
-                )
-                when (res) {
-                    is AddOrderSuccess -> {
-                        destination.postValue(
-                            NavGraphDirections.actionGlobalVisitManagementFragment(Tab.MAP)
-                        )
+            if (!params.isNewTrip) {
+                viewModelScope.launch {
+                    loadingStateBase.postValue(true)
+                    val res = tripsInteractor.addOrderToTrip(
+                        tripId = params.tripId!!,
+                        destinationData.latLng,
+                        address
+                    )
+                    when (res) {
+                        is AddOrderSuccess -> {
+                            destination.postValue(
+                                NavGraphDirections.actionGlobalVisitManagementFragment(Tab.MAP)
+                            )
+                        }
+                        is AddOrderError -> {
+                            error.postValue(osUtilsProvider.getErrorMessage(res.e))
+                        }
                     }
-                    is AddOrderError -> {
-                        error.postValue(osUtilsProvider.getErrorMessage(res.e))
-                    }
+                    loadingStateBase.postValue(false)
                 }
-                loadingStateBase.postValue(false)
+            } else {
+                MyApplication.injector.tripCreationScope = TripCreationScope(destinationData)
+                destination.postValue(
+                    AddOrderFragmentDirections
+                        .actionGlobalVisitManagementFragment(Tab.MAP)
+                )
             }
         } else {
 //            error.postValue(osUtilsProvider.getString(R.string.place_info_confirm_disabled))
@@ -89,8 +101,10 @@ class AddOrderInfoViewModel(
     }
 
     class Params(
-        val tripId: String,
-        val destinationData: DestinationData
-    )
+        val destinationData: DestinationData,
+        val tripId: String?
+    ) {
+        val isNewTrip = tripId == null
+    }
 
 }

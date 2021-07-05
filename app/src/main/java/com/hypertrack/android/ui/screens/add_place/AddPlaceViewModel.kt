@@ -7,8 +7,8 @@ import androidx.lifecycle.viewModelScope
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.ui.base.Consumable
-import com.hypertrack.android.ui.screens.select_destination.DestinationData
-import com.hypertrack.android.ui.screens.select_destination.SelectDestinationViewModel
+import com.hypertrack.android.ui.common.select_destination.DestinationData
+import com.hypertrack.android.ui.common.select_destination.SelectDestinationViewModel
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
 import com.hypertrack.android.utils.OsUtilsProvider
 import kotlinx.coroutines.launch
@@ -32,18 +32,17 @@ class AddPlaceViewModel(
 
     override val errorBase = MediatorLiveData<Consumable<String>>().apply {
         addSource(placesInteractor.errorFlow.asLiveData()) { e ->
-            map.value?.let { onCameraMoved(it) }
             postValue(e.map {
                 osUtilsProvider.getErrorMessage(it)
             })
         }
     }
 
-    override fun onConfirmClicked(address: String) {
+    override fun onConfirmClicked() {
         proceedCreation(
             DestinationData(
                 map.value!!.cameraPosition.target,
-                address = address,
+                address = getAddress(),
                 name = currentPlace?.name
             )
         )

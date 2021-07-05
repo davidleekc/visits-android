@@ -116,6 +116,10 @@ class OsUtilsProvider(
         }
     }
 
+    fun getPlaceFromCoordinates(latLng: LatLng): android.location.Address? {
+        return getPlaceFromCoordinates(latLng.latitude, latLng.longitude)
+    }
+
     fun makeToast(@StringRes txtRes: Int) {
         makeToast(txtRes.stringFromResource())
     }

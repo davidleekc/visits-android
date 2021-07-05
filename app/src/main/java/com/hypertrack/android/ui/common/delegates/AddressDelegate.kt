@@ -18,7 +18,7 @@ class OrderAddressDelegate(val osUtilsProvider: OsUtilsProvider) {
         } ?: osUtilsProvider.getPlaceFromCoordinates(
             order.destinationLatLng.latitude,
             order.destinationLatLng.longitude
-        )?.toShortAddressString()
+        )?.toShortAddressString(disableCoordinatesFallback = true)
         ?: order.scheduledAt?.let {
             osUtilsProvider.stringFromResource(R.string.order_scheduled_at, it.formatDateTime())
         }
@@ -30,7 +30,7 @@ class OrderAddressDelegate(val osUtilsProvider: OsUtilsProvider) {
             ?: osUtilsProvider.getPlaceFromCoordinates(
                 order.destinationLatLng.latitude,
                 order.destinationLatLng.longitude
-            )?.toAddressString()
+            )?.toAddressString(disableCoordinatesFallback = true)
             ?: osUtilsProvider.stringFromResource(R.string.address_not_available)
     }
 

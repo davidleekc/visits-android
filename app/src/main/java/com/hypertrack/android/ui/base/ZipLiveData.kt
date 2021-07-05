@@ -10,7 +10,6 @@ class ZipLiveData<T, R>(liveData1: LiveData<T>, liveData2: LiveData<R>) :
     private var res2: R? = null
 
     init {
-
         addSource(liveData1) {
             res1 = it
             update()

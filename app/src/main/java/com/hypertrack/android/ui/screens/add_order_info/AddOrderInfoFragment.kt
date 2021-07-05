@@ -24,8 +24,8 @@ class AddOrderInfoFragment : ProgressDialogFragment(R.layout.fragment_add_order_
     private val vm: AddOrderInfoViewModel by viewModels {
         MyApplication.injector.provideParamVmFactory(
             AddOrderInfoViewModel.Params(
-                args.tripId,
-                args.destinationData
+                args.destinationData,
+                args.tripId
             )
         )
     }

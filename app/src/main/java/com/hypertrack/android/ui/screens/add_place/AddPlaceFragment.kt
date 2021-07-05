@@ -1,18 +1,12 @@
 package com.hypertrack.android.ui.screens.add_place
 
 import android.os.Bundle
-import android.text.Editable
-import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
-import androidx.navigation.fragment.findNavController
-import com.google.android.gms.maps.SupportMapFragment
-import com.hypertrack.android.ui.base.ProgressDialogFragment
 import com.hypertrack.android.ui.common.*
-import com.hypertrack.android.ui.common.Utils.isDoneAction
-import com.hypertrack.android.ui.screens.select_destination.DestinationData
-import com.hypertrack.android.ui.screens.select_destination.SelectDestinationFragment
+import com.hypertrack.android.ui.common.select_destination.DestinationData
+import com.hypertrack.android.ui.common.select_destination.SelectDestinationFragment
 import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.android.utils.stringFromResource
 import com.hypertrack.logistics.android.github.R
