@@ -12,9 +12,8 @@ import com.hypertrack.android.interactors.TripsInteractor
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.SingleLiveEvent
 import com.hypertrack.android.ui.common.Tab
+import com.hypertrack.android.ui.common.delegates.toAddressString
 import com.hypertrack.android.ui.common.select_destination.DestinationData
-import com.hypertrack.android.ui.common.toAddressString
-import com.hypertrack.android.ui.common.toNullableAddressString
 import com.hypertrack.android.ui.screens.add_order.AddOrderFragmentDirections
 import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.android.utils.OsUtilsProvider
@@ -44,7 +43,7 @@ class AddOrderInfoViewModel(
                 destinationData.latLng.longitude
             )?.let {
                 //todo set edittext hint with partial address
-                postValue(it.toNullableAddressString())
+                postValue(it.toAddressString(strictMode = true))
             }
         }
     }

@@ -5,6 +5,7 @@ import com.hypertrack.android.api.ApiClient
 import com.hypertrack.android.models.GeofenceMetadata
 import com.hypertrack.android.models.Integration
 import com.hypertrack.android.models.local.LocalGeofence
+import com.hypertrack.android.ui.common.nullIfBlank
 import com.hypertrack.android.ui.common.nullIfEmpty
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.squareup.moshi.Moshi
@@ -58,10 +59,10 @@ class PlacesRepositoryImpl(
                 longitude = longitude,
                 radius = radius,
                 GeofenceMetadata(
-                    name = name.nullIfEmpty() ?: integration?.name,
+                    name = name.nullIfBlank() ?: integration?.name,
                     integration = integration,
-                    description = description.nullIfEmpty(),
-                    address = address.nullIfEmpty()
+                    description = description.nullIfBlank(),
+                    address = address.nullIfBlank()
                 )
             )
             if (res.isSuccessful) {

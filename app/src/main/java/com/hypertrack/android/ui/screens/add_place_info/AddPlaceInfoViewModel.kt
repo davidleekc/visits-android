@@ -1,7 +1,6 @@
 package com.hypertrack.android.ui.screens.add_place_info
 
 import android.annotation.SuppressLint
-import androidx.annotation.StringRes
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -11,19 +10,14 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.models.Integration
-import com.hypertrack.android.models.local.LocalGeofenceJson
 import com.hypertrack.android.repository.CreateGeofenceError
 import com.hypertrack.android.repository.CreateGeofenceSuccess
 import com.hypertrack.android.repository.IntegrationsRepository
-import com.hypertrack.android.repository.PlacesRepository
 import com.hypertrack.android.ui.base.BaseViewModel
-import com.hypertrack.android.ui.base.SingleLiveEvent
 import com.hypertrack.android.ui.common.Tab
-import com.hypertrack.android.ui.common.toAddressString
+import com.hypertrack.android.ui.common.delegates.toAddressString
 import com.hypertrack.android.ui.screens.add_place.AddPlaceFragmentDirections
-import com.hypertrack.android.ui.screens.visits_management.VisitsManagementFragment
 import com.hypertrack.android.utils.OsUtilsProvider
-import com.hypertrack.android.utils.ResultEmptySuccess
 import com.hypertrack.android.utils.ResultError
 import com.hypertrack.android.utils.ResultSuccess
 import com.hypertrack.logistics.android.github.R

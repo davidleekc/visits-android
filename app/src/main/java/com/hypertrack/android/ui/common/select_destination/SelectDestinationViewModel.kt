@@ -19,11 +19,9 @@ import com.hypertrack.android.models.Location
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.SingleLiveEvent
 import com.hypertrack.android.ui.base.ZipLiveData
+import com.hypertrack.android.ui.common.*
 import com.hypertrack.android.ui.common.delegates.GeofencesMapDelegate
-import com.hypertrack.android.ui.common.nullIfEmpty
-import com.hypertrack.android.ui.common.requireValue
-import com.hypertrack.android.ui.common.toAddressString
-import com.hypertrack.android.ui.common.toNullableAddressString
+import com.hypertrack.android.ui.common.delegates.toAddressString
 import com.hypertrack.android.ui.screens.add_place.AddPlaceFragmentDirections
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
 import com.hypertrack.android.utils.OsUtilsProvider
@@ -221,7 +219,7 @@ open class SelectDestinationViewModel(
     protected fun getAddress(): String? {
         return osUtilsProvider
             .getPlaceFromCoordinates(selectedLocation.requireValue())
-            ?.toNullableAddressString()
+            ?.toAddressString(strictMode = true)
     }
 
     protected open fun onCameraMoved(map: GoogleMap) {

@@ -13,6 +13,8 @@ import com.hypertrack.android.models.local.OrderStatus
 import com.hypertrack.android.models.local.TripStatus
 import com.hypertrack.android.repository.*
 import com.hypertrack.android.ui.base.Consumable
+import com.hypertrack.android.ui.common.nullIfBlank
+import com.hypertrack.android.ui.common.nullIfEmpty
 import com.hypertrack.android.ui.common.toHotTransformation
 import com.hypertrack.android.utils.HyperTrackService
 import com.hypertrack.android.utils.ImageDecoder
@@ -152,7 +154,7 @@ open class TripsInteractorImpl(
 
     override suspend fun createTrip(latLng: LatLng, address: String?): TripCreationResult {
         return withContext(globalScope.coroutineContext) {
-            tripsRepository.createTrip(latLng, address)
+            tripsRepository.createTrip(latLng, address.nullIfBlank())
         }
     }
 

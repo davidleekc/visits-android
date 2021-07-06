@@ -10,7 +10,9 @@ import com.hypertrack.android.models.local.OrderStatus
 import com.hypertrack.android.ui.MainActivity
 import com.hypertrack.android.ui.base.BaseFragment
 import com.hypertrack.android.ui.common.*
+import com.hypertrack.android.ui.common.delegates.OrderAddressDelegate
 import com.hypertrack.android.utils.Injector
+import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.logistics.android.github.R
 import kotlinx.android.synthetic.main.fragment_orders.*
 
@@ -21,9 +23,16 @@ class OrdersFragment : BaseFragment<MainActivity>(R.layout.fragment_orders) {
     }
 
     private val keyValueAdapter = KeyValueAdapter(showCopyButton = true)
-    private val ordersAdapter = OrdersAdapter(
-        Injector.getTimeDistanceFormatter()
-    )
+
+    private val addressDelegate by lazy {
+        OrderAddressDelegate(MyApplication.injector.getOsUtilsProvider(requireContext()))
+    }
+    private val ordersAdapter by lazy {
+        OrdersAdapter(
+            Injector.getTimeDistanceFormatter(),
+            addressDelegate
+        )
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
