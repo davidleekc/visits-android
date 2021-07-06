@@ -89,14 +89,22 @@ open class TripsInteractorImpl(
     }
 
     override suspend fun completeOrder(orderId: String): OrderCompletionResponse {
-        return withContext(globalScope.coroutineContext) {
-            setOrderCompletionStatus(orderId, canceled = false)
+        if (hyperTrackService.isTracking.value == true) {
+            return withContext(globalScope.coroutineContext) {
+                setOrderCompletionStatus(orderId, canceled = false)
+            }
+        } else {
+            return OrderCompletionFailure(NotClockedInException)
         }
     }
 
     override suspend fun cancelOrder(orderId: String): OrderCompletionResponse {
-        return withContext(globalScope.coroutineContext) {
-            setOrderCompletionStatus(orderId, canceled = true)
+        if (hyperTrackService.isTracking.value == true) {
+            return withContext(globalScope.coroutineContext) {
+                setOrderCompletionStatus(orderId, canceled = true)
+            }
+        } else {
+            return OrderCompletionFailure(NotClockedInException)
         }
     }
 
@@ -293,4 +301,4 @@ sealed class AddOrderResult
 object AddOrderSuccess : AddOrderResult()
 class AddOrderError(val e: Exception) : AddOrderResult()
 
-
+object NotClockedInException : Exception()

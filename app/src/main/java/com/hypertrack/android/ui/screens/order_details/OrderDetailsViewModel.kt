@@ -16,7 +16,7 @@ import com.hypertrack.android.repository.AccountRepository
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.base.ErrorHandler
-import com.hypertrack.android.ui.base.ZipLiveData
+import com.hypertrack.android.ui.base.ZipNotNullableLiveData
 import com.hypertrack.android.ui.common.KeyValueItem
 import com.hypertrack.android.ui.common.delegates.OrderAddressDelegate
 import com.hypertrack.android.ui.common.format
@@ -102,7 +102,7 @@ class OrderDetailsViewModel(
     val externalMapsIntent = MutableLiveData<Consumable<Intent>>()
 
     init {
-        ZipLiveData(order, map).apply {
+        ZipNotNullableLiveData(order, map).apply {
             //todo check leaks
             observeForever {
                 displayOrderLocation(it.first, it.second)
@@ -234,7 +234,11 @@ class OrderDetailsViewModel(
                 errorHandler.postText(R.string.order_already_canceled)
             }
             is OrderCompletionFailure -> {
-                errorHandler.postException(res.exception)
+                if (res.exception is NotClockedInException) {
+                    errorHandler.postText(R.string.order_not_clocked_in)
+                } else {
+                    errorHandler.postException(res.exception)
+                }
             }
             else -> {
             }

@@ -15,7 +15,7 @@ import com.hypertrack.android.models.Integration
 import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.Consumable
-import com.hypertrack.android.ui.base.ZipLiveData
+import com.hypertrack.android.ui.base.ZipNotNullableLiveData
 import com.hypertrack.android.ui.common.KeyValueItem
 import com.hypertrack.android.ui.common.delegates.GeofenceAddressDelegate
 import com.hypertrack.android.ui.common.format
@@ -81,7 +81,7 @@ class PlaceDetailsViewModel(
 
     init {
         //todo check leak
-        ZipLiveData(geofence, map).apply {
+        ZipNotNullableLiveData(geofence, map).apply {
             observeForever {
                 displayGeofenceLocation(it.first, it.second)
             }

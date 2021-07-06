@@ -18,7 +18,7 @@ import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.models.Location
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.SingleLiveEvent
-import com.hypertrack.android.ui.base.ZipLiveData
+import com.hypertrack.android.ui.base.ZipNotNullableLiveData
 import com.hypertrack.android.ui.common.*
 import com.hypertrack.android.ui.common.delegates.GeofencesMapDelegate
 import com.hypertrack.android.ui.common.delegates.toAddressString
@@ -72,7 +72,7 @@ open class SelectDestinationViewModel(
     }
 
     init {
-        ZipLiveData(userLocation, map).observeManaged { pair ->
+        ZipNotNullableLiveData(userLocation, map).observeManaged { pair ->
             if (map.value!!.cameraPosition.target.latitude
                 < 0.1 && map.value!!.cameraPosition.target.longitude < 0.1
             ) {
