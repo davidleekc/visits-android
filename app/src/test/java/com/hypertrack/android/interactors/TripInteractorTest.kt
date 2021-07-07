@@ -1,6 +1,7 @@
 package com.hypertrack.android.interactors
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asLiveData
 import com.google.android.gms.maps.model.LatLng
 import com.hypertrack.android.api.*
@@ -574,6 +575,7 @@ class TripInteractorTest {
             apiClient: ApiClient = createMockApiClient(backendTrips),
             hyperTrackService: HyperTrackService = mockk(relaxed = true) {
                 coEvery { sendPickedUp(any(), any()) } returns Unit
+                every { isTracking } returns MutableLiveData(true)
             },
             queueInteractor: PhotoUploadQueueInteractor = mockk(relaxed = true) {},
             tripsRepository: TripsRepository = TripsRepositoryImpl(
