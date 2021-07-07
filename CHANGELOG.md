@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.9.19] - 2021-07-07
+- Places and Trips experience fixes
+- Email feedback form
+
 ## [0.9.18] - 2021-06-25
 - Bugfixes
 
