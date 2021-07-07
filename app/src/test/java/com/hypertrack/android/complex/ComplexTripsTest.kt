@@ -1,6 +1,8 @@
 package com.hypertrack.android.complex
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import com.google.android.gms.maps.model.LatLng
+import com.hypertrack.android.api.ApiClient
 import com.hypertrack.android.api.MainCoroutineScopeRule
 import com.hypertrack.android.createBaseOrder
 import com.hypertrack.android.createBaseTrip
@@ -8,9 +10,11 @@ import com.hypertrack.android.interactors.TripInteractorTest
 import com.hypertrack.android.models.local.LocalOrder
 import com.hypertrack.android.models.local.OrderStatus
 import com.hypertrack.android.observeAndGetValue
+import com.hypertrack.android.ui.common.select_destination.DestinationData
 import com.hypertrack.android.ui.screens.order_details.OrderDetailsViewModel
+import com.hypertrack.android.ui.screens.visits_management.tabs.current_trip.CurrentTripViewModel
 import com.hypertrack.android.ui.screens.visits_management.tabs.orders.OrdersListViewModel
-import io.mockk.mockk
+import io.mockk.*
 import junit.framework.Assert.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay

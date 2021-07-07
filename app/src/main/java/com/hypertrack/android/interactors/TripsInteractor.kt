@@ -13,6 +13,8 @@ import com.hypertrack.android.models.local.OrderStatus
 import com.hypertrack.android.models.local.TripStatus
 import com.hypertrack.android.repository.*
 import com.hypertrack.android.ui.base.Consumable
+import com.hypertrack.android.ui.common.nullIfBlank
+import com.hypertrack.android.ui.common.nullIfEmpty
 import com.hypertrack.android.ui.common.toHotTransformation
 import com.hypertrack.android.utils.HyperTrackService
 import com.hypertrack.android.utils.ImageDecoder
@@ -87,14 +89,22 @@ open class TripsInteractorImpl(
     }
 
     override suspend fun completeOrder(orderId: String): OrderCompletionResponse {
-        return withContext(globalScope.coroutineContext) {
-            setOrderCompletionStatus(orderId, canceled = false)
+        if (hyperTrackService.isTracking.value == true) {
+            return withContext(globalScope.coroutineContext) {
+                setOrderCompletionStatus(orderId, canceled = false)
+            }
+        } else {
+            return OrderCompletionFailure(NotClockedInException)
         }
     }
 
     override suspend fun cancelOrder(orderId: String): OrderCompletionResponse {
-        return withContext(globalScope.coroutineContext) {
-            setOrderCompletionStatus(orderId, canceled = true)
+        if (hyperTrackService.isTracking.value == true) {
+            return withContext(globalScope.coroutineContext) {
+                setOrderCompletionStatus(orderId, canceled = true)
+            }
+        } else {
+            return OrderCompletionFailure(NotClockedInException)
         }
     }
 
@@ -152,7 +162,7 @@ open class TripsInteractorImpl(
 
     override suspend fun createTrip(latLng: LatLng, address: String?): TripCreationResult {
         return withContext(globalScope.coroutineContext) {
-            tripsRepository.createTrip(latLng, address)
+            tripsRepository.createTrip(latLng, address.nullIfBlank())
         }
     }
 
@@ -291,4 +301,4 @@ sealed class AddOrderResult
 object AddOrderSuccess : AddOrderResult()
 class AddOrderError(val e: Exception) : AddOrderResult()
 
-
+object NotClockedInException : Exception()

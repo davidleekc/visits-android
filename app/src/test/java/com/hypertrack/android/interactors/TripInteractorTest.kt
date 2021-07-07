@@ -1,7 +1,9 @@
 package com.hypertrack.android.interactors
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asLiveData
+import com.google.android.gms.maps.model.LatLng
 import com.hypertrack.android.api.*
 import com.hypertrack.android.createBaseOrder
 import com.hypertrack.android.createBaseTrip
@@ -13,10 +15,9 @@ import com.hypertrack.android.models.local.OrderStatus
 import com.hypertrack.android.models.local.TripStatus
 import com.hypertrack.android.observeAndAssertNull
 import com.hypertrack.android.observeAndGetValue
-import com.hypertrack.android.repository.AccountRepository
-import com.hypertrack.android.repository.TripsRepository
-import com.hypertrack.android.repository.TripsRepositoryImpl
-import com.hypertrack.android.repository.TripsStorage
+import com.hypertrack.android.repository.*
+import com.hypertrack.android.ui.common.select_destination.DestinationData
+import com.hypertrack.android.ui.screens.visits_management.tabs.current_trip.CurrentTripViewModel
 import com.hypertrack.android.utils.HyperTrackService
 import com.hypertrack.android.utils.Injector
 import io.mockk.*
@@ -456,6 +457,27 @@ class TripInteractorTest {
         }
     }
 
+    @Test
+    fun `it should create an order with null address if address is blank`() {
+        var slot: String? = "default"
+        val apiClient: ApiClient = mockk(relaxed = true) {
+            coEvery { createTrip(any(), any()) } coAnswers {
+                slot = secondArg()
+                createBaseTrip()
+            }
+        }
+        val tripsInteractor = createTripInteractorImpl(
+            apiClient = apiClient,
+        )
+        runBlocking {
+            tripsInteractor.createTrip(LatLng(1.1, 1.1), " ")
+        }
+        coVerifyAll {
+            apiClient.createTrip(any(), any())
+        }
+        assertEquals(null, slot)
+    }
+
     //todo disabled because of Indiabulls
 //    @Test
 //    fun `it should complete trip on order complete for legacy trips`() {
@@ -553,6 +575,7 @@ class TripInteractorTest {
             apiClient: ApiClient = createMockApiClient(backendTrips),
             hyperTrackService: HyperTrackService = mockk(relaxed = true) {
                 coEvery { sendPickedUp(any(), any()) } returns Unit
+                every { isTracking } returns MutableLiveData(true)
             },
             queueInteractor: PhotoUploadQueueInteractor = mockk(relaxed = true) {},
             tripsRepository: TripsRepository = TripsRepositoryImpl(

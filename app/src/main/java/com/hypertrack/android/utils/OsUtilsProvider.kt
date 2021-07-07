@@ -215,7 +215,7 @@ class OsUtilsProvider(
                     Log.v("hypertrack-verbose", errorBody.toString())
                 }
                 val path = e.response()?.raw()?.request?.let {
-                    "${it.method} ${it.url.encodedPath}"
+                    "${it.method} ${e.response()!!.code()} ${it.url.encodedPath}"
                 }
                 return "${path.toString()}\n\n${errorBody.toString()}"
             }

@@ -16,8 +16,11 @@ import com.hypertrack.android.models.local.OrderStatus
 import com.hypertrack.android.models.local.TripStatus
 import com.hypertrack.android.observeAndGetValue
 import com.hypertrack.android.ui.base.Consumable
+import com.hypertrack.android.ui.common.updateValue
 import com.hypertrack.android.ui.screens.visit_details.VisitDetailsFragment
 import com.hypertrack.android.utils.HyperTrackService
+import com.hypertrack.android.utils.TrackingState
+import com.hypertrack.android.utils.TrackingStateValue
 import com.hypertrack.sdk.HyperTrack
 import io.mockk.*
 import kotlinx.coroutines.delay
@@ -153,7 +156,10 @@ class OrdersDetailsViewModelLegacyTest {
 
             delay(100)
 
-            assertEquals("New note", OrdersDetailsViewModelTest.createVm("1", tripsInteractor).note.observeAndGetValue())
+            assertEquals(
+                "New note",
+                OrdersDetailsViewModelTest.createVm("1", tripsInteractor).note.observeAndGetValue()
+            )
         }
     }
 
@@ -233,7 +239,11 @@ class OrdersDetailsViewModelLegacyTest {
                 every { addGeotag(capture(slot), any()) } returns mockk()
                 every { isRunning } returns true
             }
-            val hts = HyperTrackService(mockk(relaxed = true), sdk)
+            val state = TrackingState(mockk(relaxed = true)).apply {
+                state.updateValue(TrackingStateValue.TRACKING)
+            }
+            val hts = HyperTrackService(state, sdk)
+            assertEquals(true, hts.isTracking.observeAndGetValue())
             val tripsInteractor = TripInteractorTest.createTripInteractorImpl(
                 tripStorage = mockk {
                     coEvery { getTrips() } returns listOf(
@@ -270,6 +280,10 @@ class OrdersDetailsViewModelLegacyTest {
 
             OrdersDetailsViewModelTest.createVm("1", tripsInteractor, false).onCompleteClicked()
 
+            verify {
+                sdk.addGeotag(any(), any())
+            }
+
             slot.captured.let {
                 assertEquals("1", it["trip_id"])
                 assertEquals("VISIT_MARKED_COMPLETE", it["type"])
@@ -299,7 +313,10 @@ class OrdersDetailsViewModelLegacyTest {
                 every { addGeotag(capture(slot), any()) } returns mockk()
                 every { isRunning } returns true
             }
-            val hts = HyperTrackService(mockk(relaxed = true), sdk)
+            val hts = HyperTrackService(TrackingState(mockk(relaxed = true)).apply {
+                state.updateValue(TrackingStateValue.TRACKING)
+            }, sdk)
+            assertEquals(true, hts.isTracking.observeAndGetValue())
             val tripsInteractor = TripInteractorTest.createTripInteractorImpl(
                 tripStorage = mockk {
                     coEvery { getTrips() } returns listOf(

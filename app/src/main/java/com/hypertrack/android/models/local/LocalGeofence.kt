@@ -5,9 +5,8 @@ import com.google.android.gms.maps.model.LatLng
 import com.hypertrack.android.api.Geofence
 import com.hypertrack.android.api.GeofenceMarker
 import com.hypertrack.android.models.*
+import com.hypertrack.android.ui.common.nullIfBlank
 import com.hypertrack.android.ui.common.nullIfEmpty
-import com.hypertrack.android.ui.common.toAddressString
-import com.hypertrack.android.ui.common.toShortAddressString
 import com.hypertrack.android.utils.Meter
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.logistics.android.github.BuildConfig
@@ -66,8 +65,8 @@ data class LocalGeofence(
             val metadata = geofence.metadata?.toMutableMap() ?: mutableMapOf()
 
             val metadataAddress = metadata.remove(GeofenceMetadata.KEY_ADDRESS) as String?
-            val address = geofence.address.nullIfEmpty()
-                ?: metadataAddress.nullIfEmpty()
+            val address = geofence.address.nullIfBlank()
+                ?: metadataAddress.nullIfBlank()
             val integration = metadata.remove(GeofenceMetadata.KEY_INTEGRATION)?.let {
                 try {
                     moshi.adapter(GeofenceMetadata::class.java)

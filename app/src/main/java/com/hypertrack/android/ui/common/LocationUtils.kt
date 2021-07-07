@@ -59,63 +59,6 @@ fun android.location.Location.toLatLng(): LatLng {
     return LatLng(latitude, longitude)
 }
 
-fun Address.toNullableAddressString(): String? {
-    if (thoroughfare == null) {
-        return null
-    } else {
-        return toAddressString()
-    }
-}
-
-fun Address.toAddressString(disableCoordinatesFallback: Boolean = false): String {
-    val localityString = locality.wrapIfPresent(end = ",")
-    val address = if (thoroughfare == null) {
-        if (!disableCoordinatesFallback) {
-            " ${LatLng(latitude, longitude).format()}"
-        } else {
-            ""
-        }
-    } else {
-        " $thoroughfare${subThoroughfare.wrapIfPresent(start = ",")}"
-    }
-    return "$localityString$address"
-}
-
-fun Address.toShortAddressString(disableCoordinatesFallback: Boolean = false): String {
-    val address = if (thoroughfare == null) {
-        if (!disableCoordinatesFallback) {
-            " ${LatLng(latitude, longitude).format()}"
-        } else {
-            locality
-        }
-    } else {
-        "$thoroughfare${subThoroughfare?.let { ", $it" } ?: ""}"
-    }
-    return address
-}
-
-fun Place.toAddressString(): String {
-    val locality =
-        addressComponents?.asList()?.filter { "locality" in it.types }?.firstOrNull()?.name
-            ?: addressComponents?.asList()?.filter { "administrative_area_level_1" in it.types }
-                ?.firstOrNull()?.name
-            ?: addressComponents?.asList()?.filter { "administrative_area_level_2" in it.types }
-                ?.firstOrNull()?.name
-            ?: addressComponents?.asList()?.filter { "political" in it.types }?.firstOrNull()?.name
-    val thoroughfare =
-        addressComponents?.asList()?.filter { "route" in it.types }?.firstOrNull()?.name
-    val subThoroughfare =
-        addressComponents?.asList()?.filter { "street_number" in it.types }?.firstOrNull()?.name
-
-    val localityString = (locality?.let { "$it, " } ?: "")
-    val address = if (thoroughfare == null) {
-        latLng?.format() ?: ""
-    } else {
-        " $thoroughfare${subThoroughfare?.let { ", $it" } ?: ""}"
-    }
-    return "$localityString$address"
-}
-
 fun Double.roundToSign(n: Int): Double {
     return round(this * 10.0.pow(n)) / (10.0.pow(n))
 }
@@ -124,7 +67,5 @@ fun LatLng.format(): String {
     return "${latitude.roundToSign(5)}, ${longitude.roundToSign(5)}"
 }
 
-fun String?.wrapIfPresent(start: String? = null, end: String? = null): String {
-    return this?.let { "${start.wrapIfPresent()}$it${end.wrapIfPresent()}" } ?: ""
-}
+
 

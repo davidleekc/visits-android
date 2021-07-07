@@ -11,6 +11,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.hypertrack.android.models.local.LocalTrip
 import com.hypertrack.android.ui.base.ProgressDialogFragment
 import com.hypertrack.android.ui.common.*
+import com.hypertrack.android.ui.common.delegates.OrderAddressDelegate
 import com.hypertrack.android.ui.common.select_destination.DestinationData
 import com.hypertrack.android.ui.screens.visits_management.VisitsManagementFragment
 import com.hypertrack.android.ui.screens.visits_management.tabs.orders.OrdersAdapter
@@ -33,10 +34,20 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
     }
     private val timeDistanceFormatter = Injector.getTimeDistanceFormatter()
 
-    private val ordersAdapter = OrdersAdapter(
-        timeDistanceFormatter,
-        showStatus = false
-    )
+    private val addressDelegate by lazy {
+        OrderAddressDelegate(
+            Injector.getOsUtilsProvider(
+                requireContext()
+            )
+        )
+    }
+    private val ordersAdapter by lazy {
+        OrdersAdapter(
+            timeDistanceFormatter,
+            addressDelegate,
+            showStatus = false
+        )
+    }
 
     private lateinit var map: GoogleMap
     private val mapStyleActive by lazy {
@@ -168,7 +179,7 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
         bAddOrder.setGoneState(trip.isLegacy())
 
         trip.nextOrder?.let { order ->
-            order.destinationAddress.toView(destination_address)
+            addressDelegate.shortAddress(order).toView(destination_address)
             (order.eta?.let {
                 timeDistanceFormatter.formatTime(it.format(DateTimeFormatter.ISO_INSTANT))
             } ?: R.string.orders_list_eta_unavailable.stringFromResource()).toView(

@@ -53,6 +53,10 @@ object Utils {
 }
 
 fun String?.nullIfEmpty(): String? {
+    return if (this?.isEmpty() == true) null else this
+}
+
+fun String?.nullIfBlank(): String? {
     return if (this?.isBlank() == true) null else this
 }
 

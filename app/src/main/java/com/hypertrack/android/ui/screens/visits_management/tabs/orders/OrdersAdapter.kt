@@ -4,6 +4,7 @@ import android.view.View
 import com.hypertrack.android.models.local.LocalOrder
 import com.hypertrack.android.models.local.OrderStatus
 import com.hypertrack.android.ui.base.BaseAdapter
+import com.hypertrack.android.ui.common.delegates.OrderAddressDelegate
 import com.hypertrack.android.ui.common.setGoneState
 import com.hypertrack.android.ui.common.toView
 import com.hypertrack.android.utils.MyApplication
@@ -14,6 +15,7 @@ import java.time.format.DateTimeFormatter
 
 class OrdersAdapter(
     private val timeDistanceFormatter: TimeDistanceFormatter,
+    private val addressDelegate: OrderAddressDelegate,
     private val showStatus: Boolean = true
 ) : BaseAdapter<LocalOrder, BaseAdapter.BaseVh<LocalOrder>>() {
 
@@ -25,7 +27,7 @@ class OrdersAdapter(
     ): BaseVh<LocalOrder> {
         return object : BaseContainerVh<LocalOrder>(view, baseClickListener) {
             override fun bind(item: LocalOrder) {
-                item.destinationAddress.toView(containerView.tvAddress)
+                addressDelegate.shortAddress(item).toView(containerView.tvAddress)
                 containerView.tvEta.setGoneState(item.status != OrderStatus.ONGOING)
                 if (item.eta != null) {
                     containerView.tvEta.setText(

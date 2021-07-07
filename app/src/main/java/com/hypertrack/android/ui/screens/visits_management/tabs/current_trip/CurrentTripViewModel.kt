@@ -18,6 +18,7 @@ import com.hypertrack.android.repository.TripCreationSuccess
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.base.ZipLiveData
+import com.hypertrack.android.ui.base.ZipNotNullableLiveData
 import com.hypertrack.android.ui.common.delegates.GeofencesMapDelegate
 import com.hypertrack.android.ui.common.nullIfEmpty
 import com.hypertrack.android.ui.common.requireValue
@@ -26,7 +27,6 @@ import com.hypertrack.android.ui.common.updateValue
 import com.hypertrack.android.ui.screens.visits_management.VisitsManagementFragmentDirections
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
 import com.hypertrack.android.utils.HyperTrackService
-import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.logistics.android.github.R
 import kotlinx.coroutines.GlobalScope
@@ -62,18 +62,19 @@ class CurrentTripViewModel(
     }
     val trip = MediatorLiveData<LocalTrip?>()
     val userLocation = MutableLiveData<LatLng?>()
-    val showWhereAreYouGoing: LiveData<Boolean> = ZipLiveData(isTracking, trip).let {
-        Transformations.map(it) { (isTracking, trip) ->
-            trip != null && isTracking
-        }
-    }
-    val mapActiveState: LiveData<Boolean?> = ZipLiveData(isTracking, map).let {
-        Transformations.map(it) { (isTracking, map) ->
-            if (map != null) {
-                isTracking
-            } else {
-                null
+    val showWhereAreYouGoing: LiveData<Boolean> =
+        ZipLiveData(hyperTrackService.isTracking, trip).let {
+            Transformations.map(it) { (isTracking, trip) ->
+                return@map if (isTracking != null) {
+                    trip == null && isTracking
+                } else {
+                    false
+                }
             }
+        }
+    val mapActiveState: LiveData<Boolean?> = ZipNotNullableLiveData(isTracking, map).let {
+        Transformations.map(it) { (isTracking, map) ->
+            isTracking
         }
     }
 
