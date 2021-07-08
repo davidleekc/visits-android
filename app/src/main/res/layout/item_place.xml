@@ -31,10 +31,11 @@
         android:id="@+id/tvVisited"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:layout_marginBottom="32dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="@+id/tvAddress"
-        app:layout_constraintTop_toBottomOf="@+id/tvAddress"
+        app:layout_constraintTop_toBottomOf="@+id/tvLastVisit"
         tools:text="TextView" />
 
     <TextView
