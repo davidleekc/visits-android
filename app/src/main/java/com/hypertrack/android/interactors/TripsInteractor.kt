@@ -290,6 +290,24 @@ open class TripsInteractorImpl(
         }
     }
 
+    fun logState(): Map<String, Any?> {
+        return mapOf(
+            "currentTrip" to currentTrip.value?.let { trip ->
+                mapOf(
+                    "id" to trip.id,
+                    "status" to trip.status,
+                    "orders" to trip.orders.map { order ->
+                        mapOf(
+                            "id" to order.id,
+                            "status" to order.status,
+                        )
+                    }
+                )
+            }
+        )
+
+    }
+
 }
 
 fun <T> List<T>.hasSameContent(list: List<T>): Boolean {

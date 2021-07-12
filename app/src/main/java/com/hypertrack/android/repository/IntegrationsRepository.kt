@@ -67,4 +67,11 @@ class IntegrationsRepositoryImpl(
         firstPage = null
     }
 
+    fun logState(): Map<String, Any> {
+        return mapOf(
+            "has" to firstPage?.isNotEmpty().toString(),
+            "firstPageSize" to (firstPage ?: listOf()).size
+        )
+    }
+
 }
