@@ -12,7 +12,7 @@ import com.hypertrack.android.interactors.TripsInteractor
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.SingleLiveEvent
 import com.hypertrack.android.ui.common.Tab
-import com.hypertrack.android.ui.common.delegates.toAddressString
+import com.hypertrack.android.ui.common.delegates.GooglePlaceAddressDelegate
 import com.hypertrack.android.ui.common.select_destination.DestinationData
 import com.hypertrack.android.ui.screens.add_order.AddOrderFragmentDirections
 import com.hypertrack.android.utils.MyApplication
@@ -26,7 +26,9 @@ class AddOrderInfoViewModel(
     private val params: Params,
     private val tripsInteractor: TripsInteractor,
     private val osUtilsProvider: OsUtilsProvider,
-) : BaseViewModel() {
+) : BaseViewModel(osUtilsProvider) {
+
+    private val addressDelegate = GooglePlaceAddressDelegate(osUtilsProvider)
 
     val destinationData = params.destinationData
 
@@ -43,7 +45,7 @@ class AddOrderInfoViewModel(
                 destinationData.latLng.longitude
             )?.let {
                 //todo set edittext hint with partial address
-                postValue(it.toAddressString(strictMode = true))
+                postValue(addressDelegate.strictAddress(it))
             }
         }
     }

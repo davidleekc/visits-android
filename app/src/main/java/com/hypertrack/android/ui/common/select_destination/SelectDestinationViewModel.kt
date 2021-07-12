@@ -21,7 +21,7 @@ import com.hypertrack.android.ui.base.SingleLiveEvent
 import com.hypertrack.android.ui.base.ZipNotNullableLiveData
 import com.hypertrack.android.ui.common.*
 import com.hypertrack.android.ui.common.delegates.GeofencesMapDelegate
-import com.hypertrack.android.ui.common.delegates.toAddressString
+import com.hypertrack.android.ui.common.delegates.GooglePlaceAddressDelegate
 import com.hypertrack.android.ui.screens.add_place.AddPlaceFragmentDirections
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
 import com.hypertrack.android.utils.OsUtilsProvider
@@ -34,6 +34,8 @@ open class SelectDestinationViewModel(
     private val deviceLocationProvider: DeviceLocationProvider,
 ) : BaseViewModel() {
 
+    private val addressDelegate = GooglePlaceAddressDelegate(osUtilsProvider)
+
     private var firstLaunch: Boolean = true
     private var programmaticCameraMove: Boolean = false
     private val userLocation = MutableLiveData<Location>()
@@ -42,12 +44,14 @@ open class SelectDestinationViewModel(
     private val selectedLocation = MutableLiveData<LatLng>()
     val address = Transformations.map(selectedLocation) {
         if (currentPlace != null) {
-            currentPlace!!.toAddressString()
+            addressDelegate.displayAddress(currentPlace!!)
         } else {
-            osUtilsProvider.getPlaceFromCoordinates(
-                it.latitude,
-                it.longitude,
-            )?.toAddressString()
+            addressDelegate.displayAddress(
+                osUtilsProvider.getPlaceFromCoordinates(
+                    it.latitude,
+                    it.longitude,
+                )
+            )
         }
     }
 
@@ -217,9 +221,10 @@ open class SelectDestinationViewModel(
     }
 
     protected fun getAddress(): String? {
-        return osUtilsProvider
-            .getPlaceFromCoordinates(selectedLocation.requireValue())
-            ?.toAddressString(strictMode = true)
+        return osUtilsProvider.getPlaceFromCoordinates(selectedLocation.requireValue())
+            ?.let {
+                addressDelegate.strictAddress(it)
+            }
     }
 
     protected open fun onCameraMoved(map: GoogleMap) {

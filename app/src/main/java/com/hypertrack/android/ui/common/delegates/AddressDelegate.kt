@@ -64,6 +64,50 @@ class GeofenceAddressDelegate(val osUtilsProvider: OsUtilsProvider) {
 
 }
 
+class GooglePlaceAddressDelegate(
+    private val osUtilsProvider: OsUtilsProvider
+) {
+
+    fun displayAddress(place: Place): String {
+        with(place) {
+            val locality =
+                addressComponents?.asList()?.filter { "locality" in it.types }?.firstOrNull()?.name
+                    ?: addressComponents?.asList()
+                        ?.filter { "administrative_area_level_1" in it.types }
+                        ?.firstOrNull()?.name
+                    ?: addressComponents?.asList()
+                        ?.filter { "administrative_area_level_2" in it.types }
+                        ?.firstOrNull()?.name
+                    ?: addressComponents?.asList()?.filter { "political" in it.types }
+                        ?.firstOrNull()?.name
+            val thoroughfare =
+                addressComponents?.asList()?.filter { "route" in it.types }?.firstOrNull()?.name
+            val subThoroughfare =
+                addressComponents?.asList()?.filter { "street_number" in it.types }
+                    ?.firstOrNull()?.name
+
+            val localityString = (locality?.let { "$it, " } ?: "")
+            val address = if (thoroughfare == null) {
+//                latLng?.format() ?: ""
+                osUtilsProvider.stringFromResource(R.string.address_not_available)
+            } else {
+                " $thoroughfare${subThoroughfare?.let { ", $it" } ?: ""}"
+            }
+            return "$localityString$address"
+        }
+    }
+
+    fun displayAddress(address: Address?): String {
+        return address?.toAddressString(disableCoordinatesFallback = true)
+            ?: osUtilsProvider.stringFromResource(R.string.address_not_available)
+    }
+
+    fun strictAddress(address: Address): String? {
+        return address.toAddressString(strictMode = true)
+    }
+
+}
+
 fun String?.parseNominatimAddress(): String? {
     return this?.let {
         split(",").map { it.trim() }.take(2).joinToString(", ")
@@ -79,11 +123,7 @@ fun Address.toAddressString(
         return null
     }
 
-    val firstPart = if (!short) {
-        locality.wrapIfPresent(end = ", ")
-    } else {
-        ""
-    }
+    val firstPart = if (short) null else locality ?: ""
 
     val secondPart = if (!short) {
         //long
@@ -109,30 +149,12 @@ fun Address.toAddressString(
         }
     }
 
-    return "$firstPart$secondPart".nullIfBlank()
+    return listOf(firstPart, secondPart)
+        .filter { !it.isNullOrBlank() }
+        .joinToString(", ")
+        .nullIfEmpty()
 }
 
-fun Place.toAddressString(): String {
-    val locality =
-        addressComponents?.asList()?.filter { "locality" in it.types }?.firstOrNull()?.name
-            ?: addressComponents?.asList()?.filter { "administrative_area_level_1" in it.types }
-                ?.firstOrNull()?.name
-            ?: addressComponents?.asList()?.filter { "administrative_area_level_2" in it.types }
-                ?.firstOrNull()?.name
-            ?: addressComponents?.asList()?.filter { "political" in it.types }?.firstOrNull()?.name
-    val thoroughfare =
-        addressComponents?.asList()?.filter { "route" in it.types }?.firstOrNull()?.name
-    val subThoroughfare =
-        addressComponents?.asList()?.filter { "street_number" in it.types }?.firstOrNull()?.name
-
-    val localityString = (locality?.let { "$it, " } ?: "")
-    val address = if (thoroughfare == null) {
-        latLng?.format() ?: ""
-    } else {
-        " $thoroughfare${subThoroughfare?.let { ", $it" } ?: ""}"
-    }
-    return "$localityString$address"
-}
 
 fun String?.wrapIfPresent(start: String? = null, end: String? = null): String {
     return this?.let { "${start.wrapIfPresent()}$it${end.wrapIfPresent()}" } ?: ""

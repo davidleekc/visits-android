@@ -15,7 +15,7 @@ import com.hypertrack.android.repository.CreateGeofenceSuccess
 import com.hypertrack.android.repository.IntegrationsRepository
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.common.Tab
-import com.hypertrack.android.ui.common.delegates.toAddressString
+import com.hypertrack.android.ui.common.delegates.GooglePlaceAddressDelegate
 import com.hypertrack.android.ui.screens.add_place.AddPlaceFragmentDirections
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.android.utils.ResultError
@@ -35,6 +35,8 @@ class AddPlaceInfoViewModel(
     private val moshi: Moshi,
 ) : BaseViewModel(osUtilsProvider) {
 
+    private val addressDelegate = GooglePlaceAddressDelegate(osUtilsProvider)
+
     private var hasIntegrations = MutableLiveData<Boolean?>(false)
 
     val loadingState = MutableLiveData<Boolean>(true)
@@ -45,7 +47,7 @@ class AddPlaceInfoViewModel(
             postValue(initialAddress)
         } else {
             osUtilsProvider.getPlaceFromCoordinates(latLng.latitude, latLng.longitude)?.let {
-                postValue(it.toAddressString())
+                postValue(addressDelegate.displayAddress(it))
             }
         }
     }
