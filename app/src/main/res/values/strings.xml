@@ -98,6 +98,7 @@
     <string name="clocked_in">You are clocked in</string>
     <string name="clocked_out">You are clocked out</string>
     <string name="directions_button">Show in Maps app</string>
+    <string name="address_hint">Please check the address below and if it empty or wrong, enter the correct value (if possible)</string>
 
     <string name="notification_important_channel_name">HyperTrack Important Notifications</string>
     <string name="notification_important_channel_description">HyperTrack Visits app notifications</string>
@@ -151,7 +152,6 @@
     <string name="order_scheduled_at">Order scheduled at %s</string>
     <string name="order_address_not_available">Address for this order is not available</string>
     <string name="order_not_clocked_in">You must be clocked in to complete or cancel an order</string>
-
 
     <string name="places_no_places">You don\'t have Places yet</string>
     <string name="places_visited">Visited %s</string>

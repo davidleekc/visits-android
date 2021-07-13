@@ -47,7 +47,7 @@ class AddPlaceInfoViewModel(
             postValue(initialAddress)
         } else {
             osUtilsProvider.getPlaceFromCoordinates(latLng.latitude, latLng.longitude)?.let {
-                postValue(addressDelegate.displayAddress(it))
+                postValue(addressDelegate.strictAddress(it))
             }
         }
     }

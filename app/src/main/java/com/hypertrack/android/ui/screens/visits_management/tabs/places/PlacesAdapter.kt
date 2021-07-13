@@ -4,6 +4,7 @@ import android.location.Address
 import android.util.Log
 import android.view.View
 import com.hypertrack.android.api.Geofence
+import com.hypertrack.android.delegates.GeofenceNameDelegate
 import com.hypertrack.android.models.Location
 import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.ui.base.BaseAdapter
@@ -25,6 +26,7 @@ class PlacesAdapter(
 ) : BaseAdapter<PlaceItem, BaseAdapter.BaseVh<PlaceItem>>() {
 
     private val addressDelegate = GeofenceAddressDelegate(osUtilsProvider)
+    private val geofenceNameDelegate = GeofenceNameDelegate(osUtilsProvider)
 
     override val itemLayoutResource: Int = R.layout.item_place
 
@@ -76,12 +78,7 @@ class PlacesAdapter(
                     }
                 }
 
-                val name = item.geofence.name
-                    ?: item.geofence.address
-                    ?: osUtilsProvider.stringFromResource(
-                        R.string.places_created,
-                        item.geofence.createdAt.formatDateTime()
-                    )
+                val name = geofenceNameDelegate.getName(item.geofence)
                 name.toView(containerView.tvTitle)
 
                 val address = addressDelegate.shortAddress(item.geofence)

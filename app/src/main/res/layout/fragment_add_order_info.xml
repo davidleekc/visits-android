@@ -56,6 +56,13 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/etGeofenceName" />
 
+                <TextView
+                    android:id="@+id/textView10"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/address_hint" />
+
                 <EditText
                     android:id="@+id/etAddress"
                     android:layout_width="match_parent"
