@@ -1,14 +1,15 @@
 package com.hypertrack.android.repository
 
+import com.hypertrack.android.data.AccountDataStorage
 import com.hypertrack.android.utils.AccountPreferencesProvider
 import com.hypertrack.android.utils.ServiceLocator
 import kotlin.IllegalStateException
 
 class AccountRepository(
-        private val serviceLocator: ServiceLocator,
-        private val accountData: AccountData,
-        private val accountDataStorage: AccountDataStorage,
-        private val clearLoginAction: () -> Unit
+    private val serviceLocator: ServiceLocator,
+    private val accountData: AccountData,
+    private val accountDataStorage: AccountDataStorage,
+    private val clearLoginAction: () -> Unit
 ) : AccountPreferencesProvider {
 
     val publishableKey: String

@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.View
 import androidx.navigation.fragment.findNavController
 import com.hypertrack.android.ui.base.ProgressDialogFragment
+import com.hypertrack.android.ui.common.SnackbarUtil
 import com.hypertrack.logistics.android.github.R
 
 class SplashScreenFragment : ProgressDialogFragment(R.layout.fragment_splash_screen) {
@@ -21,6 +22,10 @@ class SplashScreenFragment : ProgressDialogFragment(R.layout.fragment_splash_scr
 
         splashScreenViewModel.loadingState.observe(viewLifecycleOwner, {
             if (it) showProgress() else dismissProgress()
+        })
+
+        splashScreenViewModel.errorHandler.errorText.observe(viewLifecycleOwner, {
+            SnackbarUtil.showErrorSnackbar(view, it)
         })
 
     }

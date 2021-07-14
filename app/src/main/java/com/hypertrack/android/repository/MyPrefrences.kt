@@ -3,6 +3,7 @@ package com.hypertrack.android.repository
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
+import com.hypertrack.android.data.AccountDataStorage
 import com.hypertrack.android.interactors.PhotoForUpload
 import com.hypertrack.android.interactors.PhotoUploadQueueStorage
 import com.hypertrack.android.interactors.PhotoUploadingState
@@ -13,12 +14,33 @@ import com.squareup.moshi.Types
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+interface VisitsStorage {
+    fun saveVisits(visits: List<Visit>)
+    fun restoreVisits(): List<Visit>
+}
+
+interface TripsStorage {
+    suspend fun saveTrips(trips: List<LocalTrip>)
+    suspend fun getTrips(): List<LocalTrip>
+}
 
 class MyPreferences(context: Context, private val moshi: Moshi) :
     AccountDataStorage, VisitsStorage, TripsStorage, PhotoUploadQueueStorage {
 
     private val sharedPreferences: SharedPreferences =
         context.getSharedPreferences("hyper_track_pref", Context.MODE_PRIVATE)
+
+    override fun saveUser(user: User) {
+        moshi.adapter(User::class.java).toJson(user).let {
+            sharedPreferences.edit()?.putString(USER_KEY, it)?.apply()
+        }
+    }
+
+    override fun loadUser(): User? {
+        return sharedPreferences.getString(USER_KEY, null)?.let {
+            moshi.adapter(User::class.java).fromJson(it)
+        }
+    }
 
     override fun saveDriver(driverModel: Driver) {
         val serializedModel = moshi.adapter(Driver::class.java).toJson(driverModel)
@@ -174,6 +196,7 @@ class MyPreferences(context: Context, private val moshi: Moshi) :
 
     companion object {
         const val DRIVER_KEY = "com.hypertrack.android.utils.driver"
+        const val USER_KEY = "com.hypertrack.android.utils.user"
         const val ACCESS_REPO_KEY = "com.hypertrack.android.utils.access_token_repo"
         const val ACCOUNT_KEY = "com.hypertrack.android.utils.accountKey"
         const val VISITS_KEY = "com.hypertrack.android.utils.deliveries"
@@ -183,27 +206,4 @@ class MyPreferences(context: Context, private val moshi: Moshi) :
         const val TAG = "MyPrefs"
     }
 
-}
-
-interface AccountDataStorage {
-
-    fun getAccountData(): AccountData
-
-    fun saveAccountData(accountData: AccountData)
-
-    fun getDriverValue(): Driver
-
-    fun saveDriver(driverModel: Driver)
-    fun persistRepository(repo: AccessTokenRepository)
-    fun restoreRepository(): BasicAuthAccessTokenRepository?
-}
-
-interface VisitsStorage {
-    fun saveVisits(visits: List<Visit>)
-    fun restoreVisits(): List<Visit>
-}
-
-interface TripsStorage {
-    suspend fun saveTrips(trips: List<LocalTrip>)
-    suspend fun getTrips(): List<LocalTrip>
 }

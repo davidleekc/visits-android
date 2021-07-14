@@ -2,10 +2,7 @@ package com.hypertrack.android.utils
 
 import android.content.Context
 import androidx.fragment.app.FragmentFactory
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.net.PlacesClient
@@ -19,7 +16,6 @@ import com.hypertrack.android.ui.common.Tab
 import com.hypertrack.android.ui.common.UserScopeViewModelFactory
 import com.hypertrack.android.ui.common.ViewModelFactory
 import com.hypertrack.android.ui.common.select_destination.DestinationData
-import com.hypertrack.android.ui.screens.add_place_info.AddPlaceInfoViewModel
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.*
 import com.hypertrack.android.utils.injection.CustomFragmentFactory
 import com.hypertrack.android.view_models.VisitDetailsViewModel
@@ -65,8 +61,6 @@ object Injector {
     private var userScope: UserScope? = null
     var tripCreationScope: TripCreationScope? = null
 
-    private var visitsRepository: VisitsRepository? = null
-
     val crashReportsProvider: CrashReportsProvider by lazy { FirebaseCrashReportsProvider() }
 
     val deeplinkProcessor: DeeplinkProcessor = BranchIoDeepLinkProcessor(crashReportsProvider)
@@ -89,11 +83,12 @@ object Injector {
     fun provideViewModelFactory(context: Context): ViewModelFactory {
         return ViewModelFactory(
             getAccountRepo(context),
-            getDriverRepo(context),
+            getDriverRepo(),
             crashReportsProvider,
             getPermissionInteractor(),
             getLoginInteractor(),
             getOsUtilsProvider(MyApplication.context),
+            getMoshi()
         )
     }
 
@@ -104,7 +99,6 @@ object Injector {
             { getUserScope() },
             getOsUtilsProvider(MyApplication.context),
             getAccountRepo(MyApplication.context),
-            getVisitsApiClient(MyApplication.context),
             getMoshi(),
             crashReportsProvider,
             placesClient,
@@ -152,129 +146,181 @@ object Injector {
         )
     }
 
-    private fun getUserScope(): UserScope {
-        if (userScope == null) {
-            val accessTokenRepository = accessTokenRepository(MyApplication.context)
-            val context = MyApplication.context
-            val historyRepository = HistoryRepository(
-                getVisitsApiClient(MyApplication.context),
-                crashReportsProvider,
-                getOsUtilsProvider(MyApplication.context)
-            )
-            val scope = CoroutineScope(Dispatchers.IO)
-            val placesRepository = getPlacesRepository()
-            val integrationsRepository =
-                IntegrationsRepositoryImpl(getVisitsApiClient(MyApplication.context))
-            val placesInteractor = PlacesInteractorImpl(
-                placesRepository,
-                integrationsRepository,
-                getOsUtilsProvider(MyApplication.context),
-                GlobalScope
-            )
-            val hyperTrackService = getHyperTrackService(context)
+    private fun createUserScope(
+        publishableKey: String,
+        accountRepository: AccountRepository,
+        accessTokenRepository: BasicAuthAccessTokenRepository,
+        driverRepository: DriverRepository,
+        permissionsInteractor: PermissionsInteractor,
+        deviceLocationProvider: DeviceLocationProvider,
+        osUtilsProvider: OsUtilsProvider,
+        crashReportsProvider: CrashReportsProvider,
+        moshi: Moshi,
+        myPreferences: MyPreferences,
+        fileRepository: FileRepository,
+        imageDecoder: ImageDecoder,
+        timeDistanceFormatter: TimeDistanceFormatter
+    ): UserScope {
+        val apiClient = ApiClient(
+            accessTokenRepository,
+            BASE_URL,
+            accessTokenRepository.deviceId,
+            moshi,
+            crashReportsProvider
+        )
+        val historyRepository = HistoryRepository(
+            apiClient,
+            crashReportsProvider,
+            osUtilsProvider
+        )
+        val scope = CoroutineScope(Dispatchers.IO)
+        val placesRepository = PlacesRepositoryImpl(
+            apiClient,
+            moshi,
+            osUtilsProvider
+        )
+        val integrationsRepository = IntegrationsRepositoryImpl(apiClient)
+        val placesInteractor = PlacesInteractorImpl(
+            placesRepository,
+            integrationsRepository,
+            osUtilsProvider,
+            GlobalScope
+        )
+        val hyperTrackService = serviceLocator.getHyperTrackService(publishableKey)
 
-            val visitsRepo = getVisitsRepo(context)
+        val visitsRepo = VisitsRepository(
+            permissionsInteractor,
+            osUtilsProvider,
+            apiClient,
+            myPreferences,
+            hyperTrackService,
+            accountRepository,
+            deviceLocationProvider
+        )
 
-            val photoUploadInteractor = PhotoUploadInteractorImpl(
+        val photoUploadInteractor = PhotoUploadInteractorImpl(
+            visitsRepo,
+            fileRepository,
+            crashReportsProvider,
+            imageDecoder,
+            apiClient,
+            scope,
+            RetryParams(
+                retryTimes = 3,
+                initialDelay = 1000,
+                factor = 10.0,
+                maxDelay = 30 * 1000
+            )
+        )
+
+        val photoUploadQueueInteractor = PhotoUploadQueueInteractorImpl(
+            myPreferences,
+            fileRepository,
+            crashReportsProvider,
+            imageDecoder,
+            apiClient,
+            scope,
+            RetryParams(
+                retryTimes = 3,
+                initialDelay = 1000,
+                factor = 10.0,
+                maxDelay = 30 * 1000
+            )
+        )
+
+        val tripsRepository = TripsRepositoryImpl(
+            apiClient,
+            myPreferences,
+            hyperTrackService,
+            GlobalScope,
+            accountRepository.isPickUpAllowed
+        )
+
+        val tripsInteractor = TripsInteractorImpl(
+            tripsRepository,
+            apiClient,
+            hyperTrackService,
+            photoUploadQueueInteractor,
+            imageDecoder,
+            osUtilsProvider,
+            Dispatchers.IO,
+            GlobalScope
+        )
+
+        val feedbackInteractor = FeedbackInteractor(
+            accessTokenRepository.deviceId,
+            tripsInteractor,
+            integrationsRepository,
+            moshi,
+            osUtilsProvider,
+            crashReportsProvider
+        )
+
+        val userScope = UserScope(
+            visitsRepo,
+            historyRepository,
+            tripsInteractor,
+            placesInteractor,
+            feedbackInteractor,
+            integrationsRepository,
+            UserScopeViewModelFactory(
                 visitsRepo,
-                getFileRepository(),
-                crashReportsProvider,
-                getImageDecoder(),
-                getVisitsApiClient(MyApplication.context),
-                scope,
-                RetryParams(
-                    retryTimes = 3,
-                    initialDelay = 1000,
-                    factor = 10.0,
-                    maxDelay = 30 * 1000
-                )
-            )
-
-            val photoUploadQueueInteractor = PhotoUploadQueueInteractorImpl(
-                getMyPreferences(MyApplication.context),
-                getFileRepository(),
-                crashReportsProvider,
-                getImageDecoder(),
-                getVisitsApiClient(MyApplication.context),
-                scope,
-                RetryParams(
-                    retryTimes = 3,
-                    initialDelay = 1000,
-                    factor = 10.0,
-                    maxDelay = 30 * 1000
-                )
-            )
-
-            val tripsRepository = TripsRepositoryImpl(
-                getVisitsApiClient(MyApplication.context),
-                getMyPreferences(MyApplication.context),
-                hyperTrackService,
-                GlobalScope,
-                getAccountRepo(MyApplication.context).isPickUpAllowed
-            )
-
-            val tripsInteractor = TripsInteractorImpl(
-                tripsRepository,
-                getVisitsApiClient(MyApplication.context),
-                hyperTrackService,
-                photoUploadQueueInteractor,
-                getImageDecoder(),
-                getOsUtilsProvider(MyApplication.context),
-                Dispatchers.IO,
-                GlobalScope
-            )
-
-            val driverRepository = getDriverRepo(context)
-
-            val accountRepository = getAccountRepo(context)
-
-            val feedbackInteractor = FeedbackInteractor(
-                accessTokenRepository.deviceId,
-                tripsInteractor,
-                integrationsRepository,
-                getMoshi(),
-                getOsUtilsProvider(MyApplication.context),
-                crashReportsProvider
-            )
-
-            userScope = UserScope(
-                historyRepository,
                 tripsInteractor,
                 placesInteractor,
                 feedbackInteractor,
                 integrationsRepository,
-                UserScopeViewModelFactory(
-                    visitsRepo,
-                    tripsInteractor,
-                    placesInteractor,
-                    feedbackInteractor,
-                    integrationsRepository,
-                    historyRepository,
-                    driverRepository,
-                    accountRepository,
-                    crashReportsProvider,
-                    hyperTrackService,
-                    getPermissionInteractor(),
-                    accessTokenRepository,
-                    getTimeDistanceFormatter(),
-                    getVisitsApiClient(MyApplication.context),
-                    getOsUtilsProvider(MyApplication.context),
-                    placesClient,
-                    getDeviceLocationProvider()
-                ),
-                photoUploadInteractor,
+                historyRepository,
+                driverRepository,
+                accountRepository,
+                crashReportsProvider,
                 hyperTrackService,
-                photoUploadQueueInteractor
-            )
+                permissionsInteractor,
+                accessTokenRepository,
+                timeDistanceFormatter,
+                apiClient,
+                osUtilsProvider,
+                placesClient,
+                deviceLocationProvider
+            ),
+            photoUploadInteractor,
+            hyperTrackService,
+            photoUploadQueueInteractor,
+            apiClient
+        )
 
-            crashReportsProvider.setUserIdentifier(
-                getMoshi().adapter(UserIdentifier::class.java).toJson(
-                    UserIdentifier(
-                        deviceId = accessTokenRepository.deviceId,
-                        driverId = driverRepository.driverId,
-                        pubKey = accountRepository.publishableKey,
-                    )
+        crashReportsProvider.setUserIdentifier(
+            moshi.adapter(UserIdentifier::class.java).toJson(
+                UserIdentifier(
+                    deviceId = accessTokenRepository.deviceId,
+                    driverId = driverRepository.username,
+                    pubKey = accountRepository.publishableKey,
                 )
+            )
+        )
+
+        return userScope
+    }
+
+    private fun getUserScope(): UserScope {
+        if (userScope == null) {
+            val myPreferences = getMyPreferences(MyApplication.context)
+            val publishableKey = myPreferences.getAccountData().publishableKey
+                ?: throw IllegalStateException("No publishableKey saved")
+
+            userScope = createUserScope(
+                publishableKey,
+                getAccountRepo(MyApplication.context),
+                accessTokenRepository(MyApplication.context),
+                getDriverRepo(),
+                getPermissionInteractor(),
+                getDeviceLocationProvider(),
+                getOsUtilsProvider(MyApplication.context),
+                crashReportsProvider,
+                getMoshi(),
+                getMyPreferences(MyApplication.context),
+                getFileRepository(),
+                getImageDecoder(),
+                getTimeDistanceFormatter()
             )
         }
         return userScope!!
@@ -284,16 +330,17 @@ object Injector {
         Places.createClient(MyApplication.context)
     }
 
-    private fun getFileRepository(): FileRepository {
-        return FileRepositoryImpl()
+    private fun getDriverRepo(): DriverRepository {
+        return DriverRepository(
+            getAccountRepo(MyApplication.context),
+            serviceLocator,
+            getMyPreferences(MyApplication.context),
+            crashReportsProvider,
+        )
     }
 
-    private fun getPlacesRepository(): PlacesRepository {
-        return PlacesRepositoryImpl(
-            getVisitsApiClient(MyApplication.context),
-            getMoshi(),
-            getOsUtilsProvider(MyApplication.context)
-        )
+    private fun getFileRepository(): FileRepository {
+        return FileRepositoryImpl()
     }
 
     private fun getPermissionInteractor() = PermissionsInteractorImpl { getUserScope().hyperTrackService }
@@ -316,9 +363,9 @@ object Injector {
 
     private fun getLoginInteractor(): LoginInteractor {
         return LoginInteractorImpl(
+            getDriverRepo(),
             getCognitoLoginProvider(MyApplication.context),
             getAccountRepo(MyApplication.context),
-            getDriverRepo(MyApplication.context),
             tokenForPublishableKeyExchangeService,
             liveAccountUrlService,
             MyApplication.SERVICES_API_KEY
@@ -327,27 +374,6 @@ object Injector {
 
     private fun getMyPreferences(context: Context): MyPreferences =
         MyPreferences(context, getMoshi())
-
-    private fun getDriver(context: Context): Driver = getMyPreferences(context).getDriverValue()
-
-    private fun getDriverRepo(context: Context) = DriverRepository(
-        getDriver(context),
-        getAccountRepo(MyApplication.context),
-        serviceLocator,
-        getMyPreferences(context),
-        crashReportsProvider,
-    )
-
-    private fun getVisitsApiClient(context: Context): ApiClient {
-        val accessTokenRepository = accessTokenRepository(context)
-        return ApiClient(
-            accessTokenRepository,
-            BASE_URL,
-            accessTokenRepository.deviceId,
-            getMoshi(),
-            crashReportsProvider
-        )
-    }
 
     private fun getVisitsInteractor(): VisitsInteractor {
         return VisitsInteractorImpl(
@@ -372,30 +398,8 @@ object Injector {
         return OsUtilsProvider(context, crashReportsProvider)
     }
 
-    private fun getHyperTrackService(context: Context): HyperTrackService {
-        val myPreferences = getMyPreferences(context)
-        val publishableKey = myPreferences.getAccountData().publishableKey
-            ?: throw IllegalStateException("No publishableKey saved")
-        return serviceLocator.getHyperTrackService(publishableKey)
-    }
-
     fun getVisitsRepo(context: Context): VisitsRepository {
-        visitsRepository?.let { return it }
-
-        getMyPreferences(context).getAccountData().publishableKey
-            ?: throw IllegalStateException("No publishableKey saved")
-        val result = VisitsRepository(
-            getPermissionInteractor(),
-            getOsUtilsProvider(context),
-            getVisitsApiClient(context),
-            getMyPreferences(context),
-            getHyperTrackService(context),
-            getAccountRepo(context),
-            getDeviceLocationProvider()
-        )
-        visitsRepository = result
-
-        return result
+        return getUserScope().visitsRepository
     }
 
     private fun getImageDecoder(): ImageDecoder = SimpleImageDecoder()
@@ -419,7 +423,7 @@ object Injector {
         Factory { a -> getHistoryMapRenderer(a) }
 
     fun getBackendProvider(ctx: Context): Provider<AbstractBackendProvider> =
-        Provider { getVisitsApiClient(ctx) }
+        Provider { getUserScope().apiClient }
 
     fun getRealTimeUpdatesService(ctx: Context): Provider<HyperTrackViews> =
         Provider { HyperTrackViews.getInstance(ctx, getAccountRepo(ctx).publishableKey) }
@@ -434,7 +438,7 @@ object Injector {
             Provider<String> { getAccountRepo(applicationContext).publishableKey }
         val hyperTrackServiceProvider = Provider { getUserScope().hyperTrackService }
         val apiClientProvider: Provider<AbstractBackendProvider> =
-            Provider { getVisitsApiClient(applicationContext) }
+            Provider { getUserScope().apiClient }
 
         return CustomFragmentFactory(
             MapStyleOptions.loadRawResourceStyle(applicationContext, R.raw.style_map),
@@ -452,6 +456,7 @@ class TripCreationScope(
 )
 
 class UserScope(
+    val visitsRepository: VisitsRepository,
     val historyRepository: HistoryRepository,
     val tripsInteractor: TripsInteractor,
     val placesInteractor: PlacesInteractor,
@@ -460,7 +465,8 @@ class UserScope(
     val userScopeViewModelFactory: UserScopeViewModelFactory,
     val photoUploadInteractor: PhotoUploadInteractor,
     val hyperTrackService: HyperTrackService,
-    val photoUploadQueueInteractor: PhotoUploadQueueInteractor
+    val photoUploadQueueInteractor: PhotoUploadQueueInteractor,
+    val apiClient: ApiClient
 )
 
 fun interface Factory<A, T> {

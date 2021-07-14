@@ -5,10 +5,13 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
+import com.google.gson.Gson
+import com.hypertrack.android.models.KEY_NOTE
 import com.hypertrack.android.models.Visit
 import com.hypertrack.android.models.VisitStatus
 import com.hypertrack.android.models.local.LocalOrder
 import com.hypertrack.android.ui.common.isEmail
+import com.hypertrack.android.ui.common.nullIfBlank
 import com.hypertrack.sdk.HyperTrack
 import com.hypertrack.sdk.TrackingError
 import com.hypertrack.sdk.TrackingStateObserver
@@ -26,19 +29,6 @@ class HyperTrackService(
         }
     }
 
-    var driverId: String
-        get() = throw NotImplementedError()
-        set(value) {
-            sdkInstance.setDeviceMetadata(mapOf("driver_id" to value))
-            sdkInstance.setDeviceName(
-                if (value.isEmail()) {
-                    value.split("@")[0]
-                } else {
-                    value
-                }
-            )
-        }
-
     val deviceId: String
         get() = sdkInstance.deviceID
 
@@ -47,6 +37,21 @@ class HyperTrackService(
 
     val isTracking: LiveData<Boolean> = Transformations.map(state) {
         it == TrackingStateValue.TRACKING
+    }
+
+    fun setDeviceInfo(
+        name: String?,
+        email: String? = null,
+        phoneNumber: String? = null,
+        metadata: Map<String, Any>? = null
+    ) {
+        sdkInstance.setDeviceName(name)
+        sdkInstance.setDeviceMetadata(mutableMapOf<String, Any>().apply {
+            name.nullIfBlank()?.let { put(KEY_NAME, it) }
+            email.nullIfBlank()?.let { put(KEY_EMAIL, it) }
+            phoneNumber.nullIfBlank()?.let { put(KEY_PHONE, it) }
+            metadata?.let { putAll(it) }
+        })
     }
 
     fun sendCompletionEvent(visit: Visit) {
@@ -106,6 +111,12 @@ class HyperTrackService(
 
     fun showPermissionsPrompt() {
         sdkInstance.backgroundTrackingRequirement(false).requestPermissionsIfNecessary()
+    }
+
+    companion object {
+        const val KEY_NAME = "name"
+        const val KEY_PHONE = "phone_number"
+        const val KEY_EMAIL = "email"
     }
 
 }
