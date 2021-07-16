@@ -6,6 +6,8 @@ import com.hypertrack.android.api.TripDestination
 import com.hypertrack.android.models.local.LocalTrip
 import com.hypertrack.android.repository.AccessTokenRepository
 import com.hypertrack.android.repository.BasicAuthAccessTokenRepository
+import com.hypertrack.android.repository.IntegrationsRepository
+import com.hypertrack.android.repository.IntegrationsRepositoryImpl
 import com.hypertrack.android.utils.CrashReportsProvider
 import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.android.utils.OsUtilsProvider
@@ -17,7 +19,8 @@ import com.squareup.moshi.Types
 
 class FeedbackInteractor(
     private val deviceId: String,
-    private val tripsInteractor: TripsInteractor,
+    private val tripsInteractor: TripsInteractorImpl,
+    private val integrationsRepository: IntegrationsRepositoryImpl,
     private val moshi: Moshi,
     private val osUtilsProvider: OsUtilsProvider,
     private val crashReportsProvider: CrashReportsProvider
@@ -41,18 +44,8 @@ class FeedbackInteractor(
         try {
             //clear app state from any sensitive data (location, metadata, addresses, notes, etc)
             val appState: Map<String, Any?> = mapOf(
-                "currentTrip" to tripsInteractor.currentTrip.value?.let { trip ->
-                    mapOf(
-                        "id" to trip.id,
-                        "status" to trip.status,
-                        "orders" to trip.orders.map { order ->
-                            mapOf(
-                                "id" to order.id,
-                                "status" to order.status,
-                            )
-                        }
-                    )
-                }
+                "trips" to tripsInteractor.logState(),
+                "integrations" to integrationsRepository.logState()
             )
             crashReportsProvider.log(
                 moshi.adapter<Map<String, Any?>>(

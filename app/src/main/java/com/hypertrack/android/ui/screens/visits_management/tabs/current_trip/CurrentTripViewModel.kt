@@ -270,7 +270,9 @@ class CurrentTripViewModel(
 
     override fun onCleared() {
         super.onCleared()
-        geofencesMapDelegate.onCleared()
+        if (this::geofencesMapDelegate.isInitialized) {
+            geofencesMapDelegate.onCleared()
+        }
     }
 
     private fun displayTripOnMap(map: GoogleMap, trip: LocalTrip?) {

@@ -163,7 +163,8 @@ object Injector {
             )
             val scope = CoroutineScope(Dispatchers.IO)
             val placesRepository = getPlacesRepository()
-            val integrationsRepository = getIntegrationsRepository()
+            val integrationsRepository =
+                IntegrationsRepositoryImpl(getVisitsApiClient(MyApplication.context))
             val placesInteractor = PlacesInteractorImpl(
                 placesRepository,
                 integrationsRepository,
@@ -230,6 +231,7 @@ object Injector {
             val feedbackInteractor = FeedbackInteractor(
                 accessTokenRepository.deviceId,
                 tripsInteractor,
+                integrationsRepository,
                 getMoshi(),
                 getOsUtilsProvider(MyApplication.context),
                 crashReportsProvider
@@ -292,10 +294,6 @@ object Injector {
             getMoshi(),
             getOsUtilsProvider(MyApplication.context)
         )
-    }
-
-    private fun getIntegrationsRepository(): IntegrationsRepository {
-        return IntegrationsRepositoryImpl(getVisitsApiClient(MyApplication.context))
     }
 
     private fun getPermissionInteractor() = PermissionsInteractorImpl { getUserScope().hyperTrackService }

@@ -3,6 +3,7 @@ package com.hypertrack.android.ui.screens.add_place_info
 import android.annotation.SuppressLint
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Transformations
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -15,7 +16,7 @@ import com.hypertrack.android.repository.CreateGeofenceSuccess
 import com.hypertrack.android.repository.IntegrationsRepository
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.common.Tab
-import com.hypertrack.android.ui.common.delegates.toAddressString
+import com.hypertrack.android.ui.common.delegates.GooglePlaceAddressDelegate
 import com.hypertrack.android.ui.screens.add_place.AddPlaceFragmentDirections
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.android.utils.ResultError
@@ -35,7 +36,9 @@ class AddPlaceInfoViewModel(
     private val moshi: Moshi,
 ) : BaseViewModel(osUtilsProvider) {
 
-    private var hasIntegrations = MutableLiveData<Boolean?>(false)
+    private val addressDelegate = GooglePlaceAddressDelegate(osUtilsProvider)
+
+    val hasIntegrations = MutableLiveData<Boolean?>(false)
 
     val loadingState = MutableLiveData<Boolean>(true)
 
@@ -45,15 +48,18 @@ class AddPlaceInfoViewModel(
             postValue(initialAddress)
         } else {
             osUtilsProvider.getPlaceFromCoordinates(latLng.latitude, latLng.longitude)?.let {
-                postValue(it.toAddressString())
+                postValue(addressDelegate.strictAddress(it))
             }
         }
     }
-    val name = MutableLiveData<String>().apply {
-        _name?.let {
-            postValue(_name)
+    val name = Transformations.map(hasIntegrations) {
+        if (it == false && _name != null) {
+            _name
+        } else {
+            null
         }
     }
+
     val radius = MutableLiveData<Int>(PlacesInteractor.DEFAULT_RADIUS_METERS)
     val integration = MutableLiveData<Integration?>(null)
 

@@ -142,13 +142,16 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
 
         vm.mapActiveState.observe(viewLifecycleOwner, {
             it?.let {
-                map.setMapStyle(
-                    if (it) {
-                        mapStyleActive
-                    } else {
-                        mapStyleInactive
-                    }
-                )
+                //todo workaround for a bug on some devices
+                if (this::map.isInitialized) {
+                    map.setMapStyle(
+                        if (it) {
+                            mapStyleActive
+                        } else {
+                            mapStyleInactive
+                        }
+                    )
+                }
             }
         })
 
