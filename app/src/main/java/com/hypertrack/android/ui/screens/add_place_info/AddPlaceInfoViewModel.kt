@@ -3,6 +3,7 @@ package com.hypertrack.android.ui.screens.add_place_info
 import android.annotation.SuppressLint
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Transformations
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -37,7 +38,7 @@ class AddPlaceInfoViewModel(
 
     private val addressDelegate = GooglePlaceAddressDelegate(osUtilsProvider)
 
-    private var hasIntegrations = MutableLiveData<Boolean?>(false)
+    val hasIntegrations = MutableLiveData<Boolean?>(false)
 
     val loadingState = MutableLiveData<Boolean>(true)
 
@@ -51,11 +52,14 @@ class AddPlaceInfoViewModel(
             }
         }
     }
-    val name = MutableLiveData<String>().apply {
-        _name?.let {
-            postValue(_name)
+    val name = Transformations.map(hasIntegrations) {
+        if (it == false && _name != null) {
+            _name
+        } else {
+            null
         }
     }
+
     val radius = MutableLiveData<Int>(PlacesInteractor.DEFAULT_RADIUS_METERS)
     val integration = MutableLiveData<Integration?>(null)
 

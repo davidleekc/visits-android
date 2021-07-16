@@ -106,16 +106,21 @@ private val fences = Injector.getMoshi().adapter(GeofenceResponse::class.java)
         query: String?,
         limit: Int?
     ): Response<IntegrationsResponse> {
-        return Response.success(
-            Injector.getMoshi().adapter(IntegrationsResponse::class.java)
-                .fromJson(MockData.MOCK_INTEGRATIONS_RESPONSE)!!.let {
-                    if (query != null) {
-                        it.copy(data = it.data.filter { it.name?.contains(query.toString()) == true })
-                    } else {
-                        it
+        val hasIntegrations = false
+        if (hasIntegrations) {
+            return Response.success(
+                Injector.getMoshi().adapter(IntegrationsResponse::class.java)
+                    .fromJson(MockData.MOCK_INTEGRATIONS_RESPONSE)!!.let {
+                        if (query != null) {
+                            it.copy(data = it.data.filter { it.name?.contains(query.toString()) == true })
+                        } else {
+                            it
+                        }
                     }
-                }
-        )
+            )
+        } else {
+            return Response.success(IntegrationsResponse(listOf()))
+        }
     }
 
     override suspend fun getTrips(

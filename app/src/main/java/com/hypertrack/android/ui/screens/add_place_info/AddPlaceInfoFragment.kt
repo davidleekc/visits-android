@@ -80,6 +80,16 @@ class AddPlaceInfoFragment : ProgressDialogFragment(R.layout.fragment_add_place_
             etGeofenceName.setText(it)
         })
 
+        vm.hasIntegrations.observe(viewLifecycleOwner) {
+            tvGeofenceName.setText(
+                if (it == true) {
+                    R.string.add_place_company_name
+                } else {
+                    R.string.add_place_geofence_name
+                }
+            )
+        }
+
         vm.integration.observe(viewLifecycleOwner, {
             lIntegration.setGoneState(it == null)
             it?.let { integration ->
