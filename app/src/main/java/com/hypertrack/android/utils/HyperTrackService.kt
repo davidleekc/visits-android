@@ -54,8 +54,8 @@ class HyperTrackService(
             deeplinkWithoutGetParams.nullIfBlank()?.let { put(KEY_DEEPLINK, it) }
             metadata?.let { putAll(it) }
         }.apply {
-            Log.v("hypertrack-verbose", "set device name: ${name}")
-            Log.v("hypertrack-verbose", "set device metadata: $this")
+//            Log.v("hypertrack-verbose", "set device name: ${name}")
+//            Log.v("hypertrack-verbose", "set device metadata: $this")
         })
     }
 

@@ -30,7 +30,7 @@ class SplashScreenViewModel(
     val loadingState = MutableLiveData<Boolean>()
 
     fun handleDeeplink(parameters: Map<String, Any>, activity: Activity) {
-        Log.v("hypertrack-verbose", parameters.toString())
+//        Log.v("hypertrack-verbose", parameters.toString())
         if (parameters.isNotEmpty()) {
             val key = parameters["publishable_key"] as String?
             val driverId = parameters["driver_id"] as String?
