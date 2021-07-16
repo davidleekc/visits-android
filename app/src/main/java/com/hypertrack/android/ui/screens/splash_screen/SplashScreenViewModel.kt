@@ -10,6 +10,7 @@ import com.hypertrack.android.interactors.PermissionsInteractor
 import com.hypertrack.android.repository.AccountRepository
 import com.hypertrack.android.repository.DriverRepository
 import com.hypertrack.android.ui.base.BaseViewModel
+import com.hypertrack.android.ui.common.isEmail
 import com.hypertrack.android.utils.CrashReportsProvider
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.logistics.android.github.R
@@ -29,10 +30,13 @@ class SplashScreenViewModel(
     val loadingState = MutableLiveData<Boolean>()
 
     fun handleDeeplink(parameters: Map<String, Any>, activity: Activity) {
-//        Log.v("hypertrack-verbose", parameters.toString())
+        Log.v("hypertrack-verbose", parameters.toString())
         if (parameters.isNotEmpty()) {
             val key = parameters["publishable_key"] as String?
+            val driverId = parameters["driver_id"] as String?
             val email = parameters["email"] as String?
+            val deeplink = parameters["~referring_link"] as String?
+            val deeplinkWithoutGetParams = deeplink.urlClearGetParams()
             val phoneNumber = parameters["phone_number"] as String?
             val metadata: Map<String, Any>? = try {
                 val param = parameters["metadata"]
@@ -72,7 +76,7 @@ class SplashScreenViewModel(
                     )
                     proceedToSignUp()
                 }
-                email == null && phoneNumber == null -> {
+                email == null && phoneNumber == null && driverId == null -> {
                     errorHandler.postText(
                         osUtilsProvider.stringFromResource(
                             R.string.splash_screen_invalid_link,
@@ -89,12 +93,37 @@ class SplashScreenViewModel(
                             // Log.d(TAG, "onKeyReceived finished")
                             if (correctKey) {
                                 // Log.d(TAG, "Key validated successfully")
-                                driverRepository.setUserData(
-                                    email = email,
-                                    phoneNumber = phoneNumber,
-                                    metadata = metadata
-                                )
-                                proceedToVisitsManagement(activity)
+                                if (driverId != null) {
+                                    errorHandler.postText(
+                                        osUtilsProvider.stringFromResource(
+                                            R.string.splash_screen_deprecated_link
+                                        )
+                                    )
+                                    if (driverId.isEmail()) {
+                                        driverRepository.setUserData(
+                                            email = driverId,
+                                            phoneNumber = phoneNumber,
+                                            metadata = metadata,
+                                            deeplinkWithoutGetParams = deeplinkWithoutGetParams
+                                        )
+                                    } else {
+                                        driverRepository.setUserData(
+                                            driverId = driverId,
+                                            phoneNumber = phoneNumber,
+                                            metadata = metadata,
+                                            deeplinkWithoutGetParams = deeplinkWithoutGetParams
+                                        )
+                                    }
+                                    proceedToVisitsManagement(activity)
+                                } else {
+                                    driverRepository.setUserData(
+                                        email = email,
+                                        phoneNumber = phoneNumber,
+                                        metadata = metadata,
+                                        deeplinkWithoutGetParams = deeplinkWithoutGetParams
+                                    )
+                                    proceedToVisitsManagement(activity)
+                                }
                             } else {
                                 throw Exception("Invalid publishable_key")
                             }
@@ -149,5 +178,9 @@ class SplashScreenViewModel(
             "", null -> null
             else -> null
         }
+    }
+
+    fun String?.urlClearGetParams(): String? {
+        return this?.split("?")?.first()
     }
 }

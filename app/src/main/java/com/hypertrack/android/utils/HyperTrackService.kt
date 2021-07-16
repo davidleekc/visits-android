@@ -43,14 +43,19 @@ class HyperTrackService(
         name: String?,
         email: String? = null,
         phoneNumber: String? = null,
+        deeplinkWithoutGetParams: String? = null,
         metadata: Map<String, Any>? = null
     ) {
+
         sdkInstance.setDeviceName(name)
         sdkInstance.setDeviceMetadata(mutableMapOf<String, Any>().apply {
-            name.nullIfBlank()?.let { put(KEY_NAME, it) }
             email.nullIfBlank()?.let { put(KEY_EMAIL, it) }
             phoneNumber.nullIfBlank()?.let { put(KEY_PHONE, it) }
+            deeplinkWithoutGetParams.nullIfBlank()?.let { put(KEY_DEEPLINK, it) }
             metadata?.let { putAll(it) }
+        }.apply {
+            Log.v("hypertrack-verbose", "set device name: ${name}")
+            Log.v("hypertrack-verbose", "set device metadata: $this")
         })
     }
 
@@ -114,9 +119,9 @@ class HyperTrackService(
     }
 
     companion object {
-        const val KEY_NAME = "name"
         const val KEY_PHONE = "phone_number"
         const val KEY_EMAIL = "email"
+        const val KEY_DEEPLINK = "invite_id"
     }
 
 }

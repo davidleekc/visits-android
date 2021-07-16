@@ -1,6 +1,7 @@
 package com.hypertrack.android.repository
 
 import com.hypertrack.android.data.AccountDataStorage
+import com.hypertrack.android.ui.common.isEmail
 import com.hypertrack.android.ui.common.nullIfBlank
 import com.hypertrack.android.utils.CrashReportsProvider
 import com.hypertrack.android.utils.ServiceLocator
@@ -29,10 +30,12 @@ class DriverRepository(
     fun setUserData(
         metadata: Map<String, Any>? = null,
         email: String? = null,
-        phoneNumber: String? = null
+        phoneNumber: String? = null,
+        deeplinkWithoutGetParams: String? = null,
+        driverId: String? = null
     ) {
-        check(email != null || phoneNumber != null) {
-            "User data must have email or phone number"
+        check(email != null || phoneNumber != null || driverId != null) {
+            "User data must have email or phone number or driver id"
         }
         _user = User(
             email = email,
@@ -42,12 +45,18 @@ class DriverRepository(
             accountDataStorage.saveUser(it)
         }
         serviceLocator.getHyperTrackService(accountRepository.publishableKey).apply {
-            val name = (email?.split("@")?.first() ?: phoneNumber)
+            val name = email?.split("@")?.first()
+                ?: phoneNumber
+                ?: if (driverId?.isEmail() == true) {
+                    driverId.split("@").first()
+                } else null
+
             setDeviceInfo(
                 name = name,
                 email = email,
                 phoneNumber = phoneNumber,
-                metadata = metadata
+                metadata = metadata,
+                deeplinkWithoutGetParams = deeplinkWithoutGetParams
             )
         }
     }
@@ -82,7 +91,7 @@ data class Driver(
     fun toUser(): User {
         return User(
             driverId = driverId,
-            email = if (driverId.contains("@")) driverId else null
+            email = if (driverId.isEmail()) driverId else null
         )
     }
 }
