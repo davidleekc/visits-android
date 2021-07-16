@@ -3,93 +3,156 @@ package com.hypertrack.android.ui.screens.splash_screen
 import android.app.Activity
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavDirections
+import com.google.gson.Gson
 import com.hypertrack.android.interactors.PermissionDestination
 import com.hypertrack.android.interactors.PermissionsInteractor
 import com.hypertrack.android.repository.AccountRepository
 import com.hypertrack.android.repository.DriverRepository
 import com.hypertrack.android.ui.base.BaseViewModel
+import com.hypertrack.android.ui.common.isEmail
 import com.hypertrack.android.utils.CrashReportsProvider
+import com.hypertrack.android.utils.OsUtilsProvider
+import com.hypertrack.logistics.android.github.R
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.Types
 import kotlinx.coroutines.launch
 
 class SplashScreenViewModel(
     private val driverRepository: DriverRepository,
     private val accountRepository: AccountRepository,
     private val crashReportsProvider: CrashReportsProvider,
-    private val permissionsInteractor: PermissionsInteractor
+    private val permissionsInteractor: PermissionsInteractor,
+    private val osUtilsProvider: OsUtilsProvider,
+    private val moshi: Moshi
 ) : BaseViewModel() {
 
     val loadingState = MutableLiveData<Boolean>()
 
-    private fun proceedToLogin(activity: Activity) = when {
-        driverRepository.hasDriverId -> {
-            // already logged in
-            proceedToVisitsManagement(activity)
-        }
-        accountRepository.isVerifiedAccount -> {
-            // publishable key already verified
-            destination.postValue(SplashScreenFragmentDirections.actionSplashScreenFragmentToDriverIdInputFragment())
-        }
-        else -> {
-            // Log.d(TAG, "No publishable key found")
-            destination.postValue(
-                SplashScreenFragmentDirections.actionSplashScreenFragmentToSignUpFragment()
-            )
+    fun handleDeeplink(parameters: Map<String, Any>, activity: Activity) {
+//        Log.v("hypertrack-verbose", parameters.toString())
+        if (parameters.isNotEmpty()) {
+            val key = parameters["publishable_key"] as String?
+            val driverId = parameters["driver_id"] as String?
+            val email = parameters["email"] as String?
+            val deeplink = parameters["~referring_link"] as String?
+            val deeplinkWithoutGetParams = deeplink.urlClearGetParams()
+            val phoneNumber = parameters["phone_number"] as String?
+            val metadata: Map<String, Any>? = try {
+                val param = parameters["metadata"]
+                when (param) {
+                    is String -> {
+                        moshi.adapter<Map<String, Any>>(
+                            Types.newParameterizedType(
+                                Map::class.java, String::class.java,
+                                Any::class.java
+                            )
+                        ).fromJson(param)
+                    }
+                    else -> null
+                }
+            } catch (e: Exception) {
+                crashReportsProvider.logException(e)
+                errorHandler.postText(
+                    osUtilsProvider.stringFromResource(
+                        R.string.splash_screen_invalid_link,
+                        osUtilsProvider.stringFromResource(
+                            R.string.splash_screen_wrong_metadata,
+                            parameters["metadata"].toString()
+                        )
+                    )
+                )
+                proceedToSignUp()
+                return
+            }
+
+            when {
+                key == null -> {
+                    errorHandler.postText(
+                        osUtilsProvider.stringFromResource(
+                            R.string.splash_screen_invalid_link,
+                            osUtilsProvider.stringFromResource(R.string.splash_screen_no_key)
+                        )
+                    )
+                    proceedToSignUp()
+                }
+                email == null && phoneNumber == null && driverId == null -> {
+                    errorHandler.postText(
+                        osUtilsProvider.stringFromResource(
+                            R.string.splash_screen_invalid_link,
+                            osUtilsProvider.stringFromResource(R.string.splash_screen_no_username)
+                        )
+                    )
+                    proceedToSignUp()
+                }
+                else -> {
+                    loadingState.postValue(true)
+                    viewModelScope.launch {
+                        try {
+                            val correctKey = accountRepository.onKeyReceived(key)
+                            // Log.d(TAG, "onKeyReceived finished")
+                            if (correctKey) {
+                                // Log.d(TAG, "Key validated successfully")
+                                if (driverId != null) {
+                                    errorHandler.postText(
+                                        osUtilsProvider.stringFromResource(
+                                            R.string.splash_screen_deprecated_link
+                                        )
+                                    )
+                                    if (driverId.isEmail()) {
+                                        driverRepository.setUserData(
+                                            email = driverId,
+                                            phoneNumber = phoneNumber,
+                                            metadata = metadata,
+                                            deeplinkWithoutGetParams = deeplinkWithoutGetParams
+                                        )
+                                    } else {
+                                        driverRepository.setUserData(
+                                            driverId = driverId,
+                                            phoneNumber = phoneNumber,
+                                            metadata = metadata,
+                                            deeplinkWithoutGetParams = deeplinkWithoutGetParams
+                                        )
+                                    }
+                                    proceedToVisitsManagement(activity)
+                                } else {
+                                    driverRepository.setUserData(
+                                        email = email,
+                                        phoneNumber = phoneNumber,
+                                        metadata = metadata,
+                                        deeplinkWithoutGetParams = deeplinkWithoutGetParams
+                                    )
+                                    proceedToVisitsManagement(activity)
+                                }
+                            } else {
+                                throw Exception("Invalid publishable_key")
+                            }
+                        } catch (e: Exception) {
+                            Log.w(TAG, "Cannot validate the key", e)
+                            errorHandler.postException(e)
+                            proceedToSignUp()
+                        }
+                    }
+                }
+            }
+        } else {
+            if (accountRepository.isVerifiedAccount) {
+                proceedToVisitsManagement(activity)
+            } else {
+                proceedToSignUp()
+            }
         }
     }
 
-    fun handleDeeplink(parameters: Map<String, Any>, activity: Activity) {
-        // Log.d(TAG, "Got deeplink result $parameters")
-
-        // Here we can inject obligatory input (publishable key and driver id)
-        // as well as configuration parameters:
-        //                  show_manual_visits (default false)
-        //                  auto_check_in (default true)
-
-        val key = parameters["publishable_key"] as String?
-        val email = parameters["email"] as String?
-        val driverId = parameters["driver_id"] as String?
-        val showCheckIn = (parameters["show_manual_visits"] as String?).toBoolean()
-        val pickUpAllowed = (parameters["pick_up_allowed"] as String?).toBoolean()
-        // Log.v(TAG, "Got email $email, pk $key, driverId, $driverId, showCheckIn $showCheckIn, auto checking $autoCheckIn pickUp allowed $pickUpAllowed")
-        if (key != null) {
-            // Log.d(TAG, "Got key $key")
-            try {
-                loadingState.postValue(true)
-                viewModelScope.launch {
-                    val correctKey = accountRepository.onKeyReceived(
-                        key,
-                        checkInEnabled = showCheckIn,
-                        pickUpAllowed = pickUpAllowed
-                    )
-                    // Log.d(TAG, "onKeyReceived finished")
-                    if (correctKey) {
-                        // Log.d(TAG, "Key validated successfully")
-                        driverId?.let { driverRepository.driverId = it }
-                        email?.let { driverRepository.driverId = it }
-                        if (driverRepository.hasDriverId) {
-                            proceedToVisitsManagement(activity)
-                        } else {
-                            destination.postValue(SplashScreenFragmentDirections.actionSplashScreenFragmentToDriverIdInputFragment())
-                        }
-                    } else {
-                        proceedToLogin(activity)
-                    }
-                }
-                // Log.d(TAG, "coroutine finished")
-            } catch (e: Throwable) {
-                Log.w(TAG, "Cannot validate the key", e)
-                proceedToLogin(activity)
-            }
-        } else {
-            parameters["error"]?.let { Log.e(TAG, "Deeplink processing failed. $it") }
-            proceedToLogin(activity)
-        }
+    private fun proceedToSignUp() {
+        loadingState.postValue(false)
+        destination.postValue(
+            SplashScreenFragmentDirections.actionSplashScreenFragmentToSignUpFragment()
+        )
     }
 
     private fun proceedToVisitsManagement(activity: Activity) {
+        loadingState.postValue(false)
         when (permissionsInteractor.checkPermissionsState()
             .getNextPermissionRequest()) {
             PermissionDestination.PASS -> {
@@ -115,5 +178,9 @@ class SplashScreenViewModel(
             "", null -> null
             else -> null
         }
+    }
+
+    fun String?.urlClearGetParams(): String? {
+        return this?.split("?")?.first()
     }
 }

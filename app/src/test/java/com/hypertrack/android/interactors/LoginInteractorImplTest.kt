@@ -54,7 +54,9 @@ class LoginInteractorImplTest {
         coEvery { onKeyReceived("pk", any(), any()) } returns true
     }
     private var driverRepository: DriverRepository = mockk {
-        coEvery { driverId = any() } returns Unit
+        coEvery {
+            setUserData(any(), any(), any(), any())
+        } returns Unit
     }
     private var tokenService = mockk<TokenForPublishableKeyExchangeService> {
         coEvery { getPublishableKey("cognito token") } returns Response.success(
@@ -80,9 +82,9 @@ class LoginInteractorImplTest {
     @Before
     fun before() {
         loginInteractor = LoginInteractorImpl(
+            driverRepository,
             accountLoginProvider,
             accountRepository,
-            driverRepository,
             tokenService,
             liveAccountUrlService,
             "services api key"
@@ -94,7 +96,11 @@ class LoginInteractorImplTest {
         runBlocking {
             val res = loginInteractor.signIn("login", "password")
             assertEquals("pk", (res as PublishableKey).key)
-            verify { driverRepository.driverId = "login" }
+            verify {
+                driverRepository.setUserData(
+                    email = "login"
+                )
+            }
         }
     }
 
@@ -103,7 +109,9 @@ class LoginInteractorImplTest {
         runBlocking {
             val res = loginInteractor.signIn("login", "wrong password")
             assertTrue(res is InvalidLoginOrPassword)
-            verify(exactly = 0) { driverRepository.driverId = any() }
+            verify(exactly = 0) {
+                driverRepository.setUserData(any(), any(), any(), any())
+            }
         }
     }
 
@@ -112,7 +120,9 @@ class LoginInteractorImplTest {
         runBlocking {
             val res = loginInteractor.signIn("wrong login", "password")
             assertTrue(res is NoSuchUser)
-            verify(exactly = 0) { driverRepository.driverId = any() }
+            verify(exactly = 0) {
+                driverRepository.setUserData(any(), any(), any(), any())
+            }
         }
     }
 
@@ -121,7 +131,9 @@ class LoginInteractorImplTest {
         runBlocking {
             val res = loginInteractor.signIn("login needs confirmation", "password")
             assertEquals(EmailConfirmationRequired::class.java, res::class.java)
-            verify(exactly = 0) { driverRepository.driverId = any() }
+            verify(exactly = 0) {
+                driverRepository.setUserData(any(), any(), any(), any())
+            }
         }
     }
 
@@ -130,7 +142,9 @@ class LoginInteractorImplTest {
         runBlocking {
             val res = loginInteractor.signUp("login", "password", mapOf())
             assertEquals(ConfirmationRequired::class.java, res::class.java)
-            verify(exactly = 0) { driverRepository.driverId = any() }
+            verify(exactly = 0) {
+                driverRepository.setUserData(any(), any(), any(), any())
+            }
         }
     }
 
@@ -139,7 +153,11 @@ class LoginInteractorImplTest {
         runBlocking {
             val res = loginInteractor.verifyByOtpCode("email", "123456")
             assertEquals(OtpSuccess::class.java, res::class.java)
-            verify { driverRepository.driverId = "email" }
+            verify {
+                driverRepository.setUserData(
+                    email = "email"
+                )
+            }
         }
     }
 

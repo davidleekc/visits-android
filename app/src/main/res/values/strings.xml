@@ -51,6 +51,8 @@
     <string name="account_login_header_text">Sign into your account</string>
     <string name="login_hint">Cannot get login from the deeplink. Sign in or contact your manager to get the link.</string>
     <string name="email_address">Business email</string>
+    <string name="email">Email</string>
+    <string name="phone_number">Phone number</string>
     <string name="log_in">Log In</string>
     <string name="password">Password</string>
     <string name="account_login_error_message">Can\'t login with provided credentials</string>
@@ -103,6 +105,12 @@
     <string name="notification_important_channel_name">HyperTrack Important Notifications</string>
     <string name="notification_important_channel_description">HyperTrack Visits app notifications</string>
     <string name="notification_new_trip">A new trip was assigned to you</string>
+
+    <string name="splash_screen_invalid_link">Invalid link: %s</string>
+    <string name="splash_screen_deprecated_link">Warning: you\'re using deeplink with deprecated format that will be disabled in future versions</string>
+    <string name="splash_screen_no_key">No publishable_key</string>
+    <string name="splash_screen_no_username">No email or phone_number</string>
+    <string name="splash_screen_wrong_metadata">Wrong metadata format: %s</string>
 
     <string name="permissions_allow_location_access">Please allow Location permissions</string>
     <string name="permission_rationale_1">This app collects activity and location data \n to  manage your work on the move \n even when the app is closed or not in use</string>

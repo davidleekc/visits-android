@@ -13,6 +13,7 @@ import com.hypertrack.android.ui.screens.sign_up.SignUpViewModel
 import com.hypertrack.android.ui.screens.splash_screen.SplashScreenViewModel
 import com.hypertrack.android.utils.CrashReportsProvider
 import com.hypertrack.android.utils.OsUtilsProvider
+import com.squareup.moshi.Moshi
 
 @Suppress("UNCHECKED_CAST")
 class ViewModelFactory(
@@ -22,6 +23,7 @@ class ViewModelFactory(
     private val permissionsInteractor: PermissionsInteractor,
     private val loginInteractor: LoginInteractor,
     private val osUtilsProvider: OsUtilsProvider,
+    private val moshi: Moshi,
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -44,7 +46,9 @@ class ViewModelFactory(
                 driverRepository,
                 accountRepository,
                 crashReportsProvider,
-                permissionsInteractor
+                permissionsInteractor,
+                osUtilsProvider,
+                moshi
             ) as T
             BackgroundPermissionsViewModel::class.java -> BackgroundPermissionsViewModel(
                 permissionsInteractor

@@ -21,12 +21,33 @@ class ProfileViewModel(
 ) : BaseViewModel() {
 
     val profile = MutableLiveData<List<KeyValueItem>>(mutableListOf<KeyValueItem>().apply {
-        add(
-            KeyValueItem(
-                osUtilsProvider.stringFromResource(R.string.driver_id),
-                driverRepository.driverId
-            )
-        )
+        driverRepository.user?.let { user ->
+            user.email?.let {
+                add(
+                    KeyValueItem(
+                        osUtilsProvider.stringFromResource(R.string.email),
+                        it
+                    )
+                )
+            }
+            user.phoneNumber?.let {
+                add(
+                    KeyValueItem(
+                        osUtilsProvider.stringFromResource(R.string.phone_number),
+                        it
+                    )
+                )
+            }
+            user.driverId?.let {
+                add(
+                    KeyValueItem(
+                        osUtilsProvider.stringFromResource(R.string.driver_id),
+                        it
+                    )
+                )
+            }
+        }
+
         add(
             KeyValueItem(
                 osUtilsProvider.stringFromResource(R.string.device_id),

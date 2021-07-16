@@ -24,7 +24,6 @@ class ParamViewModelFactory<T>(
     private val userScopeProvider: Provider<UserScope>,
     private val osUtilsProvider: OsUtilsProvider,
     private val accountRepository: AccountRepository,
-    private val apiClient: ApiClient,
     private val moshi: Moshi,
     private val crashReportsProvider: CrashReportsProvider,
     private val placesClient: PlacesClient,
@@ -46,7 +45,7 @@ class ParamViewModelFactory<T>(
                 userScopeProvider.get().photoUploadQueueInteractor,
                 osUtilsProvider,
                 accountRepository,
-                apiClient,
+                userScopeProvider.get().apiClient,
                 GlobalScope
             ) as T
             AddPlaceInfoViewModel::class.java -> (param as DestinationData).let { destinationData ->

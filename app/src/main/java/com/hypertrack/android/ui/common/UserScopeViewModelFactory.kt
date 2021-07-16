@@ -16,7 +16,6 @@ import com.hypertrack.android.ui.screens.visits_management.tabs.profile.ProfileV
 import com.hypertrack.android.ui.screens.visits_management.tabs.summary.SummaryViewModel
 import com.hypertrack.android.utils.CrashReportsProvider
 import com.hypertrack.android.utils.HyperTrackService
-import com.hypertrack.android.ui.screens.driver_id_input.DriverLoginViewModel
 import com.hypertrack.android.ui.screens.permission_request.PermissionRequestViewModel
 import com.hypertrack.android.ui.common.select_destination.SelectDestinationViewModel
 import com.hypertrack.android.ui.screens.select_trip_destination.SelectTripDestinationViewModel
@@ -101,11 +100,6 @@ class UserScopeViewModelFactory(
                 historyRepository,
                 timeLengthFormatter,
                 osUtilsProvider
-            ) as T
-            DriverLoginViewModel::class.java -> DriverLoginViewModel(
-                driverRepository,
-                hyperTrackService,
-                permissionsInteractor
             ) as T
             VisitsManagementViewModel::class.java -> VisitsManagementViewModel(
                 visitsRepository,

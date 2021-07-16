@@ -9,6 +9,7 @@ import com.hypertrack.android.repository.DriverRepository
 import com.hypertrack.android.toBase64
 import com.hypertrack.android.utils.*
 import java.util.*
+import javax.inject.Provider
 
 interface LoginInteractor {
     suspend fun signIn(email: String, password: String): LoginResult
@@ -36,9 +37,9 @@ interface LoginInteractor {
 }
 
 class LoginInteractorImpl(
+    private val driverRepository: DriverRepository,
     private val cognito: CognitoAccountLoginProvider,
     private val accountRepository: AccountRepository,
-    private val driverRepository: DriverRepository,
     private val tokenService: TokenForPublishableKeyExchangeService,
     private val liveAccountUrlService: LiveAccountApi,
     private val servicesApiKey: String,
@@ -67,7 +68,7 @@ class LoginInteractorImpl(
     private suspend fun loginWithPublishableKey(key: String, email: String): Boolean {
         val pkValid = accountRepository.onKeyReceived(key = key, checkInEnabled = true)
         return if (pkValid) {
-            driverRepository.driverId = email
+            driverRepository.setUserData(email = email)
             true
         } else {
             false
