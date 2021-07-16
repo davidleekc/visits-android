@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.9.20] - 2021-07-16
+- Google place name bug fixed
+- New deeplink format
+
 ## [0.9.19] - 2021-07-07
 - Places and Trips experience fixes
 - Email feedback form
