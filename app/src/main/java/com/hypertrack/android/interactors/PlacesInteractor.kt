@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.fonfon.kgeohash.GeoHash
 import com.google.android.gms.maps.model.LatLng
+import com.hypertrack.android.delegates.GeofenceNameDelegate
 import com.hypertrack.android.models.Integration
 import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.repository.*
@@ -49,6 +50,8 @@ class PlacesInteractorImpl(
     private val osUtilsProvider: OsUtilsProvider,
     private val globalScope: CoroutineScope
 ) : PlacesInteractor {
+
+    private val geofenceNameDelegate = GeofenceNameDelegate(osUtilsProvider)
 
     private var pendingCreatedGeofences = mutableListOf<LocalGeofence>()
 
@@ -155,7 +158,7 @@ class PlacesInteractorImpl(
                     if (pageToken == null && pendingCreatedGeofences.isNotEmpty()) {
                         pendingCreatedGeofences.map {
                             it.copy(
-                                name = "${it.name} (${
+                                name = "${geofenceNameDelegate.getName(it)} (${
                                     osUtilsProvider.stringFromResource(
                                         R.string.places_recently_created
                                     )
