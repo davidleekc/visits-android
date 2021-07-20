@@ -133,9 +133,6 @@
         <action
             android:id="@+id/action_addPlaceFragment_to_addPlaceInfoFragment"
             app:destination="@id/addPlaceInfoFragment" />
-        <action
-            android:id="@+id/action_addPlaceFragment_to_placeDetailsFragment"
-            app:destination="@id/placeDetailsFragment" />
     </fragment>
     <fragment
         android:id="@+id/addIntegrationFragment"
@@ -190,4 +187,7 @@
             android:id="@+id/action_selectTripDestinationFragment_to_addOrderInfoFragment"
             app:destination="@id/addOrderInfoFragment" />
     </fragment>
+    <action
+        android:id="@+id/action_global_placeDetailsFragment"
+        app:destination="@id/placeDetailsFragment" />
 </navigation>
