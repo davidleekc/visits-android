@@ -40,7 +40,8 @@ class DriverRepository(
         _user = User(
             email = email,
             phoneNumber = phoneNumber,
-            metadata = metadata
+            metadata = metadata,
+            driverId = driverId
         ).also {
             accountDataStorage.saveUser(it)
         }
@@ -49,12 +50,13 @@ class DriverRepository(
                 ?: phoneNumber
                 ?: if (driverId?.isEmail() == true) {
                     driverId.split("@").first()
-                } else null
+                } else driverId
 
             setDeviceInfo(
                 name = name,
                 email = email,
                 phoneNumber = phoneNumber,
+                driverId = driverId,
                 metadata = metadata,
                 deeplinkWithoutGetParams = deeplinkWithoutGetParams
             )

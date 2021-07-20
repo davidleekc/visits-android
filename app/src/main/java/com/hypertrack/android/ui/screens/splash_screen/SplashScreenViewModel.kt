@@ -93,7 +93,7 @@ class SplashScreenViewModel(
                             // Log.d(TAG, "onKeyReceived finished")
                             if (correctKey) {
                                 // Log.d(TAG, "Key validated successfully")
-                                if (driverId != null) {
+                                if (driverId != null && (email == null && phoneNumber == null)) {
                                     errorHandler.postText(
                                         osUtilsProvider.stringFromResource(
                                             R.string.splash_screen_deprecated_link
