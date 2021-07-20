@@ -1,5 +1,8 @@
 # Changelog
 
+## [0.9.21] - 2021-07-20
+- Deeplink fixes
+
 ## [0.9.20] - 2021-07-16
 - Google place name bug fixed
 - New deeplink format
