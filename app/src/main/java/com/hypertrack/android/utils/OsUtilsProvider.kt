@@ -32,6 +32,7 @@ import com.hypertrack.android.toBase64
 import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.common.ClipboardUtil
 import com.hypertrack.android.ui.common.LocationUtils
+import com.hypertrack.android.ui.common.isEmail
 import com.hypertrack.android.ui.screens.visits_management.tabs.livemap.TrackingPresenter
 import com.hypertrack.logistics.android.github.R
 import retrofit2.HttpException
@@ -126,6 +127,10 @@ class OsUtilsProvider(
 
     fun makeToast(txt: String) {
         Toast.makeText(context, txt, Toast.LENGTH_LONG).show()
+    }
+
+    fun isEmail(str: String?): Boolean {
+        return str.isEmail()
     }
 
     fun getLocalDate(): LocalDate = LocalDate.now()

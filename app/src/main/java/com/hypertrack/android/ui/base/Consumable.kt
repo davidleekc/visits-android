@@ -14,6 +14,14 @@ class Consumable<T>(
         }
     }
 
+    val value: T?
+        get() = if (consumed) {
+            throw IllegalStateException("value already consumed")
+        } else {
+            _consumed = true
+            payload
+        }
+
     fun <R> map(mapper: (T) -> R): Consumable<R> {
         return Consumable(mapper.invoke(payload), consumed)
     }

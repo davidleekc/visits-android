@@ -137,26 +137,19 @@ class SplashScreenViewModel(
                                 R.string.splash_screen_deprecated_link
                             )
                         )
-                        if (driverId.isEmail()) {
-                            driverRepository.setUserData(
-                                email = driverId,
-                                phoneNumber = phoneNumber,
-                                metadata = metadata,
-                                deeplinkWithoutGetParams = deeplinkWithoutGetParams
-                            )
-                        } else {
-                            driverRepository.setUserData(
-                                driverId = driverId,
-                                phoneNumber = phoneNumber,
-                                metadata = metadata,
-                                deeplinkWithoutGetParams = deeplinkWithoutGetParams
-                            )
-                        }
+                        driverRepository.setUserData(
+                            email = email,
+                            phoneNumber = phoneNumber,
+                            driverId = driverId,
+                            metadata = metadata,
+                            deeplinkWithoutGetParams = deeplinkWithoutGetParams
+                        )
                         proceedToVisitsManagement(activity)
                     } else {
                         driverRepository.setUserData(
                             email = email,
                             phoneNumber = phoneNumber,
+                            driverId = driverId,
                             metadata = metadata,
                             deeplinkWithoutGetParams = deeplinkWithoutGetParams
                         )
