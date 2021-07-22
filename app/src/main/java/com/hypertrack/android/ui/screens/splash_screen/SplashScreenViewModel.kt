@@ -140,7 +140,9 @@ class SplashScreenViewModel(
                         driverRepository.setUserData(
                             email = email,
                             phoneNumber = phoneNumber,
-                            driverId = driverId,
+                            //ignored, because this field is sent only as fallback for older versions of Visits app
+                            //email is used instead
+                            //driverId = driverId,
                             metadata = metadata,
                             deeplinkWithoutGetParams = deeplinkWithoutGetParams
                         )

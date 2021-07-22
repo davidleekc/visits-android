@@ -186,7 +186,6 @@ class SplashScreenVieswModelTest {
     }
 
     //todo pickup name from metadata
-    //todo ignore driver id from deeplink
     @Test
     fun `handle new deeplink with driver id`() {
         val driverRepository = mockk<DriverRepository>(relaxed = true)
@@ -213,7 +212,6 @@ class SplashScreenVieswModelTest {
             verify {
                 driverRepository.setUserData(
                     email = "email@mail.com",
-                    driverId = "email@mail.com",
                     phoneNumber = "Phone",
                 )
             }
