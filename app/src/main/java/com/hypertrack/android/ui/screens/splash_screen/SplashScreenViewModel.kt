@@ -38,10 +38,7 @@ class SplashScreenViewModel(
                 errorHandler.postText(
                     osUtilsProvider.stringFromResource(
                         R.string.splash_screen_invalid_link,
-                        osUtilsProvider.stringFromResource(
-                            R.string.splash_screen_wrong_metadata,
-                            parameters["metadata"].toString()
-                        )
+                        e.format()
                     )
                 )
                 crashReportsProvider.logException(InvalidDeeplinkException(e))
@@ -132,14 +129,8 @@ class SplashScreenViewModel(
                 if (correctKey) {
                     // Log.d(TAG, "Key validated successfully")
                     if (driverId != null && (email == null && phoneNumber == null)) {
-                        errorHandler.postText(
-                            osUtilsProvider.stringFromResource(
-                                R.string.splash_screen_deprecated_link
-                            )
-                        )
                         driverRepository.setUserData(
-                            email = email,
-                            phoneNumber = phoneNumber,
+                            email = if (osUtilsProvider.isEmail(driverId)) driverId else null,
                             driverId = driverId,
                             metadata = metadata,
                             deeplinkWithoutGetParams = deeplinkWithoutGetParams

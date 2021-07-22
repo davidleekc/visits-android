@@ -91,18 +91,13 @@ class SplashScreenVieswModelTest {
         }
     }
 
-    //todo remove old deeplink message
     @Test
     fun `old deeplink with driver_id`() {
         val driverRepository = mockk<DriverRepository>(relaxed = true)
 
         fun assertCheck(vm: SplashScreenViewModel, driverId: String) {
-            vm.errorHandler.errorText.observeAndGetValue().let {
-                assertEquals(R.string.splash_screen_deprecated_link.toString(), it.value)
-            }
-            verify {
-                driverRepository.setUserData(driverId = driverId)
-            }
+            vm.errorHandler.errorText.observeAndAssertNull()
+
             vm.destination.observeAndGetValue().let {
                 assertEquals(
                     SplashScreenFragmentDirections.actionGlobalVisitManagementFragment(),
@@ -120,6 +115,10 @@ class SplashScreenVieswModelTest {
             )
 
             assertCheck(vm, "email@mail.com")
+
+            verify {
+                driverRepository.setUserData(driverId = "email@mail.com", email = "email@mail.com")
+            }
         }
 
         createVm(driverRepository = driverRepository).let { vm ->
@@ -131,6 +130,10 @@ class SplashScreenVieswModelTest {
             )
 
             assertCheck(vm, "Driver Id")
+
+            verify {
+                driverRepository.setUserData(driverId = "Driver Id")
+            }
         }
 
     }
