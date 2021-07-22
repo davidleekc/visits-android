@@ -48,7 +48,8 @@ class DriverRepository(
             accountDataStorage.saveUser(it)
         }
         serviceLocator.getHyperTrackService(accountRepository.publishableKey).apply {
-            val name = email?.split("@")?.first()
+            val name = metadata?.get("name").stringOrNull()
+                ?: email?.split("@")?.first()
                 ?: phoneNumber
                 ?: if (osUtilsProvider.isEmail(driverId)) {
                     driverId!!.split("@").first()
@@ -97,5 +98,13 @@ data class Driver(
             driverId = driverId,
             email = if (driverId.isEmail()) driverId else null
         )
+    }
+}
+
+fun Any?.stringOrNull(): String? {
+    if (this is String) {
+        return this
+    } else {
+        return null
     }
 }

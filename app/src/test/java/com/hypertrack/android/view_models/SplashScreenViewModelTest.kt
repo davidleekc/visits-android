@@ -185,7 +185,6 @@ class SplashScreenVieswModelTest {
 
     }
 
-    //todo pickup name from metadata
     @Test
     fun `handle new deeplink with driver id`() {
         val driverRepository = mockk<DriverRepository>(relaxed = true)
@@ -279,6 +278,7 @@ class SplashScreenVieswModelTest {
             assertCheck(vm)
         }
     }
+
 
     @Test
     fun `handle deeplink with invalid publishable key`() {
