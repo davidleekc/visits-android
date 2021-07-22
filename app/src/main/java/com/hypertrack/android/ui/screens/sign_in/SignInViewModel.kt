@@ -98,9 +98,9 @@ class SignInViewModel(
         }
     }
 
-    fun onSignUpClick() {
-        destination.postValue(SignInFragmentDirections.actionSignInFragmentToSignUpFragment())
-    }
+//    fun onSignUpClick() {
+//        destination.postValue(SignInFragmentDirections.actionSignInFragmentToSignUpFragment())
+//    }
 
     fun Int.stringFromResource(): String {
         return MyApplication.context.getString(this)

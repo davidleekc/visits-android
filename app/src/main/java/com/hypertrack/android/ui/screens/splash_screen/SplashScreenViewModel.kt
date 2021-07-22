@@ -8,7 +8,6 @@ import com.hypertrack.android.interactors.PermissionsInteractor
 import com.hypertrack.android.repository.AccountRepository
 import com.hypertrack.android.repository.DriverRepository
 import com.hypertrack.android.ui.base.BaseViewModel
-import com.hypertrack.android.ui.common.isEmail
 import com.hypertrack.android.utils.CrashReportsProvider
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.android.utils.format
@@ -42,14 +41,10 @@ class SplashScreenViewModel(
                     )
                 )
                 crashReportsProvider.logException(InvalidDeeplinkException(e))
-                proceedToSignUp()
+                onDeeplinkError(activity)
             }
         } else {
-            if (accountRepository.isVerifiedAccount) {
-                proceedToVisitsManagement(activity)
-            } else {
-                proceedToSignUp()
-            }
+            proceedWithLoggedInCheck(activity)
         }
     }
 
@@ -82,7 +77,7 @@ class SplashScreenViewModel(
                     )
                 )
                 crashReportsProvider.logException(InvalidDeeplinkException("publishableKey == null"))
-                proceedToSignUp()
+                onDeeplinkError(activity)
             }
             email == null && phoneNumber == null && driverId == null -> {
                 errorHandler.postText(
@@ -96,7 +91,7 @@ class SplashScreenViewModel(
                         "email == null && phoneNumber == null && driverId == null"
                     )
                 )
-                proceedToSignUp()
+                onDeeplinkError(activity)
             }
             else -> {
                 validatePublishableKeyAndProceed(
@@ -154,15 +149,27 @@ class SplashScreenViewModel(
             } catch (e: Exception) {
                 errorHandler.postException(e)
                 crashReportsProvider.logException(InvalidDeeplinkException(e))
-                proceedToSignUp()
+                onDeeplinkError(activity)
             }
         }
     }
 
-    private fun proceedToSignUp() {
+    private fun onDeeplinkError(activity: Activity) {
+        proceedWithLoggedInCheck(activity)
+    }
+
+    private fun proceedWithLoggedInCheck(activity: Activity) {
+        if (accountRepository.isVerifiedAccount) {
+            proceedToVisitsManagement(activity)
+        } else {
+            proceedToSignIn()
+        }
+    }
+
+    private fun proceedToSignIn() {
         loadingState.postValue(false)
         destination.postValue(
-            SplashScreenFragmentDirections.actionSplashScreenFragmentToSignUpFragment()
+            SplashScreenFragmentDirections.actionSplashScreenFragmentToSignInFragment()
         )
     }
 

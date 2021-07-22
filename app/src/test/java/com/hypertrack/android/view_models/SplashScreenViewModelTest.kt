@@ -34,7 +34,7 @@ class SplashScreenVieswModelTest {
         vm.handleDeeplink(mapOf(), mockk(relaxed = true))
         vm.destination.observeAndGetValue().let {
             assertEquals(
-                SplashScreenFragmentDirections.actionSplashScreenFragmentToSignUpFragment(),
+                SplashScreenFragmentDirections.actionSplashScreenFragmentToSignInFragment(),
                 it
             )
         }
@@ -58,7 +58,7 @@ class SplashScreenVieswModelTest {
         }
         vm.destination.observeAndGetValue().let {
             assertEquals(
-                SplashScreenFragmentDirections.actionSplashScreenFragmentToSignUpFragment(),
+                SplashScreenFragmentDirections.actionSplashScreenFragmentToSignInFragment(),
                 it
             )
         }
@@ -85,7 +85,7 @@ class SplashScreenVieswModelTest {
         }
         vm.destination.observeAndGetValue().let {
             assertEquals(
-                SplashScreenFragmentDirections.actionSplashScreenFragmentToSignUpFragment(),
+                SplashScreenFragmentDirections.actionSplashScreenFragmentToSignInFragment(),
                 it
             )
         }
@@ -299,20 +299,50 @@ class SplashScreenVieswModelTest {
         }
         vm.destination.observeAndGetValue().let {
             assertEquals(
-                SplashScreenFragmentDirections.actionSplashScreenFragmentToSignUpFragment(),
+                SplashScreenFragmentDirections.actionSplashScreenFragmentToSignInFragment(),
                 it
             )
+        }
+    }
+
+    @Test
+    fun `handle invalid deeplink if already logged in`() {
+        val driverRepository = mockk<DriverRepository>(relaxed = true)
+
+        createVm(driverRepository = driverRepository, loggedIn = true).let { vm ->
+            vm.handleDeeplink(
+                mapOf(
+                    "publishable_key" to "key",
+                ), mockk(relaxed = true)
+            )
+
+            vm.errorHandler.errorText.observeAndGetValue().let {
+                assertEquals(R.string.splash_screen_invalid_link.toString(), it.value)
+            }
+
+            vm.destination.observeAndGetValue().let {
+                assertEquals(
+                    SplashScreenFragmentDirections.actionGlobalVisitManagementFragment(),
+                    it
+                )
+            }
+
+            verify(exactly = 0) {
+                driverRepository.setUserData(allAny())
+            }
         }
     }
 
     companion object {
         fun createVm(
             exceptionSlot: CapturingSlot<Exception> = slot(),
+            loggedIn: Boolean = false,
             crashReportsProvider: CrashReportsProvider = mockk(relaxed = true) {
                 every { logException(capture(exceptionSlot)) } returns Unit
             },
             driverRepository: DriverRepository = mockk(relaxed = true),
             accountRepository: AccountRepository = mockk(relaxed = true) {
+                every { isVerifiedAccount } returns loggedIn
                 coEvery { onKeyReceived("key", allAny()) } returns true
                 coEvery { onKeyReceived("invalid", allAny()) } returns false
             },
@@ -339,5 +369,6 @@ class SplashScreenVieswModelTest {
             Injector.getMoshi(),
         )
     }
+
 
 }

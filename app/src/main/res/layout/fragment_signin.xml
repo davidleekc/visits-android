@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/colorWhite"
@@ -97,7 +98,9 @@
         android:text="@string/don_t_have_an_account"
         android:textColor="@color/textColorSecondary"
         android:textSize="14sp"
-        app:layout_constraintBottom_toTopOf="@id/sign_up" />
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/sign_up"
+        tools:layout_editor_absoluteX="16dp" />
 
     <Button
         android:id="@+id/sign_up"
@@ -106,6 +109,7 @@
         android:background="@drawable/bg_button_light"
         android:text="@string/sign_up"
         android:textColor="@color/colorHyperTrackGreen"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"

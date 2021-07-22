@@ -10,8 +10,8 @@
         android:name="com.hypertrack.android.ui.screens.splash_screen.SplashScreenFragment"
         android:label="SplashScreenFragment">
         <action
-            android:id="@+id/action_splashScreenFragment_to_signUpFragment"
-            app:destination="@id/signUpFragment"
+            android:id="@+id/action_splashScreenFragment_to_signInFragment"
+            app:destination="@id/signInFragment"
             app:popUpTo="@id/nav_graph"
             app:popUpToInclusive="true" />
     </fragment>
@@ -72,26 +72,13 @@
         android:name="com.hypertrack.android.ui.screens.sign_in.SignInFragment"
         android:label="SignInFragment">
         <action
-            android:id="@+id/action_signInFragment_to_signUpFragment"
-            app:destination="@id/signUpFragment" />
-        <action
             android:id="@+id/action_signInFragment_to_confirmFragment"
             app:destination="@id/confirmFragment" />
         <argument
             android:name="email"
             app:argType="string"
+            android:defaultValue="@null"
             app:nullable="true" />
-    </fragment>
-    <fragment
-        android:id="@+id/signUpFragment"
-        android:name="com.hypertrack.android.ui.screens.sign_up.SignUpFragment"
-        android:label="SignUpFragment">
-        <action
-            android:id="@+id/action_signUpFragment_to_confirmFragment"
-            app:destination="@id/confirmFragment" />
-        <action
-            android:id="@+id/action_signUpFragment_to_signInFragment"
-            app:destination="@id/signInFragment" />
     </fragment>
     <fragment
         android:id="@+id/confirmFragment"
@@ -106,10 +93,14 @@
     </fragment>
     <action
         android:id="@+id/action_global_backgroundPermissionsFragment"
-        app:destination="@id/backgroundPermissionsFragment" />
+        app:destination="@id/backgroundPermissionsFragment"
+        app:popUpTo="@id/nav_graph"
+        app:popUpToInclusive="true" />
     <action
         android:id="@+id/action_global_permissionRequestFragment"
-        app:destination="@id/permissionRequestFragment" />
+        app:destination="@id/permissionRequestFragment"
+        app:popUpTo="@id/nav_graph"
+        app:popUpToInclusive="true" />
     <fragment
         android:id="@+id/placeDetailsFragment"
         android:name="com.hypertrack.android.ui.screens.place_details.PlaceDetailsFragment"

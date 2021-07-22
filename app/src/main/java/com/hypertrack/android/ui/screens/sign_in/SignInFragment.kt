@@ -47,9 +47,9 @@ class SignInFragment : ProgressDialogFragment(R.layout.fragment_signin) {
             email_address.setText(it)
         }
 
-        sign_up.setOnClickListener {
-            vm.onSignUpClick()
-        }
+//        sign_up.setOnClickListener {
+//            vm.onSignUpClick()
+//        }
 
         vm.destination.observe(viewLifecycleOwner) {
             findNavController().navigate(it)
