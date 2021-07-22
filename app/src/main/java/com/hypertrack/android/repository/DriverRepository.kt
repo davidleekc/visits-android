@@ -7,6 +7,7 @@ import com.hypertrack.android.utils.CrashReportsProvider
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.android.utils.ServiceLocator
 import com.squareup.moshi.JsonClass
+import java.util.*
 
 class DriverRepository(
     private val accountRepository: AccountRepository,
@@ -49,10 +50,10 @@ class DriverRepository(
         }
         serviceLocator.getHyperTrackService(accountRepository.publishableKey).apply {
             val name = metadata?.get("name").stringOrNull()
-                ?: email?.split("@")?.first()
+                ?: email?.split("@")?.first()?.capitalize(Locale.ROOT)
                 ?: phoneNumber
                 ?: if (osUtilsProvider.isEmail(driverId)) {
-                    driverId!!.split("@").first()
+                    driverId!!.split("@").first().capitalize(Locale.ROOT)
                 } else driverId
 
             setDeviceInfo(

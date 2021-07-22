@@ -39,20 +39,21 @@ class DriverRepositoryTest {
             mockk(relaxed = true),
         )
 
+        //note capitalization
         driverRepository.setUserData(email = "email@mail.com", driverId = "driver@mail.com")
-        assertEquals("email", slot.removeAt(0))
+        assertEquals("Email", slot.removeAt(0))
 
-        driverRepository.setUserData(phoneNumber = "Phone", driverId = "driver@mail.com")
-        assertEquals("Phone", slot.removeAt(0))
+        driverRepository.setUserData(phoneNumber = "phone", driverId = "driver@mail.com")
+        assertEquals("phone", slot.removeAt(0))
 
         driverRepository.setUserData(email = "email@mail.com", phoneNumber = "Phone")
-        assertEquals("email", slot.removeAt(0))
+        assertEquals("Email", slot.removeAt(0))
 
         driverRepository.setUserData(driverId = "driver@mail.com")
-        assertEquals("driver", slot.removeAt(0))
+        assertEquals("Driver", slot.removeAt(0))
 
-        driverRepository.setUserData(driverId = "Driver Id")
-        assertEquals("Driver Id", slot.removeAt(0))
+        driverRepository.setUserData(driverId = "driver Id")
+        assertEquals("driver Id", slot.removeAt(0))
     }
 
     @Test
