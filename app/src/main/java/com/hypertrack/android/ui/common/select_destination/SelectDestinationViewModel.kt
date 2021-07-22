@@ -143,7 +143,7 @@ open class SelectDestinationViewModel(
         ) {
             it.snippet.nullIfEmpty()?.let { snippet ->
                 destination.postValue(
-                    AddPlaceFragmentDirections.actionAddPlaceFragmentToPlaceDetailsFragment(
+                    AddPlaceFragmentDirections.actionGlobalPlaceDetailsFragment(
                         snippet
                     )
                 )

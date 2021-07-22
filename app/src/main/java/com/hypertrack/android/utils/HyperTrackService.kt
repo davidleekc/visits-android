@@ -47,7 +47,6 @@ class HyperTrackService(
         deeplinkWithoutGetParams: String? = null,
         metadata: Map<String, Any>? = null
     ) {
-
         sdkInstance.setDeviceName(name)
         sdkInstance.setDeviceMetadata(mutableMapOf<String, Any>().apply {
             driverId.nullIfBlank()?.let { put(KEY_DRIVER_ID, it) }
@@ -56,8 +55,10 @@ class HyperTrackService(
             deeplinkWithoutGetParams.nullIfBlank()?.let { put(KEY_DEEPLINK, it) }
             metadata?.let { putAll(it) }
         }.apply {
-            Log.v("hypertrack-verbose", "set device name: ${name}")
-            Log.v("hypertrack-verbose", "set device metadata: $this")
+            if (MyApplication.DEBUG_MODE) {
+                Log.v("hypertrack-verbose", "set device name: ${name}")
+                Log.v("hypertrack-verbose", "set device metadata: $this")
+            }
         })
     }
 

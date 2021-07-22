@@ -25,6 +25,8 @@ class BackgroundPermissionsViewModel(
                 destination.postValue(BackgroundPermissionsFragmentDirections.actionGlobalPermissionRequestFragment())
             }
             PermissionDestination.BACKGROUND -> {
+                //todo request again
+                //note that permissions activity may not appear and granting can be impossible
                 destination.postValue(BackgroundPermissionsFragmentDirections.actionGlobalVisitManagementFragment())
             }
         }

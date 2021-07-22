@@ -35,11 +35,12 @@ class SignUpViewModel(
                     val res = loginInteractor.signUp(login, password, userAttributes)
                     when (res) {
                         ConfirmationRequired -> {
-                            destination.postValue(
-                                SignUpFragmentDirections.actionSignUpFragmentToConfirmFragment(
-                                    login
-                                )
-                            )
+                            throw NotImplementedError()
+//                            destination.postValue(
+//                                SignUpFragmentDirections.actionSignUpFragmentToConfirmFragment(
+//                                    login
+//                                )
+//                            )
                         }
                         is SignUpError -> {
                             when (res.exception) {
@@ -59,7 +60,8 @@ class SignUpViewModel(
     }
 
     fun onSignInClicked() {
-        destination.postValue(SignUpFragmentDirections.actionSignUpFragmentToSignInFragment(null))
+        throw NotImplementedError()
+//        destination.postValue(SignUpFragmentDirections.actionSignUpFragmentToSignInFragment(null))
     }
 
     fun onBackPressed(): Boolean {

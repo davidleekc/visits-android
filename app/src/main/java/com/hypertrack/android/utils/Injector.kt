@@ -335,6 +335,7 @@ object Injector {
             getAccountRepo(MyApplication.context),
             serviceLocator,
             getMyPreferences(MyApplication.context),
+            getOsUtilsProvider(MyApplication.context),
             crashReportsProvider,
         )
     }

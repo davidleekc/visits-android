@@ -4,13 +4,16 @@ import com.hypertrack.android.data.AccountDataStorage
 import com.hypertrack.android.ui.common.isEmail
 import com.hypertrack.android.ui.common.nullIfBlank
 import com.hypertrack.android.utils.CrashReportsProvider
+import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.android.utils.ServiceLocator
 import com.squareup.moshi.JsonClass
+import java.util.*
 
 class DriverRepository(
     private val accountRepository: AccountRepository,
     private val serviceLocator: ServiceLocator,
     private val accountDataStorage: AccountDataStorage,
+    private val osUtilsProvider: OsUtilsProvider,
     private val crashReportsProvider: CrashReportsProvider,
 ) {
     private var _user: User? = null
@@ -46,10 +49,11 @@ class DriverRepository(
             accountDataStorage.saveUser(it)
         }
         serviceLocator.getHyperTrackService(accountRepository.publishableKey).apply {
-            val name = email?.split("@")?.first()
+            val name = metadata?.get("name").stringOrNull()
+                ?: email?.split("@")?.first()?.capitalize(Locale.ROOT)
                 ?: phoneNumber
-                ?: if (driverId?.isEmail() == true) {
-                    driverId.split("@").first()
+                ?: if (osUtilsProvider.isEmail(driverId)) {
+                    driverId!!.split("@").first().capitalize(Locale.ROOT)
                 } else driverId
 
             setDeviceInfo(
@@ -95,5 +99,13 @@ data class Driver(
             driverId = driverId,
             email = if (driverId.isEmail()) driverId else null
         )
+    }
+}
+
+fun Any?.stringOrNull(): String? {
+    if (this is String) {
+        return this
+    } else {
+        return null
     }
 }

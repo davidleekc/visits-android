@@ -7,6 +7,7 @@ import com.hypertrack.sdk.HyperTrack
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
+import io.mockk.verify
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -27,10 +28,10 @@ class HyperTrackServiceTest {
         val hyperTrackService = HyperTrackService(listener, sdk)
         val visitNote = "valuable customer Note"
         val visit = Visit(
-                _id = "42",
-                visitNote = visitNote,
-                visitType = VisitType.GEOFENCE,
-                _state = VisitStatus.COMPLETED
+            _id = "42",
+            visitNote = visitNote,
+            visitType = VisitType.GEOFENCE,
+            _state = VisitStatus.COMPLETED
         )
 
         val slot = slot<Map<String, Any>>()
@@ -52,10 +53,10 @@ class HyperTrackServiceTest {
         val hyperTrackService = HyperTrackService(listener, sdk)
         val visitNote = "valuable customer Note"
         val visit = Visit(
-                _id = "42",
-                visitNote = visitNote,
-                visitType = VisitType.TRIP,
-                _state = VisitStatus.COMPLETED
+            _id = "42",
+            visitNote = visitNote,
+            visitType = VisitType.TRIP,
+            _state = VisitStatus.COMPLETED
         )
 
         val slot = slot<Map<String, Any>>()
@@ -77,10 +78,10 @@ class HyperTrackServiceTest {
         val hyperTrackService = HyperTrackService(listener, sdk)
         val visitNote = "valuable customer Note"
         val visit = Visit(
-                _id = "42",
-                visitNote = visitNote,
-                visitType = VisitType.LOCAL,
-                _state = VisitStatus.COMPLETED
+            _id = "42",
+            visitNote = visitNote,
+            visitType = VisitType.LOCAL,
+            _state = VisitStatus.COMPLETED
         )
 
         val slot = slot<Map<String, Any>>()
@@ -102,10 +103,10 @@ class HyperTrackServiceTest {
         val hyperTrackService = HyperTrackService(listener, sdk)
         val visitNote = "valuable customer Note"
         val visit = Visit(
-                _id = "42",
-                visitNote = visitNote,
-                visitType = VisitType.LOCAL,
-                _state = VisitStatus.COMPLETED
+            _id = "42",
+            visitNote = visitNote,
+            visitType = VisitType.LOCAL,
+            _state = VisitStatus.COMPLETED
         )
 
         val slot = slot<Map<String, Any>>()
@@ -144,7 +145,7 @@ class HyperTrackServiceTest {
         val payload = slot.captured
         assertTrue(payload.isNotEmpty())
         assertTrue(payload.containsKey("_visit_photos"))
-        assertTrue((payload["_visit_photos"] as Set<*>).containsAll(visitPictures.map {it.imageId}))
+        assertTrue((payload["_visit_photos"] as Set<*>).containsAll(visitPictures.map { it.imageId }))
     }
 
     @Test
@@ -156,11 +157,11 @@ class HyperTrackServiceTest {
         val expectedLat = 42.0
         val expectedLong = 3.14
         val visit = Visit(
-                _id = "42",
-                latitude = expectedLat,
-                longitude = expectedLong,
-                visitType = VisitType.TRIP,
-                _state = VisitStatus.COMPLETED
+            _id = "42",
+            latitude = expectedLat,
+            longitude = expectedLong,
+            visitType = VisitType.TRIP,
+            _state = VisitStatus.COMPLETED
         )
 
         val slot = slot<Location>()
@@ -181,11 +182,11 @@ class HyperTrackServiceTest {
         val expectedLat = 2.1828
         val expectedLong = 3.1415
         val visit = Visit(
-                _id = "42",
-                latitude = expectedLat,
-                longitude = expectedLong,
-                visitType = VisitType.GEOFENCE,
-                _state = VisitStatus.COMPLETED
+            _id = "42",
+            latitude = expectedLat,
+            longitude = expectedLong,
+            visitType = VisitType.GEOFENCE,
+            _state = VisitStatus.COMPLETED
         )
 
         val slot = slot<Location>()
@@ -206,11 +207,11 @@ class HyperTrackServiceTest {
         val expectedLat = 2.1828
         val expectedLong = 3.1415
         val visit = Visit(
-                _id = "42",
-                latitude = expectedLat,
-                longitude = expectedLong,
-                visitType = VisitType.LOCAL,
-                _state = VisitStatus.COMPLETED
+            _id = "42",
+            latitude = expectedLat,
+            longitude = expectedLong,
+            visitType = VisitType.LOCAL,
+            _state = VisitStatus.COMPLETED
         )
 
         val slot = slot<Map<String, Any>>()
@@ -230,11 +231,11 @@ class HyperTrackServiceTest {
         val expectedLat = 42.0
         val expectedLong = 3.14
         val visit = Visit(
-                _id = "42",
-                latitude = expectedLat,
-                longitude = expectedLong,
-                visitType = VisitType.TRIP,
-                _state = VisitStatus.CANCELLED
+            _id = "42",
+            latitude = expectedLat,
+            longitude = expectedLong,
+            visitType = VisitType.TRIP,
+            _state = VisitStatus.CANCELLED
         )
 
         val slot = slot<Location>()
@@ -255,11 +256,11 @@ class HyperTrackServiceTest {
         val expectedLat = 2.1828
         val expectedLong = 3.1415
         val visit = Visit(
-                _id = "42",
-                latitude = expectedLat,
-                longitude = expectedLong,
-                visitType = VisitType.GEOFENCE,
-                _state = VisitStatus.CANCELLED
+            _id = "42",
+            latitude = expectedLat,
+            longitude = expectedLong,
+            visitType = VisitType.GEOFENCE,
+            _state = VisitStatus.CANCELLED
         )
 
         val slot = slot<Location>()
@@ -280,11 +281,11 @@ class HyperTrackServiceTest {
         val expectedLat = 2.1828
         val expectedLong = 3.1415
         val visit = Visit(
-                _id = "42",
-                latitude = expectedLat,
-                longitude = expectedLong,
-                visitType = VisitType.LOCAL,
-                _state = VisitStatus.CANCELLED
+            _id = "42",
+            latitude = expectedLat,
+            longitude = expectedLong,
+            visitType = VisitType.LOCAL,
+            _state = VisitStatus.CANCELLED
         )
 
         val slot = slot<Map<String, Any>>()
@@ -293,6 +294,72 @@ class HyperTrackServiceTest {
 
         val payload = slot.captured
         assertEquals("42", payload[visit.typeKey])
+    }
+
+    @Test
+    fun `it should set device info`() {
+        val sdk = mockk<HyperTrack>(relaxed = true)
+        val listener = TrackingState()
+
+        val map = mapOf("1" to 1, "2" to mapOf("a" to "b"))
+
+        val hyperTrackService = HyperTrackService(listener, sdk)
+        hyperTrackService.setDeviceInfo(
+            name = "name",
+            email = "email",
+            phoneNumber = "phoneNumber",
+            driverId = "driverId",
+            deeplinkWithoutGetParams = "deeplinkWithoutGetParams",
+            metadata = map
+        )
+
+        val slot = slot<Map<String, Any>>()
+        verify {
+            sdk.setDeviceName("name")
+            sdk.setDeviceMetadata(capture(slot))
+        }
+        assertEquals(map.toMutableMap().apply {
+            put("email", "email")
+            put("phone_number", "phoneNumber")
+            put("driver_id", "driverId")
+            put("invite_id", "deeplinkWithoutGetParams")
+        }, slot.captured)
+    }
+
+    @Test
+    fun `metadata fields priority`() {
+        val sdk = mockk<HyperTrack>(relaxed = true)
+        val listener = TrackingState()
+
+        val map = mapOf(
+            "driver_id" to "metadata driver id",
+            "email" to "metadata email",
+            "phone_number" to "metadata phone",
+        )
+
+        val hyperTrackService = HyperTrackService(listener, sdk)
+        hyperTrackService.setDeviceInfo(
+            name = "name",
+            email = "email",
+            phoneNumber = "phoneNumber",
+            driverId = "driverId",
+            deeplinkWithoutGetParams = "deeplinkWithoutGetParams",
+            metadata = map
+        )
+
+        val slot = slot<Map<String, Any>>()
+        verify {
+            sdk.setDeviceMetadata(capture(slot))
+        }
+        assertEquals(map.toMutableMap().apply {
+//            put("email", "email")
+//            put("phone_number", "phoneNumber")
+//            put("driver_id", "driverId")
+            put("email", "metadata email")
+            put("phone_number", "metadata phone")
+            put("driver_id", "metadata driver id")
+            put("invite_id", "deeplinkWithoutGetParams")
+        }, slot.captured)
     }
 
 

@@ -63,6 +63,7 @@ class PermissionsInteractorImpl(
 
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun requestBackgroundLocationPermission(activity: Activity) {
+        //if triggering this two times in a row android may just return empty result
         activity.requestPermissions(arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION), 42)
     }
 
