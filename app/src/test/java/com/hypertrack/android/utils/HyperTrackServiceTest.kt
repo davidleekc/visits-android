@@ -326,6 +326,42 @@ class HyperTrackServiceTest {
         }, slot.captured)
     }
 
+    @Test
+    fun `metadata fields priority`() {
+        val sdk = mockk<HyperTrack>(relaxed = true)
+        val listener = TrackingState()
+
+        val map = mapOf(
+            "driver_id" to "metadata driver id",
+            "email" to "metadata email",
+            "phone_number" to "metadata phone",
+        )
+
+        val hyperTrackService = HyperTrackService(listener, sdk)
+        hyperTrackService.setDeviceInfo(
+            name = "name",
+            email = "email",
+            phoneNumber = "phoneNumber",
+            driverId = "driverId",
+            deeplinkWithoutGetParams = "deeplinkWithoutGetParams",
+            metadata = map
+        )
+
+        val slot = slot<Map<String, Any>>()
+        verify {
+            sdk.setDeviceMetadata(capture(slot))
+        }
+        assertEquals(map.toMutableMap().apply {
+//            put("email", "email")
+//            put("phone_number", "phoneNumber")
+//            put("driver_id", "driverId")
+            put("email", "metadata email")
+            put("phone_number", "metadata phone")
+            put("driver_id", "metadata driver id")
+            put("invite_id", "deeplinkWithoutGetParams")
+        }, slot.captured)
+    }
+
 
 }
 
