@@ -93,6 +93,22 @@ class SplashScreenViewModel(
                 )
                 onDeeplinkError(activity)
             }
+            metadata?.containsKey("email") == true && email != null ||
+                    metadata?.containsKey("phone_number") == true && phoneNumber != null -> {
+                errorHandler.postText(
+                    osUtilsProvider.stringFromResource(
+                        R.string.splash_screen_invalid_link,
+                        osUtilsProvider.stringFromResource(R.string.splash_screen_duplicate_fields)
+                    )
+                )
+                crashReportsProvider.logException(
+                    InvalidDeeplinkException(
+                        "metadata?.containsKey(\"email\") == true && email != null ||\n" +
+                                "            metadata?.containsKey(\"phone_number\") == true && phoneNumber != null"
+                    )
+                )
+                onDeeplinkError(activity)
+            }
             else -> {
                 validatePublishableKeyAndProceed(
                     publishableKey = publishableKey,
@@ -125,7 +141,6 @@ class SplashScreenViewModel(
                     // Log.d(TAG, "Key validated successfully")
                     if (driverId != null && (email == null && phoneNumber == null)) {
                         driverRepository.setUserData(
-                            email = if (osUtilsProvider.isEmail(driverId)) driverId else null,
                             driverId = driverId,
                             metadata = metadata,
                             deeplinkWithoutGetParams = deeplinkWithoutGetParams

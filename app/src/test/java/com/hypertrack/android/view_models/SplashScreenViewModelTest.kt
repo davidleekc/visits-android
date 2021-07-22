@@ -117,7 +117,7 @@ class SplashScreenVieswModelTest {
             assertCheck(vm, "email@mail.com")
 
             verify {
-                driverRepository.setUserData(driverId = "email@mail.com", email = "email@mail.com")
+                driverRepository.setUserData(driverId = "email@mail.com")
             }
         }
 
@@ -329,6 +329,73 @@ class SplashScreenVieswModelTest {
 
             verify(exactly = 0) {
                 driverRepository.setUserData(allAny())
+            }
+        }
+    }
+
+    @Test
+    fun `handle invalid deeplink with shadowed metadata fields`() {
+        val driverRepository = mockk<DriverRepository>(relaxed = true)
+
+        fun assertCheck(vm: SplashScreenViewModel) {
+            vm.errorHandler.errorText.observeAndGetValue().let {
+                assertEquals(R.string.splash_screen_invalid_link.toString(), it.value)
+            }
+
+            vm.destination.observeAndGetValue().let {
+                assertEquals(
+                    SplashScreenFragmentDirections.actionSplashScreenFragmentToSignInFragment(),
+                    it
+                )
+            }
+        }
+
+        createVm(driverRepository = driverRepository).let { vm ->
+            vm.handleDeeplink(
+                mapOf(
+                    "publishable_key" to "key",
+                    "email" to "email@mail.com",
+                    "metadata" to mapOf(
+                        "email" to "email@mail.com"
+                    )
+                ), mockk(relaxed = true)
+            )
+
+            assertCheck(vm)
+        }
+
+        createVm(driverRepository = driverRepository).let { vm ->
+            vm.handleDeeplink(
+                mapOf(
+                    "publishable_key" to "key",
+                    "phone_number" to "email@mail.com",
+                    "metadata" to mapOf(
+                        "phone_number" to "email@mail.com"
+                    )
+                ), mockk(relaxed = true)
+            )
+
+            assertCheck(vm)
+        }
+
+        createVm(driverRepository = driverRepository).let { vm ->
+            vm.handleDeeplink(
+                mapOf(
+                    "publishable_key" to "key",
+                    "driver_id" to "email@mail.com",
+                    "metadata" to mapOf(
+                        "driver_id" to "email@mail.com"
+                    )
+                ), mockk(relaxed = true)
+            )
+
+            vm.errorHandler.errorText.observeAndAssertNull()
+
+            vm.destination.observeAndGetValue().let {
+                assertEquals(
+                    SplashScreenFragmentDirections.actionGlobalVisitManagementFragment(),
+                    it
+                )
             }
         }
     }
