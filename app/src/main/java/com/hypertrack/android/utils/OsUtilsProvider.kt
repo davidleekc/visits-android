@@ -285,7 +285,11 @@ class OsUtilsProvider(
     }
 
     fun distanceMeters(latLng: LatLng, latLng1: LatLng): Int {
-        return LocationUtils.distanceMeters(latLng, latLng1)!!
+        return LocationUtils.distanceMeters(latLng, latLng1).apply {
+            if (this == null) {
+                crashReportsProvider.logException(IllegalStateException("distanceMeters == null, $latLng $latLng1"))
+            }
+        } ?: Int.MAX_VALUE
     }
 
     fun getMapsIntent(latLng: LatLng): Intent? {
