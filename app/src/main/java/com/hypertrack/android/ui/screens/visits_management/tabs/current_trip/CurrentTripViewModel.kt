@@ -26,6 +26,7 @@ import com.hypertrack.android.ui.common.select_destination.DestinationData
 import com.hypertrack.android.ui.common.updateValue
 import com.hypertrack.android.ui.screens.visits_management.VisitsManagementFragmentDirections
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
+import com.hypertrack.android.utils.CrashReportsProvider
 import com.hypertrack.android.utils.HyperTrackService
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.logistics.android.github.R
@@ -36,9 +37,10 @@ import java.util.*
 class CurrentTripViewModel(
     private val tripsInteractor: TripsInteractor,
     private val placesInteractor: PlacesInteractor,
-    private val osUtilsProvider: OsUtilsProvider,
+    private val hyperTrackService: HyperTrackService,
     private val locationProvider: DeviceLocationProvider,
-    private val hyperTrackService: HyperTrackService
+    private val osUtilsProvider: OsUtilsProvider,
+    private val crashReportsProvider: CrashReportsProvider
 ) : BaseViewModel(osUtilsProvider) {
 
     private val isTracking = MediatorLiveData<Boolean>().apply {
@@ -345,22 +347,27 @@ class CurrentTripViewModel(
     }
 
     private fun animateMapCameraToTrip(trip: LocalTrip, map: GoogleMap) {
-        val tripStart =
-            trip.orders.firstOrNull()?.estimate?.route?.polyline?.getPolylinePoints()
-                ?.firstOrNull()
+        try {
+            val tripStart =
+                trip.orders.firstOrNull()?.estimate?.route?.polyline?.getPolylinePoints()
+                    ?.firstOrNull()
 
-        if (trip.ongoingOrders.isNotEmpty()) {
-            val bounds = LatLngBounds.builder().apply {
-                trip.ongoingOrders.forEach { order ->
-                    include(order.destinationLatLng)
-                    order.estimate?.route?.polyline?.getPolylinePoints()?.forEach {
-                        include(it)
+            if (trip.ongoingOrders.isNotEmpty()) {
+                val bounds = LatLngBounds.builder().apply {
+                    trip.ongoingOrders.forEach { order ->
+                        include(order.destinationLatLng)
+                        order.estimate?.route?.polyline?.getPolylinePoints()?.forEach {
+                            include(it)
+                        }
                     }
-                }
-                tripStart?.let { include(it) }
-                this@CurrentTripViewModel.userLocation.value?.let { include(it) }
-            }.build()
-            map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100))
+                    tripStart?.let { include(it) }
+                    this@CurrentTripViewModel.userLocation.value?.let { include(it) }
+                }.build()
+                //newLatLngBounds can cause crash if called before layout without map size
+                map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100))
+            }
+        } catch (e: Exception) {
+            crashReportsProvider.logException(e)
         }
     }
 

@@ -79,6 +79,7 @@ class GoogleMapHistoryRenderer(
                             history.asPolylineOptions().color(style.activeColor)
                         )
                         viewBounds = history.locationTimePoints.map { it.first }.boundRect()
+                        //newLatLngBounds can cause crash if called before layout without map size
                         map?.animateCamera(
                             CameraUpdateFactory.newLatLngBounds(
                                 viewBounds,
@@ -111,36 +112,52 @@ class GoogleMapHistoryRenderer(
     }
 
     override fun onTileSelected(tile: HistoryTile) {
-        Log.d(TAG, "onTileSelected $tile")
-        if (tile.tileType == HistoryTileType.SUMMARY) return
+        try {
+            Log.d(TAG, "onTileSelected $tile")
+            if (tile.tileType == HistoryTileType.SUMMARY) return
 
-        selectedSegment?.remove()
-        activeMarkers.forEach { it.remove() }
-        map?.let { googleMap ->
-            selectedSegment = googleMap.addPolyline(
-                tile.locations
-                    .map { LatLng(it.latitude, it.longitude) }
-                    .fold(PolylineOptions()) { options, loc -> options.add(loc) }
-                    .color(style.colorForStatus(tile.status))
-                    .clickable(true)
-            )
-            tile.locations.firstOrNull()?.let {
-                activeMarkers.add(addMarker(it, googleMap, tile.address, tile.status))
-            }
-            tile.locations.lastOrNull()?.let {
-                activeMarkers.add(addMarker(it, googleMap, tile.address, tile.status))
-            }
-            googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(tile.locations.boundRect(), style.mapPadding))
-            googleMap.setOnMapClickListener {
-                Log.d(TAG, "onMapClicked")
-                selectedSegment?.remove()
-                activeMarkers.forEach { it.remove() }
-                activeMarkers.clear()
-                selectedSegment = null
-                viewBounds?.let { bounds ->
-                    googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, style.mapPadding))
+            selectedSegment?.remove()
+            activeMarkers.forEach { it.remove() }
+            map?.let { googleMap ->
+                selectedSegment = googleMap.addPolyline(
+                    tile.locations
+                        .map { LatLng(it.latitude, it.longitude) }
+                        .fold(PolylineOptions()) { options, loc -> options.add(loc) }
+                        .color(style.colorForStatus(tile.status))
+                        .clickable(true)
+                )
+                tile.locations.firstOrNull()?.let {
+                    activeMarkers.add(addMarker(it, googleMap, tile.address, tile.status))
+                }
+                tile.locations.lastOrNull()?.let {
+                    activeMarkers.add(addMarker(it, googleMap, tile.address, tile.status))
+                }
+                //newLatLngBounds can cause crash if called before layout without map size
+                googleMap.animateCamera(
+                    CameraUpdateFactory.newLatLngBounds(
+                        tile.locations.boundRect(),
+                        style.mapPadding
+                    )
+                )
+                googleMap.setOnMapClickListener {
+                    Log.d(TAG, "onMapClicked")
+                    selectedSegment?.remove()
+                    activeMarkers.forEach { it.remove() }
+                    activeMarkers.clear()
+                    selectedSegment = null
+                    viewBounds?.let { bounds ->
+                        //newLatLngBounds can cause crash if called before layout without map size
+                        googleMap.animateCamera(
+                            CameraUpdateFactory.newLatLngBounds(
+                                bounds,
+                                style.mapPadding
+                            )
+                        )
+                    }
                 }
             }
+        } catch (e: Exception) {
+            crashReportsProvider.logException(e)
         }
     }
 
