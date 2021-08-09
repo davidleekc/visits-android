@@ -29,7 +29,10 @@ class FeedbackInteractor(
 
     fun sendFeedback(activity: Activity, text: String) {
         logAppState()
-        val data = "Device ID: ${deviceId}"
+        val data = mapOf(
+            "Device ID" to deviceId,
+            "App version" to osUtilsProvider.getBuildVersion()
+        ).map { "${it.key}:\t${it.value}" }.joinToString("\n")
         osUtilsProvider.mailTo(
             activity,
             email = osUtilsProvider.stringFromResource(R.string.feedback_email),

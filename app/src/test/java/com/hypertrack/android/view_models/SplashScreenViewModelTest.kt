@@ -13,8 +13,7 @@ import com.hypertrack.android.utils.Injector
 import com.hypertrack.logistics.android.github.R
 import com.squareup.moshi.Types
 import io.mockk.*
-import junit.framework.TestCase.assertEquals
-import junit.framework.TestCase.assertNotNull
+import junit.framework.TestCase.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.Rule
 import org.junit.Test
@@ -37,6 +36,22 @@ class SplashScreenVieswModelTest {
                 SplashScreenFragmentDirections.actionSplashScreenFragmentToSignInFragment(),
                 it
             )
+        }
+    }
+
+    @Test
+    fun `handle empty deeplink (if logged in)`() {
+        val driverRepository: DriverRepository = mockk(relaxed = true)
+        val vm = createVm(driverRepository = driverRepository, loggedIn = true)
+        vm.handleDeeplink(mapOf(), mockk(relaxed = true))
+        vm.destination.observeAndGetValue().let {
+            assertEquals(
+                SplashScreenFragmentDirections.actionGlobalVisitManagementFragment(),
+                it
+            )
+        }
+        verify(exactly = 0) {
+            driverRepository.setUserData(allAny())
         }
     }
 
@@ -65,7 +80,36 @@ class SplashScreenVieswModelTest {
     }
 
     @Test
-    fun `old deeplink with just pk`() {
+    fun `handle invalid deeplink (if logged in)`() {
+        val slot = slot<Exception>()
+        val driverRepository: DriverRepository = mockk(relaxed = true)
+        val vm = createVm(slot, driverRepository = driverRepository, loggedIn = true)
+
+        vm.handleDeeplink(
+            mapOf(
+                "a" to "b"
+            ), mockk(relaxed = true)
+        )
+
+        assertEquals("publishableKey == null", slot.captured.message)
+
+        vm.errorHandler.errorText.observeAndGetValue().let {
+            assertEquals(R.string.splash_screen_invalid_link.toString(), it.value)
+        }
+        vm.destination.observeAndGetValue().let {
+            assertEquals(
+                SplashScreenFragmentDirections.actionGlobalVisitManagementFragment(),
+                it
+            )
+        }
+
+        verify(exactly = 0) {
+            driverRepository.setUserData(allAny())
+        }
+    }
+
+    @Test
+    fun `handle old deeplink with just pk`() {
         val slot = slot<Exception>()
         val vm = createVm(slot)
 
@@ -88,6 +132,38 @@ class SplashScreenVieswModelTest {
                 SplashScreenFragmentDirections.actionSplashScreenFragmentToSignInFragment(),
                 it
             )
+        }
+    }
+
+    @Test
+    fun `handle old deeplink with just pk (if logged in)`() {
+        val slot = slot<Exception>()
+        val driverRepository: DriverRepository = mockk(relaxed = true)
+        val vm = createVm(slot, driverRepository = driverRepository, loggedIn = true)
+
+        vm.handleDeeplink(
+            mapOf(
+                "publishable_key" to "key"
+            ), mockk(relaxed = true)
+        )
+
+        assertEquals(
+            "email == null && phoneNumber == null && driverId == null",
+            slot.captured.message
+        )
+
+        vm.errorHandler.errorText.observeAndGetValue().let {
+            assertEquals(R.string.splash_screen_invalid_link.toString(), it.value)
+        }
+        vm.destination.observeAndGetValue().let {
+            assertEquals(
+                SplashScreenFragmentDirections.actionGlobalVisitManagementFragment(),
+                it
+            )
+        }
+
+        verify(exactly = 0) {
+            driverRepository.setUserData(allAny())
         }
     }
 
@@ -139,6 +215,62 @@ class SplashScreenVieswModelTest {
     }
 
     @Test
+    fun `old deeplink with driver_id (if logged in)`() {
+        val driverRepository = mockk<DriverRepository>(relaxed = true)
+
+        fun assertCheck(vm: SplashScreenViewModel, driverId: String) {
+            vm.errorHandler.errorText.observeAndAssertNull()
+
+            vm.destination.observeAndGetValue().let {
+                assertEquals(
+                    SplashScreenFragmentDirections.actionGlobalVisitManagementFragment(),
+                    it
+                )
+            }
+        }
+
+        val accountRepository = createAccountRepo(true)
+        createVm(
+            driverRepository = driverRepository,
+            accountRepository = accountRepository
+        ).let { vm ->
+            vm.handleDeeplink(
+                mapOf(
+                    "publishable_key" to "key",
+                    "driver_id" to "email@mail.com",
+                ), mockk(relaxed = true)
+            )
+
+            assertCheck(vm, "email@mail.com")
+
+            coVerify {
+                driverRepository.setUserData(driverId = "email@mail.com")
+                accountRepository.onKeyReceived("key")
+            }
+        }
+
+        createVm(
+            driverRepository = driverRepository,
+            accountRepository = accountRepository
+        ).let { vm ->
+            vm.handleDeeplink(
+                mapOf(
+                    "publishable_key" to "key1",
+                    "driver_id" to "Driver Id",
+                ), mockk(relaxed = true)
+            )
+
+            assertCheck(vm, "Driver Id")
+
+            coVerify {
+                driverRepository.setUserData(driverId = "Driver Id")
+                accountRepository.onKeyReceived("key1")
+            }
+        }
+
+    }
+
+    @Test
     fun `handle new deeplink`() {
         val driverRepository = mockk<DriverRepository>(relaxed = true)
 
@@ -180,6 +312,61 @@ class SplashScreenVieswModelTest {
 
             verify {
                 driverRepository.setUserData(phoneNumber = "Phone")
+            }
+        }
+    }
+
+    @Test
+    fun `handle new deeplink (if logged in)`() {
+        val driverRepository = mockk<DriverRepository>(relaxed = true)
+
+        fun assertCheck(vm: SplashScreenViewModel) {
+            vm.errorHandler.errorText.observeAndAssertNull()
+
+            vm.destination.observeAndGetValue().let {
+                assertEquals(
+                    SplashScreenFragmentDirections.actionGlobalVisitManagementFragment(),
+                    it
+                )
+            }
+        }
+
+        val accountRepository = createAccountRepo(true)
+        createVm(
+            driverRepository = driverRepository,
+            accountRepository = accountRepository
+        ).let { vm ->
+            vm.handleDeeplink(
+                mapOf(
+                    "publishable_key" to "key",
+                    "email" to "email@mail.com",
+                ), mockk(relaxed = true)
+            )
+
+            assertCheck(vm)
+
+            coVerify {
+                driverRepository.setUserData(email = "email@mail.com")
+                accountRepository.onKeyReceived("key")
+            }
+        }
+
+        createVm(
+            driverRepository = driverRepository,
+            accountRepository = accountRepository
+        ).let { vm ->
+            vm.handleDeeplink(
+                mapOf(
+                    "publishable_key" to "key1",
+                    "phone_number" to "Phone",
+                ), mockk(relaxed = true)
+            )
+
+            assertCheck(vm)
+
+            coVerify {
+                driverRepository.setUserData(phoneNumber = "Phone")
+                accountRepository.onKeyReceived("key1")
             }
         }
 
@@ -306,6 +493,35 @@ class SplashScreenVieswModelTest {
     }
 
     @Test
+    fun `handle deeplink with invalid publishable key (if logged in)`() {
+        val slot = slot<Exception>()
+        val driverRepository: DriverRepository = mockk(relaxed = true)
+        val vm = createVm(slot, driverRepository = driverRepository, loggedIn = true)
+
+        vm.handleDeeplink(
+            mapOf(
+                "publishable_key" to "invalid",
+                "email" to "email@mail.com",
+            ), mockk(relaxed = true)
+        )
+
+        assertEquals("Exception: Invalid publishable_key", slot.captured.message)
+
+        vm.errorHandler.errorText.observeAndGetValue().let {
+            assertEquals("Exception: Invalid publishable_key", it.value)
+        }
+        vm.destination.observeAndGetValue().let {
+            assertEquals(
+                SplashScreenFragmentDirections.actionGlobalVisitManagementFragment(),
+                it
+            )
+        }
+        verify(exactly = 0) {
+            driverRepository.setUserData(allAny())
+        }
+    }
+
+    @Test
     fun `handle invalid deeplink if already logged in`() {
         val driverRepository = mockk<DriverRepository>(relaxed = true)
 
@@ -408,11 +624,7 @@ class SplashScreenVieswModelTest {
                 every { logException(capture(exceptionSlot)) } returns Unit
             },
             driverRepository: DriverRepository = mockk(relaxed = true),
-            accountRepository: AccountRepository = mockk(relaxed = true) {
-                every { isVerifiedAccount } returns loggedIn
-                coEvery { onKeyReceived("key", allAny()) } returns true
-                coEvery { onKeyReceived("invalid", allAny()) } returns false
-            },
+            accountRepository: AccountRepository = createAccountRepo(loggedIn),
         ) = SplashScreenViewModel(
             driverRepository,
             accountRepository,
@@ -435,6 +647,13 @@ class SplashScreenVieswModelTest {
             },
             Injector.getMoshi(),
         )
+
+        fun createAccountRepo(loggedIn: Boolean): AccountRepository = mockk(relaxed = true) {
+            every { isVerifiedAccount } returns loggedIn
+            coEvery { onKeyReceived("key", allAny()) } returns true
+            coEvery { onKeyReceived("key1", allAny()) } returns true
+            coEvery { onKeyReceived("invalid", allAny()) } returns false
+        }
     }
 
 

@@ -285,7 +285,11 @@ class OsUtilsProvider(
     }
 
     fun distanceMeters(latLng: LatLng, latLng1: LatLng): Int {
-        return LocationUtils.distanceMeters(latLng, latLng1)!!
+        return LocationUtils.distanceMeters(latLng, latLng1).apply {
+            if (this == null) {
+                crashReportsProvider.logException(IllegalStateException("distanceMeters == null, $latLng $latLng1"))
+            }
+        } ?: Int.MAX_VALUE
     }
 
     fun getMapsIntent(latLng: LatLng): Intent? {
@@ -302,6 +306,18 @@ class OsUtilsProvider(
         } catch (e: Exception) {
             crashReportsProvider.logException(e)
             null
+        }
+    }
+
+    fun getBuildVersion(): String? {
+        try {
+            val pInfo = MyApplication.context.packageManager.getPackageInfo(
+                MyApplication.context.packageName,
+                0
+            )
+            return pInfo.versionName
+        } catch (e: Exception) {
+            return null
         }
     }
 
