@@ -62,7 +62,7 @@ class ProfileViewModel(
                 )
             )
         }
-        getBuildVersion()?.let {
+        osUtilsProvider.getBuildVersion()?.let {
             add(
                 KeyValueItem(
                     osUtilsProvider.stringFromResource(R.string.app_version),
@@ -71,18 +71,6 @@ class ProfileViewModel(
             )
         }
     })
-
-    private fun getBuildVersion(): String? {
-        try {
-            val pInfo = MyApplication.context.packageManager.getPackageInfo(
-                MyApplication.context.packageName,
-                0
-            )
-            return pInfo.versionName
-        } catch (e: Exception) {
-            return null
-        }
-    }
 
     fun onCopyItemClick(txt: String) {
         osUtilsProvider.copyToClipboard(txt)

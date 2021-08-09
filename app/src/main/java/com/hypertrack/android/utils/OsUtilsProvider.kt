@@ -309,6 +309,18 @@ class OsUtilsProvider(
         }
     }
 
+    fun getBuildVersion(): String? {
+        try {
+            val pInfo = MyApplication.context.packageManager.getPackageInfo(
+                MyApplication.context.packageName,
+                0
+            )
+            return pInfo.versionName
+        } catch (e: Exception) {
+            return null
+        }
+    }
+
     companion object {
         const val TAG = "OsUtilsProvider"
     }
