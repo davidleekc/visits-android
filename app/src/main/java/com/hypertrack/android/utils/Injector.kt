@@ -256,14 +256,24 @@ object Injector {
             crashReportsProvider
         )
 
+        val placesVisitsInteractor = PlacesVisitsInteractorImpl(
+            placesRepository
+        )
+
         val userScope = UserScope(
-            visitsRepo,
-            historyRepository,
             tripsInteractor,
             placesInteractor,
+            placesVisitsInteractor,
             feedbackInteractor,
+            visitsRepo,
+            historyRepository,
             integrationsRepository,
+            photoUploadInteractor,
+            hyperTrackService,
+            photoUploadQueueInteractor,
+            apiClient,
             UserScopeViewModelFactory(
+                { getUserScope() },
                 visitsRepo,
                 tripsInteractor,
                 placesInteractor,
@@ -281,11 +291,7 @@ object Injector {
                 osUtilsProvider,
                 placesClient,
                 deviceLocationProvider
-            ),
-            photoUploadInteractor,
-            hyperTrackService,
-            photoUploadQueueInteractor,
-            apiClient
+            )
         )
 
         crashReportsProvider.setUserIdentifier(
@@ -457,17 +463,18 @@ class TripCreationScope(
 )
 
 class UserScope(
-    val visitsRepository: VisitsRepository,
-    val historyRepository: HistoryRepository,
     val tripsInteractor: TripsInteractor,
     val placesInteractor: PlacesInteractor,
+    val placesVisitsInteractor: PlacesVisitsInteractor,
     val feedbackInteractor: FeedbackInteractor,
+    val visitsRepository: VisitsRepository,
+    val historyRepository: HistoryRepository,
     val integrationsRepository: IntegrationsRepository,
-    val userScopeViewModelFactory: UserScopeViewModelFactory,
     val photoUploadInteractor: PhotoUploadInteractor,
     val hyperTrackService: HyperTrackService,
     val photoUploadQueueInteractor: PhotoUploadQueueInteractor,
-    val apiClient: ApiClient
+    val apiClient: ApiClient,
+    val userScopeViewModelFactory: UserScopeViewModelFactory
 )
 
 fun interface Factory<A, T> {

@@ -1,15 +1,15 @@
 package com.hypertrack.android.api
 
 import android.graphics.Bitmap
-import android.util.Log
+import android.net.Uri
 import com.google.android.gms.maps.model.LatLng
+import com.google.gson.annotations.SerializedName
 import com.hypertrack.android.models.*
 import com.hypertrack.android.toBase64
 import com.hypertrack.android.toNote
 import com.hypertrack.logistics.android.github.R
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import com.squareup.moshi.Moshi
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -41,7 +41,6 @@ interface ApiInterface {
 //        @Query("sort_nearest") sortNearest: Boolean = true,
 //    ): Response<GeofenceResponse>
 
-    /** Returns list of device geofences without visit markers */
     @GET("client/devices/{device_id}/geofences")
     suspend fun getDeviceGeofences(
         @Path("device_id") deviceId: String,
@@ -60,6 +59,12 @@ interface ApiInterface {
 
     @DELETE("client/geofences/{geofence_id}")
     suspend fun deleteGeofence(@Path("geofence_id") geofence_id: String): Response<Unit>
+
+    @GET("client/geofences/visits")
+    suspend fun getAllGeofencesVisits(
+        @Query("device_id") deviceId: String,
+        @Query("pagination_token") paginationToken: String? = null,
+    ): Response<VisitsResponse>
 
     @GET("client/trips")
     suspend fun getTrips(
@@ -169,19 +174,44 @@ data class TripResponse(
 
 @JsonClass(generateAdapter = true)
 data class GeofenceMarkersResponse(
-        @field:Json(name = "data") val markers: List<GeofenceMarker>,
-        @field:Json(name = "pagination_token") val next: String?
+    @field:Json(name = "data") val markers: List<GeofenceMarker>,
+    @field:Json(name = "pagination_token") val next: String?
 )
 
 @JsonClass(generateAdapter = true)
 data class GeofenceResponse(
-        @field:Json(name = "data") val geofences: List<Geofence>,
-        @field:Json(name = "pagination_token") val paginationToken: String?
+    @field:Json(name = "data") val geofences: List<Geofence>,
+    @field:Json(name = "pagination_token") val paginationToken: String?
 )
 
 @JsonClass(generateAdapter = true)
+data class VisitsResponse(
+    @field:Json(name = "data") val visits: List<GeofenceMarker>,
+    @field:Json(name = "links") val links: PaginationTokenLinks?
+) {
+    val paginationToken: String? = links?.token
+}
+
+@JsonClass(generateAdapter = true)
+class PaginationTokenLinks(
+    @field:Json(name = "next") val nextUrl: String?
+) {
+    val token: String? by lazy {
+        nextUrl?.let {
+            Uri.parse(nextUrl).let { uri ->
+                try {
+                    uri.getQueryParameter("pagination_token")
+                } catch (e: Exception) {
+                    null
+                }
+            }
+        }
+    }
+}
+
+@JsonClass(generateAdapter = true)
 data class ImageResponse(
-        @field:Json(name = "name") val name: String
+    @field:Json(name = "name") val name: String
 )
 
 @JsonClass(generateAdapter = true)

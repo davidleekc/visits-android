@@ -1,7 +1,9 @@
 package com.hypertrack.android.ui.screens.visits_management.tabs.places
 
 import android.util.Log
+import com.hypertrack.android.api.GeofenceMarker
 import com.hypertrack.android.interactors.PlacesInteractor
+import com.hypertrack.android.interactors.PlacesVisitsInteractor
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.base.SingleLiveEvent
@@ -15,20 +17,19 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
-class PlacesViewModel(
-    private val placesInteractor: PlacesInteractor,
+class PlacesVisitsViewModel(
+    private val placesVisitsInteractor: PlacesVisitsInteractor,
     private val osUtilsProvider: OsUtilsProvider,
-    private val locationProvider: DeviceLocationProvider,
     private val timeDistanceFormatter: TimeDistanceFormatter,
 ) : BaseViewModel(osUtilsProvider) {
 
     private var nextPageToken: String? = null
     private var updateJob: Job? = null
 
-    val placesPage = SingleLiveEvent<Consumable<List<PlaceItem>>?>()
+    val visitsPage = SingleLiveEvent<Consumable<List<GeofenceMarker>>?>()
 
     fun refresh() {
-        placesInteractor.invalidateCache()
+        placesVisitsInteractor.invalidateCache()
         init()
     }
 
@@ -37,43 +38,40 @@ class PlacesViewModel(
         loadingStateBase.postValue(false)
         updateJob?.cancel()
         nextPageToken = null
-        placesPage.value = null
-        placesPage.postValue(null)
+        visitsPage.value = null
+        visitsPage.postValue(null)
         onLoadMore()
     }
 
-    fun createPlacesAdapter(): PlacesAdapter {
-        return PlacesAdapter(
+    fun createVisitsAdapter(): AllPlacesVisitsAdapter {
+        return AllPlacesVisitsAdapter(
             osUtilsProvider,
-            locationProvider,
             timeDistanceFormatter
-        )
+        ) {
+            osUtilsProvider.copyToClipboard(it)
+        }
     }
 
-    fun onPlaceClick(placeItem: PlaceItem) {
+    fun onVisitClick(visit: GeofenceMarker) {
         destination.postValue(
             VisitsManagementFragmentDirections.actionVisitManagementFragmentToPlaceDetailsFragment(
-                placeItem.geofence.id
+                visit.geofenceId
             )
         )
     }
 
-    fun onAddPlaceClicked() {
-        destination.postValue(VisitsManagementFragmentDirections.actionVisitManagementFragmentToAddPlaceFragment())
-    }
-
     fun onLoadMore() {
-        if ((loadingStateBase.value ?: false) == false) {
+        if (loadingStateBase.value == null || loadingStateBase.value == false) {
             //todo change to viewModelScope (viewModelScope cause bug when launch is not called after geofence creation)
             updateJob = GlobalScope.launch {
                 try {
-                    if (nextPageToken != null || placesPage.value == null) {
+                    if (nextPageToken != null || visitsPage.value == null) {
 //                        Log.v("hypertrack-verbose", "** loading ${nextPageToken.hashCode()}")
                         loadingStateBase.postValue(true)
-                        val res = placesInteractor.loadPage(nextPageToken)
+                        val res = placesVisitsInteractor.loadPage(nextPageToken)
                         nextPageToken = res.paginationToken
 //                        Log.v("hypertrack-verbose", "nextPageToken = ${nextPageToken.hashCode()}")
-                        placesPage.postValue(Consumable(res.geofences.map { PlaceItem(it) }))
+                        visitsPage.postValue(Consumable(res.items))
                         loadingStateBase.postValue(false)
                     }
                 } catch (e: Exception) {

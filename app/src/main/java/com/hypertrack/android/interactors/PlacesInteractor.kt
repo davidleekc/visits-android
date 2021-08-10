@@ -176,7 +176,7 @@ class PlacesInteractorImpl(
                     firstPageJob!!.await()
                 } else {
 //                    Log.v("hypertrack-verbose", "loading: ${pageToken.hashCode()}")
-                    placesRepository.loadPage(pageToken).apply {
+                    placesRepository.loadGeofencesPage(pageToken).apply {
                         pageCache[pageToken] = this.geofences
                         addGeofencesToCache(geofences)
                     }.apply {
@@ -268,7 +268,7 @@ class PlacesInteractorImpl(
             job = globalScope.launch(Dispatchers.Main) {
                 try {
                     do {
-                        val res = placesRepository.loadPage(pageToken, gh)
+                        val res = placesRepository.loadGeofencesPage(pageToken, gh)
                         pageToken = res.paginationToken
                         addGeofencesToCache(res.geofences)
                     } while (pageToken != null)

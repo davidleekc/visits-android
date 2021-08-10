@@ -6,6 +6,7 @@
 
     <color name="colorHyperTrackGreenSemitransparent">#7700ce5b</color>
     <color name="colorHyperTrackGreen">#00ce5b</color>
+    <color name="colorHyperTrackGreenDarker">#00bd4a</color>
     <color name="colorRed">#EB5B64</color>
     <color name="tertiary_2_xdark">#4c4b5d</color>
     <color name="colorWhite">#FFFFFF</color>
