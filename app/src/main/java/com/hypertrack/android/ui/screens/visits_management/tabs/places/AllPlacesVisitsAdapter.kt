@@ -4,20 +4,24 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.hypertrack.android.api.GeofenceVisit
+import com.hypertrack.android.models.History
 import com.hypertrack.android.ui.base.BaseAdapter
 import com.hypertrack.android.ui.common.*
 import com.hypertrack.android.ui.screens.place_details.PlaceVisitsAdapter
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.android.utils.TimeDistanceFormatter
 import com.hypertrack.logistics.android.github.R
+import kotlinx.android.synthetic.main.item_day.view.*
 import kotlinx.android.synthetic.main.item_place.view.tvTitle
 import java.time.LocalDate
 import java.time.ZonedDateTime
+import javax.inject.Provider
 
 
 class AllPlacesVisitsAdapter(
     private val osUtilsProvider: OsUtilsProvider,
     private val timeDistanceFormatter: TimeDistanceFormatter,
+    private val historyProvider: Provider<Map<LocalDate, History>>,
     private val onCopyClickListener: ((String) -> Unit)
 ) : BaseAdapter<VisitItem, BaseAdapter.BaseVh<VisitItem>>() {
 
@@ -48,7 +52,6 @@ class AllPlacesVisitsAdapter(
         return when (items[position]) {
             is Day -> Day::class.java.hashCode()
             is Visit -> Visit::class.java.hashCode()
-            else -> throw IllegalStateException("position ${position} ${items[position]}")
         }
     }
 
@@ -79,6 +82,9 @@ class AllPlacesVisitsAdapter(
                 when (item) {
                     is Day -> {
                         containerView.tvTitle.text = item.date.format()
+                        containerView.tvTotal.text = historyProvider.get()[item.date]?.let {
+                            timeDistanceFormatter.formatDistance(it.summary.totalDistance)
+                        } ?: ""
                     }
                     is Visit -> {
                         PlaceVisitsAdapter.bindVisit(

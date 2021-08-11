@@ -30,12 +30,10 @@ import javax.inject.Provider
 @Suppress("UNCHECKED_CAST")
 class UserScopeViewModelFactory(
     private val userScopeProvider: Provider<UserScope>,
-    private val visitsRepository: VisitsRepository,
     private val tripsInteractor: TripsInteractor,
     private val placesInteractor: PlacesInteractor,
     private val feedbackInteractor: FeedbackInteractor,
     private val integrationsRepository: IntegrationsRepository,
-    private val historyRepository: HistoryRepository,
     private val driverRepository: DriverRepository,
     private val accountRepository: AccountRepository,
     private val crashReportsProvider: CrashReportsProvider,
@@ -83,7 +81,7 @@ class UserScopeViewModelFactory(
                 deviceLocationProvider
             ) as T
             PlacesViewModel::class.java -> PlacesViewModel(
-                placesInteractor,
+                userScopeProvider.get().placesInteractor,
                 osUtilsProvider,
                 deviceLocationProvider,
                 timeDistanceFormatter
@@ -93,20 +91,21 @@ class UserScopeViewModelFactory(
                 hyperTrackService
             ) as T
             SummaryViewModel::class.java -> SummaryViewModel(
-                historyRepository,
+                userScopeProvider.get().historyInteractor,
                 osUtilsProvider,
                 timeDistanceFormatter
             ) as T
             HistoryViewModel::class.java -> HistoryViewModel(
-                historyRepository,
+                userScopeProvider.get().historyInteractor,
                 timeDistanceFormatter,
                 osUtilsProvider
             ) as T
             VisitsManagementViewModel::class.java -> VisitsManagementViewModel(
-                visitsRepository,
-                historyRepository,
+                userScopeProvider.get().visitsRepository,
+                userScopeProvider.get().historyInteractor,
                 accountRepository,
                 crashReportsProvider,
+                osUtilsProvider,
                 accessTokenRepository
             ) as T
             ProfileViewModel::class.java -> ProfileViewModel(
@@ -124,6 +123,7 @@ class UserScopeViewModelFactory(
             ) as T
             PlacesVisitsViewModel::class.java -> PlacesVisitsViewModel(
                 userScopeProvider.get().placesVisitsInteractor,
+                userScopeProvider.get().historyInteractor,
                 osUtilsProvider,
                 timeDistanceFormatter
             ) as T

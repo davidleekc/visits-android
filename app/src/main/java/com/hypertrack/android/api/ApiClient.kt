@@ -197,7 +197,7 @@ class ApiClient(
                         return HistoryError(HttpException(this))
                     }
                 }
-            } catch (e: Throwable) {
+            } catch (e: Exception) {
                 Log.w(TAG, "Got exception $e fetching device history")
                 return HistoryError(e)
             }

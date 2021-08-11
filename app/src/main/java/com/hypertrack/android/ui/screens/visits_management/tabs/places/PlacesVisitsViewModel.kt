@@ -1,10 +1,12 @@
 package com.hypertrack.android.ui.screens.visits_management.tabs.places
 
 import com.hypertrack.android.api.GeofenceVisit
+import com.hypertrack.android.interactors.HistoryInteractor
 import com.hypertrack.android.interactors.PlacesVisitsInteractor
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.base.SingleLiveEvent
+import com.hypertrack.android.ui.common.requireValue
 import com.hypertrack.android.ui.screens.visits_management.VisitsManagementFragmentDirections
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.android.utils.TimeDistanceFormatter
@@ -15,9 +17,12 @@ import kotlinx.coroutines.launch
 
 class PlacesVisitsViewModel(
     private val placesVisitsInteractor: PlacesVisitsInteractor,
+    private val historyInteractor: HistoryInteractor,
     private val osUtilsProvider: OsUtilsProvider,
     private val timeDistanceFormatter: TimeDistanceFormatter,
 ) : BaseViewModel(osUtilsProvider) {
+
+    val adapter = createVisitsAdapter()
 
     private var nextPageToken: String? = null
     private var updateJob: Job? = null
@@ -37,15 +42,6 @@ class PlacesVisitsViewModel(
         visitsPage.value = null
         visitsPage.postValue(null)
         onLoadMore()
-    }
-
-    fun createVisitsAdapter(): AllPlacesVisitsAdapter {
-        return AllPlacesVisitsAdapter(
-            osUtilsProvider,
-            timeDistanceFormatter
-        ) {
-            osUtilsProvider.copyToClipboard(it)
-        }
     }
 
     fun onVisitClick(visit: GeofenceVisit) {
@@ -68,6 +64,7 @@ class PlacesVisitsViewModel(
                         nextPageToken = res.paginationToken
 //                        Log.v("hypertrack-verbose", "nextPageToken = ${nextPageToken.hashCode()}")
                         visitsPage.postValue(Consumable(res.items))
+                        triggerHistoryUpdates()
                         loadingStateBase.postValue(false)
                     }
                 } catch (e: Exception) {
@@ -77,6 +74,27 @@ class PlacesVisitsViewModel(
                     }
                 }
             }
+        }
+    }
+
+    private fun triggerHistoryUpdates() {
+        val history = historyInteractor.history.requireValue()
+        for (item in adapter.items.filterIsInstance<Day>()) {
+            if (!history.containsKey(item.date)) {
+                historyInteractor.loadHistory(item.date)
+            }
+        }
+    }
+
+    private fun createVisitsAdapter(): AllPlacesVisitsAdapter {
+        return AllPlacesVisitsAdapter(
+            osUtilsProvider,
+            timeDistanceFormatter,
+            historyProvider = {
+                historyInteractor.history.value
+            }
+        ) {
+            osUtilsProvider.copyToClipboard(it)
         }
     }
 

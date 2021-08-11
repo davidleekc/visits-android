@@ -1,13 +1,12 @@
 package com.hypertrack.android.view_models
 
 import android.util.Log
-import androidx.lifecycle.MediatorLiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
+import com.hypertrack.android.interactors.HistoryInteractor
 import com.hypertrack.android.models.*
 import com.hypertrack.android.repository.HistoryRepository
 import com.hypertrack.android.ui.base.BaseViewModel
+import com.hypertrack.android.ui.base.ErrorHandler
 import com.hypertrack.android.ui.base.SingleLiveEvent
 import com.hypertrack.android.utils.Constants
 import com.hypertrack.android.utils.OsUtilsProvider
@@ -16,17 +15,20 @@ import com.hypertrack.logistics.android.github.R
 import kotlinx.coroutines.launch
 
 class HistoryViewModel(
-    private val historyRepository: HistoryRepository,
+    private val historyInteractor: HistoryInteractor,
     private val timeDistanceFormatter: TimeDistanceFormatter,
     private val osUtilsProvider: OsUtilsProvider
-) : BaseViewModel() {
+) : BaseViewModel(osUtilsProvider) {
 
-    val history = historyRepository.history
+    override val errorHandler =
+        ErrorHandler(osUtilsProvider, historyInteractor.errorFlow.asLiveData())
+
+    val history = historyInteractor.todayHistory
 
     val tiles = MediatorLiveData<List<HistoryTile>>()
 
     init {
-        tiles.addSource(historyRepository.history) {
+        tiles.addSource(history) {
             if (it.locationTimePoints.isNotEmpty()) {
                 Log.d(TAG, "got new history $it")
                 val asTiles = historyToTiles(it, timeDistanceFormatter)
@@ -39,21 +41,8 @@ class HistoryViewModel(
         }
     }
 
-    val error = SingleLiveEvent<String?>()
-
     fun refreshHistory() {
-        viewModelScope.launch {
-            when (val res = historyRepository.getHistory()) {
-                is HistoryError -> {
-                    error.postValue(res.error?.message)
-                }
-                is History -> {
-//                    if (res.locationTimePoints.isEmpty()) {
-//                        error.postValue("No history is available.")
-//                    }
-                }
-            }
-        }
+        historyInteractor.loadTodayHistory()
     }
 
     private fun historyToTiles(

@@ -137,7 +137,7 @@ class PlacesFragment : ProgressDialogFragment(R.layout.fragment_places) {
 
     private fun initVisits() {
         rvVisits.setLinearLayoutManager(requireContext())
-        visitsAdapter = visitsVm.createVisitsAdapter()
+        visitsAdapter = visitsVm.adapter
         rvVisits.adapter = visitsAdapter
         visitsAdapter.onItemClickListener = {
             visitsVm.onVisitClick((it as Visit).visit)

@@ -96,7 +96,7 @@ enum class Status {
     UNKNOWN
 }
 
-class HistoryError(val error: Throwable?) : HistoryResult()
+class HistoryError(val error: Exception?) : HistoryResult()
 sealed class HistoryResult
 
 

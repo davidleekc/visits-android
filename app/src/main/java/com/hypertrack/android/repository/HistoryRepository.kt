@@ -1,5 +1,6 @@
 package com.hypertrack.android.repository
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.hypertrack.android.api.ApiClient
@@ -11,36 +12,47 @@ import com.hypertrack.android.utils.CrashReportsProvider
 import com.hypertrack.android.utils.MockData
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.logistics.android.github.R
+import java.time.LocalDate
 
-class HistoryRepository(
-        private val apiClient: ApiClient,
-        private val crashReportsProvider: CrashReportsProvider,
-        private val osUtilsProvider: OsUtilsProvider
-) {
+interface HistoryRepository {
+    suspend fun getHistory(date: LocalDate): HistoryResult
+    val history: LiveData<Map<LocalDate, History>>
+}
 
-    private val _history = MutableLiveData<History>()
+class HistoryRepositoryImpl(
+    private val apiClient: ApiClient,
+    private val crashReportsProvider: CrashReportsProvider,
+    private val osUtilsProvider: OsUtilsProvider
+) : HistoryRepository {
 
-    val history: LiveData<History>
-        get() = _history
+    override val history = MutableLiveData<Map<LocalDate, History>>(mapOf())
 
-    suspend fun getHistory(): HistoryResult {
-        val result = apiClient.getHistory(
-                osUtilsProvider.getLocalDate(),
+    private val cache = mutableMapOf<LocalDate, History>()
+
+    override suspend fun getHistory(date: LocalDate): HistoryResult {
+        if (cache.containsKey(date) && date != LocalDate.now()) {
+            return cache.getValue(date)
+        } else {
+            val res = apiClient.getHistory(
+                date,
                 osUtilsProvider.getTimeZoneId()
-        )
-//        val result = MockData.MOCK_HISTORY
-        return when (result) {
-            is History -> {
-                _history.postValue(result)
-                result
+            )
+            when (res) {
+                is History -> {
+                    addToCache(date, res)
+                }
+                is HistoryError -> {
+                    crashReportsProvider.logException(res.error ?: Exception("History error null"))
+                }
             }
-            is HistoryError -> {
-                result.error?.let { crashReportsProvider.logException(it) }
-                _history.postValue(_history.value?: EMPTY_HISTORY)
-                result
-            }
+            return res
         }
     }
 
+    private fun addToCache(date: LocalDate, res: History) {
+        cache[date] = res
+        Log.v("hypertrack-verbose", "post value ${cache}")
+        history.postValue(cache)
+    }
 
 }

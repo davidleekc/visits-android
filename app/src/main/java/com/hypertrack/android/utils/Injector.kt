@@ -168,7 +168,7 @@ object Injector {
             moshi,
             crashReportsProvider
         )
-        val historyRepository = HistoryRepository(
+        val historyRepository = HistoryRepositoryImpl(
             apiClient,
             crashReportsProvider,
             osUtilsProvider
@@ -260,13 +260,15 @@ object Injector {
             placesRepository
         )
 
+        val historyInteractor = HistoryInteractorImpl(historyRepository)
+
         val userScope = UserScope(
             tripsInteractor,
             placesInteractor,
             placesVisitsInteractor,
+            historyInteractor,
             feedbackInteractor,
             visitsRepo,
-            historyRepository,
             integrationsRepository,
             photoUploadInteractor,
             hyperTrackService,
@@ -274,12 +276,10 @@ object Injector {
             apiClient,
             UserScopeViewModelFactory(
                 { getUserScope() },
-                visitsRepo,
                 tripsInteractor,
                 placesInteractor,
                 feedbackInteractor,
                 integrationsRepository,
-                historyRepository,
                 driverRepository,
                 accountRepository,
                 crashReportsProvider,
@@ -466,9 +466,9 @@ class UserScope(
     val tripsInteractor: TripsInteractor,
     val placesInteractor: PlacesInteractor,
     val placesVisitsInteractor: PlacesVisitsInteractor,
+    val historyInteractor: HistoryInteractor,
     val feedbackInteractor: FeedbackInteractor,
     val visitsRepository: VisitsRepository,
-    val historyRepository: HistoryRepository,
     val integrationsRepository: IntegrationsRepository,
     val photoUploadInteractor: PhotoUploadInteractor,
     val hyperTrackService: HyperTrackService,

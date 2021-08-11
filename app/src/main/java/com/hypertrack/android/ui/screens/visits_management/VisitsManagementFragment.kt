@@ -191,7 +191,7 @@ class VisitsManagementFragment : ProgressDialogFragment(R.layout.fragment_visits
                 .show()
         }
 
-        visitsManagementViewModel.error.observe(viewLifecycleOwner, { error ->
+        visitsManagementViewModel.errorText.observe(viewLifecycleOwner, { error ->
             SnackbarUtil.showErrorSnackbar(view, error)
         })
 
