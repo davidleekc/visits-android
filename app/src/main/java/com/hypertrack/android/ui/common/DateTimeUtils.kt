@@ -3,6 +3,7 @@ package com.hypertrack.android.ui.common
 import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.logistics.android.github.R
 import java.lang.Math.abs
+import java.time.LocalDate
 import java.time.ZonedDateTime
 import java.time.chrono.Chronology
 import java.time.format.DateTimeFormatter
@@ -36,6 +37,10 @@ fun ZonedDateTime.formatDateTime(): String {
 
 //todo to time distance formatter
 fun ZonedDateTime.formatDate(): String {
+    return format(createFormatterWithoutYear(FormatStyle.MEDIUM, Locale.getDefault()))
+}
+
+fun LocalDate.format(): String {
     return format(createFormatterWithoutYear(FormatStyle.MEDIUM, Locale.getDefault()))
 }
 

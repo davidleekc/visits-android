@@ -1,15 +1,11 @@
 package com.hypertrack.android.ui.screens.visits_management.tabs.places
 
-import android.util.Log
-import com.hypertrack.android.api.GeofenceMarker
-import com.hypertrack.android.interactors.PlacesInteractor
+import com.hypertrack.android.api.GeofenceVisit
 import com.hypertrack.android.interactors.PlacesVisitsInteractor
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.base.SingleLiveEvent
-import com.hypertrack.android.ui.base.toConsumable
 import com.hypertrack.android.ui.screens.visits_management.VisitsManagementFragmentDirections
-import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.android.utils.TimeDistanceFormatter
 import kotlinx.coroutines.CancellationException
@@ -26,7 +22,7 @@ class PlacesVisitsViewModel(
     private var nextPageToken: String? = null
     private var updateJob: Job? = null
 
-    val visitsPage = SingleLiveEvent<Consumable<List<GeofenceMarker>>?>()
+    val visitsPage = SingleLiveEvent<Consumable<List<GeofenceVisit>>?>()
 
     fun refresh() {
         placesVisitsInteractor.invalidateCache()
@@ -52,7 +48,7 @@ class PlacesVisitsViewModel(
         }
     }
 
-    fun onVisitClick(visit: GeofenceMarker) {
+    fun onVisitClick(visit: GeofenceVisit) {
         destination.postValue(
             VisitsManagementFragmentDirections.actionVisitManagementFragmentToPlaceDetailsFragment(
                 visit.geofenceId

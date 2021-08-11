@@ -38,6 +38,9 @@ object MockData {
         totalStopDuration = 20 * 57,
     )
 
+    val MOCK_HISTORY_RESPONSE = Injector.getMoshi().adapter(HistoryResponse::class.java)
+        .fromJson(MOCK_HISTORY_JSON)
+
     val MOCK_HISTORY: HistoryResult by lazy {
         Injector.getMoshi().adapter(HistoryResponse::class.java)
             .fromJson(MOCK_HISTORY_JSON)!!.let { h: HistoryResponse ->
@@ -87,7 +90,7 @@ object MockData {
         )
     }
 
-    private fun createGeofenceMarker(plus: Int = 0): GeofenceMarker {
+    fun createGeofenceMarker(plus: Int = 0): GeofenceMarker {
         var ts = plus
         return GeofenceMarker(
             MarkerType.GEOFENCE_ENTRY,

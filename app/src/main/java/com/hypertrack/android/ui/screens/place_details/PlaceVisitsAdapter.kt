@@ -1,8 +1,7 @@
 package com.hypertrack.android.ui.screens.place_details
 
-import android.util.Log
 import android.view.View
-import com.hypertrack.android.api.GeofenceMarker
+import com.hypertrack.android.api.GeofenceVisit
 import com.hypertrack.android.ui.base.BaseAdapter
 import com.hypertrack.android.ui.common.*
 import com.hypertrack.android.utils.*
@@ -16,16 +15,16 @@ class PlaceVisitsAdapter(
     private val osUtilsProvider: OsUtilsProvider,
     private val timeDistanceFormatter: TimeDistanceFormatter,
     private val onCopyClickListener: ((String) -> Unit)
-) : BaseAdapter<GeofenceMarker, BaseAdapter.BaseVh<GeofenceMarker>>() {
+) : BaseAdapter<GeofenceVisit, BaseAdapter.BaseVh<GeofenceVisit>>() {
 
     override val itemLayoutResource: Int = R.layout.item_place_visit
 
     override fun createViewHolder(
         view: View,
         baseClickListener: (Int) -> Unit
-    ): BaseVh<GeofenceMarker> {
-        return object : BaseContainerVh<GeofenceMarker>(view, baseClickListener) {
-            override fun bind(item: GeofenceMarker) {
+    ): BaseVh<GeofenceVisit> {
+        return object : BaseContainerVh<GeofenceVisit>(view, baseClickListener) {
+            override fun bind(item: GeofenceVisit) {
                 bindVisit(
                     containerView,
                     item,
@@ -42,7 +41,7 @@ class PlaceVisitsAdapter(
     companion object {
         fun bindVisit(
             containerView: View,
-            item: GeofenceMarker,
+            item: GeofenceVisit,
             timeDistanceFormatter: TimeDistanceFormatter,
             osUtilsProvider: OsUtilsProvider,
             onCopyClickListener: ((String) -> Unit)?

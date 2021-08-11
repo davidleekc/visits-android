@@ -3,7 +3,6 @@ package com.hypertrack.android.api
 import android.graphics.Bitmap
 import android.net.Uri
 import com.google.android.gms.maps.model.LatLng
-import com.google.gson.annotations.SerializedName
 import com.hypertrack.android.models.*
 import com.hypertrack.android.toBase64
 import com.hypertrack.android.toNote
@@ -174,7 +173,7 @@ data class TripResponse(
 
 @JsonClass(generateAdapter = true)
 data class GeofenceMarkersResponse(
-    @field:Json(name = "data") val markers: List<GeofenceMarker>,
+    @field:Json(name = "data") val visits: List<GeofenceVisit>,
     @field:Json(name = "pagination_token") val next: String?
 )
 
@@ -186,7 +185,7 @@ data class GeofenceResponse(
 
 @JsonClass(generateAdapter = true)
 data class VisitsResponse(
-    @field:Json(name = "data") val visits: List<GeofenceMarker>,
+    @field:Json(name = "data") val visits: List<GeofenceVisit>,
     @field:Json(name = "links") val links: PaginationTokenLinks?
 ) {
     val paginationToken: String? = links?.token
@@ -284,7 +283,7 @@ data class Geofence(
     val longitude: Double
         get() = geometry.longitude
     val visitedAt: String
-        get() = marker?.markers?.first()?.arrival?.recordedAt ?: ""
+        get() = marker?.visits?.first()?.arrival?.recordedAt ?: ""
 
     val type: String
         get() = geometry.type
@@ -324,7 +323,7 @@ abstract class Geometry {
 }
 
 @JsonClass(generateAdapter = true)
-data class GeofenceMarker(
+data class GeofenceVisit(
     @field:Json(name = "geofence_id") val geofenceId: String,
     @field:Json(name = "marker_id") val markerId: String?,
     @field:Json(name = "device_id") val deviceId: String,

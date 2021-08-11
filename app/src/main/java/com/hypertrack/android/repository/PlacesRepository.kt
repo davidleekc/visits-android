@@ -2,13 +2,12 @@ package com.hypertrack.android.repository
 
 import com.fonfon.kgeohash.GeoHash
 import com.hypertrack.android.api.ApiClient
-import com.hypertrack.android.api.GeofenceMarker
+import com.hypertrack.android.api.GeofenceVisit
 import com.hypertrack.android.models.GeofenceMetadata
 import com.hypertrack.android.models.Integration
 import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.ui.common.DataPage
 import com.hypertrack.android.ui.common.nullIfBlank
-import com.hypertrack.android.ui.common.nullIfEmpty
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.squareup.moshi.Moshi
 import kotlinx.coroutines.Dispatchers
@@ -18,7 +17,7 @@ import retrofit2.HttpException
 interface PlacesRepository {
     //todo use DataPage
     suspend fun loadGeofencesPage(pageToken: String?, gh: GeoHash? = null): GeofencesPage
-    suspend fun loadAllGeofencesVisitsPage(pageToken: String?): DataPage<GeofenceMarker>
+    suspend fun loadAllGeofencesVisitsPage(pageToken: String?): DataPage<GeofenceVisit>
     suspend fun createGeofence(
         latitude: Double,
         longitude: Double,
@@ -50,7 +49,7 @@ class PlacesRepositoryImpl(
 
     override suspend fun loadAllGeofencesVisitsPage(
         pageToken: String?,
-    ): DataPage<GeofenceMarker> {
+    ): DataPage<GeofenceVisit> {
         return apiClient.getAllGeofencesVisits(pageToken).let {
             DataPage(it.visits, it.paginationToken)
         }

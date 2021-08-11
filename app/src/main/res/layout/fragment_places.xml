@@ -65,13 +65,14 @@
             android:id="@+id/lPlaces"
             android:layout_width="match_parent"
             android:layout_height="0dp"
+            android:visibility="visible"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/linearLayout3">
 
             <TextView
                 android:id="@+id/lPlacesPlaceholder"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:gravity="center"
                 android:text="@string/places_no_places"
                 android:textSize="16dp"
@@ -95,17 +96,18 @@
 
             <TextView
                 android:id="@+id/lVisitsPlaceholder"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:gravity="center"
                 android:text="@string/places_no_visits"
                 android:textSize="16dp"
-                android:visibility="gone" />
+                android:visibility="visible" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvVisits"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:layout_height="match_parent"
+                android:visibility="gone" />
         </FrameLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>

@@ -2,11 +2,9 @@ package com.hypertrack.android.ui.screens.visits_management.tabs.places
 
 import android.graphics.Typeface
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
-import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.base.ProgressDialogFragment
 import com.hypertrack.android.ui.common.*
 import com.hypertrack.android.ui.common.show
@@ -142,7 +140,7 @@ class PlacesFragment : ProgressDialogFragment(R.layout.fragment_places) {
         visitsAdapter = visitsVm.createVisitsAdapter()
         rvVisits.adapter = visitsAdapter
         visitsAdapter.onItemClickListener = {
-            visitsVm.onVisitClick(it)
+            visitsVm.onVisitClick((it as Visit).visit)
         }
         rvVisits.addOnScrollListener(object : EndlessScrollListener(object : OnLoadMoreListener {
             override fun onLoadMore(page: Int, totalItemsCount: Int) {
@@ -157,7 +155,7 @@ class PlacesFragment : ProgressDialogFragment(R.layout.fragment_places) {
             if (it != null) {
                 it.consume {
 //                    Log.v("hypertrack-verbose", "-- page ${it.map { it.geofence.name }}")
-                    visitsAdapter.addItemsAndUpdate(it)
+                    visitsAdapter.addVisits(it)
                     lVisitsPlaceholder.setGoneState(visitsAdapter.itemCount != 0)
                     rvVisits.setGoneState(visitsAdapter.itemCount == 0)
                 }

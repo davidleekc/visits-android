@@ -1,20 +1,14 @@
 package com.hypertrack.android.api
 
-import android.util.Log
 import com.fonfon.kgeohash.GeoHash
 import com.hypertrack.android.utils.Injector
-import com.hypertrack.android.utils.Meter
 import com.hypertrack.android.utils.MockData
-import com.hypertrack.android.utils.MyApplication
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import retrofit2.Response
-import retrofit2.http.Query
-import java.lang.RuntimeException
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-import java.util.*
 
 @Suppress("BlockingMethodInNonBlockingContext")
 class MockApi(val remoteApi: ApiInterface) : ApiInterface by remoteApi {
@@ -100,6 +94,43 @@ private val fences = Injector.getMoshi().adapter(GeofenceResponse::class.java)
                 GeofenceResponse(fences, null)
             )
         }
+    }
+
+    override suspend fun getAllGeofencesVisits(
+        deviceId: String,
+        paginationToken: String?
+    ): Response<VisitsResponse> {
+        return Response.success(
+            VisitsResponse(
+                listOf(
+                    GeofenceVisit(
+                        "1",
+                        "1",
+                        "1",
+                        Arrival(
+                            ZonedDateTime.now().minusHours(1).format(DateTimeFormatter.ISO_INSTANT)
+                        ),
+                        Exit(
+                            ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT),
+                        ),
+                        RouteTo(
+                            100,
+                            100,
+                            100,
+                        ),
+                        100,
+                    )
+                ), null
+            )
+        )
+    }
+
+    override suspend fun getHistory(
+        deviceId: String,
+        day: String,
+        timezone: String
+    ): Response<HistoryResponse> {
+        return Response.success(MockData.MOCK_HISTORY_RESPONSE)
     }
 
     override suspend fun getIntegrations(
