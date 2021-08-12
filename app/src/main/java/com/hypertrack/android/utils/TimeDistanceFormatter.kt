@@ -8,6 +8,7 @@ import java.time.format.FormatStyle
 import java.util.*
 import kotlin.math.round
 
+//todo separate and merge with DateTimeFormatter
 interface TimeDistanceFormatter {
     /** 2020-02-02T20:02:02.000Z -> 20:02 or 8:02pm adjusted to device's timezone */
     fun formatTime(isoTimestamp: String): String

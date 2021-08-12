@@ -3,6 +3,7 @@ package com.hypertrack.android.gui
 import com.hypertrack.android.ui.common.formatDate
 import com.hypertrack.android.ui.common.formatDateTime
 import com.hypertrack.android.ui.screens.place_details.PlaceVisitsAdapter
+import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.android.utils.SimpleTimeDistanceFormatter
 import com.hypertrack.android.utils.TimeDistanceFormatter
 import com.hypertrack.logistics.android.github.R
@@ -18,7 +19,7 @@ class GeofenceDateFormattingTest {
 
     @Test
     fun `it should properly format enter and exit range`() {
-        val formatter = object : TimeDistanceFormatter {
+        val formatter: TimeDistanceFormatter = object : TimeDistanceFormatter {
             override fun formatTime(isoTimestamp: String): String {
                 return isoTimestamp
             }
@@ -27,28 +28,29 @@ class GeofenceDateFormattingTest {
                 return meters.toString()
             }
         }
-        val adapter = PlaceVisitsAdapter(mockk() {
+        val osUtilsProvider = mockk<OsUtilsProvider>() {
             every { stringFromResource(R.string.place_today) } returns "Today"
             every { stringFromResource(R.string.place_yesterday) } returns "Yesterday"
-        }, formatter) {}
+        }
+        val adapter = PlaceVisitsAdapter(osUtilsProvider, formatter) {}
         val today = ZonedDateTime.now().withZoneSameInstant(ZoneId.of("UTC"))
             .withHour(13).withMinute(1)
         val yesterday = today.minusDays(1)
         val weekAgo = today.minusDays(7)
         val longTimeAgo = today.minusDays(14)
 
-        test(adapter, today, today) { res, dt1, dt2 ->
+        test(adapter, today, today, osUtilsProvider, formatter) { res, dt1, dt2 ->
             assertEquals("Today, ${formatter.formatTime(dt1)} — ${formatter.formatTime(dt2)}", res)
         }
 
-        test(adapter, yesterday, yesterday) { res, dt1, dt2 ->
+        test(adapter, yesterday, yesterday, osUtilsProvider, formatter) { res, dt1, dt2 ->
             assertEquals(
                 "Yesterday, ${formatter.formatTime(dt1)} — ${formatter.formatTime(dt2)}",
                 res
             )
         }
 
-        test(adapter, yesterday, today) { res, dt1, dt2 ->
+        test(adapter, yesterday, today, osUtilsProvider, formatter) { res, dt1, dt2 ->
             assertEquals(
                 "Yesterday, ${formatter.formatTime(dt1)} — Today, ${
                     formatter.formatTime(
@@ -58,7 +60,7 @@ class GeofenceDateFormattingTest {
             )
         }
 
-        test(adapter, weekAgo, yesterday) { res, dt1, dt2 ->
+        test(adapter, weekAgo, yesterday, osUtilsProvider, formatter) { res, dt1, dt2 ->
             assertEquals(
                 "${weekAgo.formatDate()}, ${formatter.formatTime(dt1)} — Yesterday, ${
                     formatter.formatTime(
@@ -68,7 +70,7 @@ class GeofenceDateFormattingTest {
             )
         }
 
-        test(adapter, weekAgo, weekAgo) { res, dt1, dt2 ->
+        test(adapter, weekAgo, weekAgo, osUtilsProvider, formatter) { res, dt1, dt2 ->
             assertEquals(
                 "${weekAgo.formatDate()}, ${formatter.formatTime(dt1)} — ${
                     formatter.formatTime(
@@ -78,7 +80,7 @@ class GeofenceDateFormattingTest {
             )
         }
 
-        test(adapter, longTimeAgo, weekAgo) { res, dt1, dt2 ->
+        test(adapter, longTimeAgo, weekAgo, osUtilsProvider, formatter) { res, dt1, dt2 ->
             assertEquals(
                 "${longTimeAgo.formatDate()}, ${formatter.formatTime(dt1)} — ${weekAgo.formatDate()}, ${
                     formatter.formatTime(
@@ -94,6 +96,8 @@ class GeofenceDateFormattingTest {
         adapter: PlaceVisitsAdapter,
         baseDt1: ZonedDateTime,
         baseDt2: ZonedDateTime,
+        osUtilsProvider: OsUtilsProvider,
+        timeDistanceFormatter: TimeDistanceFormatter,
         checks: (res: String, dt1: String, dt2: String) -> Unit
     ) {
         val dt1 = baseDt1.format(DateTimeFormatter.ISO_INSTANT)
@@ -101,8 +105,8 @@ class GeofenceDateFormattingTest {
 
         PlaceVisitsAdapter.formatDate(
             dt1, dt2,
-            mockk(relaxed = true),
-            mockk(relaxed = true),
+            osUtilsProvider,
+            timeDistanceFormatter,
         ).let {
             checks.invoke(
                 it,
