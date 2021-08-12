@@ -181,7 +181,7 @@ data class VisitsData(
     }
 
     fun newInstanceWithHistory(history: Map<LocalDate, History>): VisitsData {
-        return VisitsData(visits, history.mapValues { it.value.summary.totalDistance }).also {
+        return VisitsData(visits, history.mapValues { it.value.summary.totalDriveDistance }).also {
 //            Log.v(
 //                "hypertrack-verbose",
 //                it.dayStats.keys.sortedByDescending { it }.map { "${it.dayOfMonth} ${it.month}"  }.toString()
