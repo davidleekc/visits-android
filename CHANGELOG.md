@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.9.23] - 2021-08-09
+- HyperTrack SDK 4.4.0
+- Deeplink fixes
+
 ## [0.9.22] - 2021-07-22
 - Sign Up removed
 - Deeplink fixes
