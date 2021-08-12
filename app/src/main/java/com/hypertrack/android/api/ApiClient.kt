@@ -24,6 +24,7 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -204,6 +205,27 @@ class ApiClient(
         } else {
             //todo inject mock api client
             MockData.MOCK_HISTORY
+        }
+    }
+
+    suspend fun getHistory(from: ZonedDateTime, to: ZonedDateTime): HistoryResult {
+        try {
+            with(
+                api.getHistoryForPeriod(
+                    deviceId,
+                    from.format(DateTimeFormatter.ISO_INSTANT),
+                    to.format(DateTimeFormatter.ISO_INSTANT)
+                )
+            ) {
+                if (isSuccessful) {
+                    return body().asHistory()
+                } else {
+                    return HistoryError(HttpException(this))
+                }
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Got exception $e fetching device history")
+            return HistoryError(e)
         }
     }
 

@@ -30,7 +30,7 @@ class GeofenceDateFormattingTest {
         val adapter = PlaceVisitsAdapter(mockk() {
             every { stringFromResource(R.string.place_today) } returns "Today"
             every { stringFromResource(R.string.place_yesterday) } returns "Yesterday"
-        }, formatter)
+        }, formatter) {}
         val today = ZonedDateTime.now().withZoneSameInstant(ZoneId.of("UTC"))
             .withHour(13).withMinute(1)
         val yesterday = today.minusDays(1)
@@ -99,7 +99,11 @@ class GeofenceDateFormattingTest {
         val dt1 = baseDt1.format(DateTimeFormatter.ISO_INSTANT)
         val dt2 = baseDt2.withMinute(30).withSecond(1).format(DateTimeFormatter.ISO_INSTANT)
 
-        adapter.formatDate(dt1, dt2).let {
+        PlaceVisitsAdapter.formatDate(
+            dt1, dt2,
+            mockk(relaxed = true),
+            mockk(relaxed = true),
+        ).let {
             checks.invoke(
                 it,
                 dt1.format(DateTimeFormatter.ISO_INSTANT),

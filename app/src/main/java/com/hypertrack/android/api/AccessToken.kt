@@ -16,10 +16,6 @@ class AccessTokenInterceptor(private val accessTokenRepository: AccessTokenRepos
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val token = accessTokenRepository.getAccessToken()
-        if (chain.request().url.encodedPath.contains("/visits")) {
-            Log.v("hypertrack-verbose", "added token to ${chain.request().url.encodedPath}")
-            Log.v("hypertrack-verbose", "headers ${chain.request().headers}")
-        }
         val request =
             chain.request().newBuilder().addHeader("Authorization", "Bearer $token").build()
         return chain.proceed(request)
@@ -61,13 +57,7 @@ class AccessTokenAuthenticator(private val accessTokenRepository: AccessTokenRep
                 if (updatedToken == accessToken) {
                     updatedToken = accessTokenRepository.refreshToken()
                 }
-                if (response.request.url.encodedPath.contains("/visits")) {
-                    Log.v(
-                        "hypertrack-verbose",
-                        "added refreshed token to ${response.request.url.encodedPath}"
-                    )
-                    Log.v("hypertrack-verbose", "headers ${response.request.headers}")
-                }
+                //todo check double token
                 response.request.newBuilder()
                     .addHeader(AUTH_HEADER_KEY, "Bearer $updatedToken")
                     .build()

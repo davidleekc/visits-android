@@ -80,6 +80,10 @@ class ErrorHandler(
         }
     }
 
+    fun postConsumable(e: Consumable<Exception>) {
+        _exception.postValue(e)
+    }
+
     fun postException(e: Exception) {
         _exception.postValue(Consumable(e))
     }

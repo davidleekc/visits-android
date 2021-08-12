@@ -155,12 +155,10 @@ class PlacesFragment : ProgressDialogFragment(R.layout.fragment_places) {
             if (it != null) {
                 it.consume {
 //                    Log.v("hypertrack-verbose", "-- page ${it.map { it.geofence.name }}")
-                    visitsAdapter.addVisits(it)
                     lVisitsPlaceholder.setGoneState(visitsAdapter.itemCount != 0)
                     rvVisits.setGoneState(visitsAdapter.itemCount == 0)
                 }
             } else {
-                visitsAdapter.updateItems(listOf())
                 lVisitsPlaceholder.hide()
                 rvVisits.show()
             }

@@ -252,6 +252,7 @@
     <string name="coordinates">Coordinates</string>
     <string name="address_not_available">Address is not available</string>
     <string name="created_at">Created at</string>
+    <string name="places_visits_loading">Loading...</string>
 
     <plurals name="time">
         <item quantity="one">time</item>

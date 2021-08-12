@@ -245,7 +245,6 @@ open class TripsInteractorImpl(
 //                        }
                     } else {
                         val metadata = (order._metadata ?: Metadata.empty())
-                        Log.v("hypertrack-verbose", "Check metadata ${metadata}")
                         if (
                             metadata.visitsAppMetadata.note != order.note
                             || !(metadata.visitsAppMetadata.photos ?: listOf())

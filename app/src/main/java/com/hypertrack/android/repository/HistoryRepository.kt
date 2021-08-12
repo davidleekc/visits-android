@@ -4,18 +4,18 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.hypertrack.android.api.ApiClient
-import com.hypertrack.android.models.EMPTY_HISTORY
 import com.hypertrack.android.models.History
 import com.hypertrack.android.models.HistoryError
 import com.hypertrack.android.models.HistoryResult
+import com.hypertrack.android.models.Summary
 import com.hypertrack.android.utils.CrashReportsProvider
-import com.hypertrack.android.utils.MockData
 import com.hypertrack.android.utils.OsUtilsProvider
-import com.hypertrack.logistics.android.github.R
 import java.time.LocalDate
+import java.time.ZonedDateTime
 
 interface HistoryRepository {
     suspend fun getHistory(date: LocalDate): HistoryResult
+//    suspend fun getSummary(from: ZonedDateTime, to: ZonedDateTime): Summary
     val history: LiveData<Map<LocalDate, History>>
 }
 
@@ -28,6 +28,7 @@ class HistoryRepositoryImpl(
     override val history = MutableLiveData<Map<LocalDate, History>>(mapOf())
 
     private val cache = mutableMapOf<LocalDate, History>()
+    private val periodCache = mutableMapOf<String, History>()
 
     override suspend fun getHistory(date: LocalDate): HistoryResult {
         if (cache.containsKey(date) && date != LocalDate.now()) {
@@ -39,7 +40,7 @@ class HistoryRepositoryImpl(
             )
             when (res) {
                 is History -> {
-                    addToCache(date, res)
+                    addDayToCache(date, res)
                 }
                 is HistoryError -> {
                     crashReportsProvider.logException(res.error ?: Exception("History error null"))
@@ -49,9 +50,34 @@ class HistoryRepositoryImpl(
         }
     }
 
-    private fun addToCache(date: LocalDate, res: History) {
+//    override suspend fun getSummary(from: ZonedDateTime, to: ZonedDateTime): Summary {
+//        val cacheKey = "$from-$to"
+//        if (periodCache.containsKey(cacheKey) &&
+//            to.isBefore(
+//                ZonedDateTime.now()
+//                    .withDayOfMonth(1)
+//                    .withHour(0)
+//                    .withMinute(0)
+//            )
+//        ) {
+//            Log.v("hypertrack-verbose", "got cached period $cacheKey")
+//            return periodCache.getValue(cacheKey).summary
+//        } else {
+//            apiClient.getHistory(from, to).let {
+//                when (it) {
+//                    is History -> {
+//                        periodCache[cacheKey] = it
+//                        Log.v("hypertrack-verbose", "got period $cacheKey")
+//                        return it.summary
+//                    }
+//                    is HistoryError -> throw it.error!!
+//                }
+//            }
+//        }
+//    }
+
+    private fun addDayToCache(date: LocalDate, res: History) {
         cache[date] = res
-        Log.v("hypertrack-verbose", "post value ${cache}")
         history.postValue(cache)
     }
 

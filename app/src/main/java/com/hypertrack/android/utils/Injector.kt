@@ -260,7 +260,10 @@ object Injector {
             placesRepository
         )
 
-        val historyInteractor = HistoryInteractorImpl(historyRepository)
+        val historyInteractor = HistoryInteractorImpl(
+            historyRepository,
+            osUtilsProvider
+        )
 
         val userScope = UserScope(
             tripsInteractor,

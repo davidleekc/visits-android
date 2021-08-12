@@ -103,23 +103,7 @@ private val fences = Injector.getMoshi().adapter(GeofenceResponse::class.java)
         return Response.success(
             VisitsResponse(
                 listOf(
-                    GeofenceVisit(
-                        "1",
-                        "1",
-                        "1",
-                        Arrival(
-                            ZonedDateTime.now().minusHours(1).format(DateTimeFormatter.ISO_INSTANT)
-                        ),
-                        Exit(
-                            ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT),
-                        ),
-                        RouteTo(
-                            100,
-                            100,
-                            100,
-                        ),
-                        100,
-                    )
+                    MockData.createGeofenceVisit()
                 ), null
             )
         )
@@ -130,6 +114,16 @@ private val fences = Injector.getMoshi().adapter(GeofenceResponse::class.java)
         day: String,
         timezone: String
     ): Response<HistoryResponse> {
+        delay((Math.random() * 1000 + 500).toLong())
+        return Response.success(MockData.MOCK_HISTORY_RESPONSE)
+    }
+
+    override suspend fun getHistoryForPeriod(
+        deviceId: String,
+        from: String,
+        to: String
+    ): Response<HistoryResponse> {
+        delay((Math.random() * 1000 + 500).toLong())
         return Response.success(MockData.MOCK_HISTORY_RESPONSE)
     }
 

@@ -112,6 +112,13 @@ interface ApiInterface {
         @Query("timezone") timezone: String
     ): Response<HistoryResponse>
 
+    @GET("client/devices/{device_id}/history")
+    suspend fun getHistoryForPeriod(
+        @Path("device_id") deviceId: String,
+        @Query("from") from: String,
+        @Query("to") to: String,
+    ): Response<HistoryResponse>
+
     @GET("client/get_entity_data")
     suspend fun getIntegrations(
         @Query("search_string") query: String? = null,

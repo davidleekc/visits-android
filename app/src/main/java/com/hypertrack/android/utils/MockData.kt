@@ -1,10 +1,9 @@
 package com.hypertrack.android.utils
 
-import com.hypertrack.android.api.Geofence
-import com.hypertrack.android.api.Geometry
-import com.hypertrack.android.api.HistoryResponse
+import com.hypertrack.android.api.*
 import com.hypertrack.android.models.*
 import com.hypertrack.logistics.android.github.R
+import java.time.LocalDate
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -38,8 +37,10 @@ object MockData {
         totalStopDuration = 20 * 57,
     )
 
-    val MOCK_HISTORY_RESPONSE = Injector.getMoshi().adapter(HistoryResponse::class.java)
-        .fromJson(MOCK_HISTORY_JSON)
+    val MOCK_HISTORY_RESPONSE by lazy {
+        Injector.getMoshi().adapter(HistoryResponse::class.java)
+            .fromJson(MOCK_HISTORY_JSON)
+    }
 
     val MOCK_HISTORY: HistoryResult by lazy {
         Injector.getMoshi().adapter(HistoryResponse::class.java)
@@ -148,6 +149,29 @@ object MockData {
         )
     }
 
+    fun createGeofenceVisit(_date: LocalDate? = null): GeofenceVisit {
+        val date = _date ?: LocalDate.now()
+        return GeofenceVisit(
+            "1",
+            "1",
+            "1",
+            Arrival(
+                ZonedDateTime.now().withMonth(date.monthValue).withDayOfMonth(date.dayOfMonth)
+                    .minusHours(1).format(DateTimeFormatter.ISO_INSTANT)
+            ),
+            Exit(
+                ZonedDateTime.now().withMonth(date.monthValue).withDayOfMonth(date.dayOfMonth)
+                    .format(DateTimeFormatter.ISO_INSTANT),
+            ),
+            RouteTo(
+                100,
+                100,
+                100,
+            ),
+            100,
+        )
+    }
+
     val MOCK_GEOFENCES_JSON by lazy {
         MyApplication.context.resources.openRawResource(R.raw.mock_geofences).bufferedReader()
             .use { it.readText() }
@@ -165,4 +189,5 @@ object MockData {
         MyApplication.context.resources.openRawResource(R.raw.mock_trip_v1).bufferedReader()
             .use { it.readText() }
     }
+
 }
