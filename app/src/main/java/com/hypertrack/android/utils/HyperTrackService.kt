@@ -56,8 +56,8 @@ class HyperTrackService(
             metadata?.let { putAll(it) }
         }.apply {
             if (MyApplication.DEBUG_MODE) {
-                Log.v("hypertrack-verbose", "set device name: ${name}")
-                Log.v("hypertrack-verbose", "set device metadata: $this")
+//                Log.v("hypertrack-verbose", "set device name: ${name}")
+//                Log.v("hypertrack-verbose", "set device metadata: $this")
             }
         })
     }

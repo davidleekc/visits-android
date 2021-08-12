@@ -3,14 +3,10 @@ package com.hypertrack.android.models.local
 import android.os.Parcelable
 import com.google.android.gms.maps.model.LatLng
 import com.hypertrack.android.api.Geofence
-import com.hypertrack.android.api.GeofenceMarker
+import com.hypertrack.android.api.GeofenceVisit
 import com.hypertrack.android.models.*
 import com.hypertrack.android.ui.common.nullIfBlank
-import com.hypertrack.android.ui.common.nullIfEmpty
-import com.hypertrack.android.utils.Meter
 import com.hypertrack.android.utils.OsUtilsProvider
-import com.hypertrack.logistics.android.github.BuildConfig
-import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
 import kotlinx.android.parcel.Parcelize
@@ -18,6 +14,7 @@ import java.time.ZonedDateTime
 
 @JsonClass(generateAdapter = true)
 data class LocalGeofence(
+    val currentDeviceId: String,
     val geofence: Geofence,
     val name: String?,
     val address: String?,
@@ -41,13 +38,16 @@ data class LocalGeofence(
         )
 
     val markers =
-        geofence.marker?.markers?.sortedByDescending { it.arrival!!.recordedAt } ?: listOf()
+        geofence.marker?.visits
+            ?.filter { it.deviceId == currentDeviceId }
+            ?.sortedByDescending { it.arrival!!.recordedAt }
+            ?: listOf()
 
     val visitsCount: Int by lazy {
         markers.count()
     }
 
-    val lastVisit: GeofenceMarker? by lazy {
+    val lastVisit: GeofenceVisit? by lazy {
         markers.firstOrNull()
     }
 
@@ -57,6 +57,7 @@ data class LocalGeofence(
 
     companion object {
         fun fromGeofence(
+            currentDeviceId: String,
             geofence: Geofence,
             moshi: Moshi,
             osUtilsProvider: OsUtilsProvider
@@ -77,6 +78,7 @@ data class LocalGeofence(
             }
 
             return LocalGeofence(
+                currentDeviceId = currentDeviceId,
                 geofence = geofence,
                 name = metadata.remove(GeofenceMetadata.KEY_NAME) as String?,
                 address = address,

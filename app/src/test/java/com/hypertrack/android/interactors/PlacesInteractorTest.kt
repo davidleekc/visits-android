@@ -37,6 +37,7 @@ class PlacesInteractorTest {
         }
         val placesInteractor = PlacesInteractorImpl(
             PlacesRepositoryImpl(
+                "1",
                 apiClient,
                 Injector.getMoshi(),
                 mockk(relaxed = true)

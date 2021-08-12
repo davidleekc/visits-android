@@ -20,7 +20,7 @@ class PlacesViewModel(
     private val osUtilsProvider: OsUtilsProvider,
     private val locationProvider: DeviceLocationProvider,
     private val timeDistanceFormatter: TimeDistanceFormatter,
-) : BaseViewModel() {
+) : BaseViewModel(osUtilsProvider) {
 
     private var nextPageToken: String? = null
     private var updateJob: Job? = null
@@ -64,7 +64,7 @@ class PlacesViewModel(
 
     fun onLoadMore() {
         if ((loadingStateBase.value ?: false) == false) {
-            //todo change to viewModelScope (cause bug when launch is not called after geofence creation)
+            //todo change to viewModelScope (viewModelScope cause bug when launch is not called after geofence creation)
             updateJob = GlobalScope.launch {
                 try {
                     if (nextPageToken != null || placesPage.value == null) {
@@ -78,7 +78,7 @@ class PlacesViewModel(
                     }
                 } catch (e: Exception) {
                     if (e !is CancellationException) {
-                        errorBase.postValue(osUtilsProvider.getErrorMessage(e).toConsumable())
+                        errorHandler.postException(e)
                         loadingStateBase.postValue(false)
                     }
                 }

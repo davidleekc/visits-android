@@ -16,9 +16,9 @@ class AccessTokenInterceptor(private val accessTokenRepository: AccessTokenRepos
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val token = accessTokenRepository.getAccessToken()
-        val request = chain.request().newBuilder().addHeader("Authorization", "Bearer $token").build()
+        val request =
+            chain.request().newBuilder().addHeader("Authorization", "Bearer $token").build()
         return chain.proceed(request)
-
     }
 
 }
@@ -57,9 +57,10 @@ class AccessTokenAuthenticator(private val accessTokenRepository: AccessTokenRep
                 if (updatedToken == accessToken) {
                     updatedToken = accessTokenRepository.refreshToken()
                 }
+                //todo check double token
                 response.request.newBuilder()
-                        .addHeader(AUTH_HEADER_KEY, "Bearer $updatedToken")
-                        .build()
+                    .addHeader(AUTH_HEADER_KEY, "Bearer $updatedToken")
+                    .build()
             } catch (e: IllegalStateException) {
                 Log.w(TAG, "Authentication call failed", e)
                 null

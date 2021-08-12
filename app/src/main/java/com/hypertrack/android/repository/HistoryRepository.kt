@@ -1,46 +1,84 @@
 package com.hypertrack.android.repository
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.hypertrack.android.api.ApiClient
-import com.hypertrack.android.models.EMPTY_HISTORY
 import com.hypertrack.android.models.History
 import com.hypertrack.android.models.HistoryError
 import com.hypertrack.android.models.HistoryResult
+import com.hypertrack.android.models.Summary
 import com.hypertrack.android.utils.CrashReportsProvider
-import com.hypertrack.android.utils.MockData
 import com.hypertrack.android.utils.OsUtilsProvider
-import com.hypertrack.logistics.android.github.R
+import java.time.LocalDate
+import java.time.ZonedDateTime
 
-class HistoryRepository(
-        private val apiClient: ApiClient,
-        private val crashReportsProvider: CrashReportsProvider,
-        private val osUtilsProvider: OsUtilsProvider
-) {
+interface HistoryRepository {
+    suspend fun getHistory(date: LocalDate): HistoryResult
+//    suspend fun getSummary(from: ZonedDateTime, to: ZonedDateTime): Summary
+    val history: LiveData<Map<LocalDate, History>>
+}
 
-    private val _history = MutableLiveData<History>()
+class HistoryRepositoryImpl(
+    private val apiClient: ApiClient,
+    private val crashReportsProvider: CrashReportsProvider,
+    private val osUtilsProvider: OsUtilsProvider
+) : HistoryRepository {
 
-    val history: LiveData<History>
-        get() = _history
+    override val history = MutableLiveData<Map<LocalDate, History>>(mapOf())
 
-    suspend fun getHistory(): HistoryResult {
-        val result = apiClient.getHistory(
-                osUtilsProvider.getLocalDate(),
+    private val cache = mutableMapOf<LocalDate, History>()
+    private val periodCache = mutableMapOf<String, History>()
+
+    override suspend fun getHistory(date: LocalDate): HistoryResult {
+        if (cache.containsKey(date) && date != LocalDate.now()) {
+            return cache.getValue(date)
+        } else {
+            val res = apiClient.getHistory(
+                date,
                 osUtilsProvider.getTimeZoneId()
-        )
-//        val result = MockData.MOCK_HISTORY
-        return when (result) {
-            is History -> {
-                _history.postValue(result)
-                result
+            )
+            when (res) {
+                is History -> {
+                    addDayToCache(date, res)
+                }
+                is HistoryError -> {
+                    crashReportsProvider.logException(res.error ?: Exception("History error null"))
+                }
             }
-            is HistoryError -> {
-                result.error?.let { crashReportsProvider.logException(it) }
-                _history.postValue(_history.value?: EMPTY_HISTORY)
-                result
-            }
+            return res
         }
     }
 
+//    override suspend fun getSummary(from: ZonedDateTime, to: ZonedDateTime): Summary {
+//        val cacheKey = "$from-$to"
+//        if (periodCache.containsKey(cacheKey) &&
+//            to.isBefore(
+//                ZonedDateTime.now()
+//                    .withDayOfMonth(1)
+//                    .withHour(0)
+//                    .withMinute(0)
+//            )
+//        ) {
+//            Log.v("hypertrack-verbose", "got cached period $cacheKey")
+//            return periodCache.getValue(cacheKey).summary
+//        } else {
+//            apiClient.getHistory(from, to).let {
+//                when (it) {
+//                    is History -> {
+//                        periodCache[cacheKey] = it
+//                        Log.v("hypertrack-verbose", "got period $cacheKey")
+//                        return it.summary
+//                    }
+//                    is HistoryError -> throw it.error!!
+//                }
+//            }
+//        }
+//    }
+
+    private fun addDayToCache(date: LocalDate, res: History) {
+        cache[date] = res
+        history.postValue(cache)
+    }
 
 }

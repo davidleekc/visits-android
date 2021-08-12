@@ -1,11 +1,10 @@
 package com.hypertrack.android.ui.screens.visits_management.tabs.places
 
+import android.graphics.Typeface
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
-import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.base.ProgressDialogFragment
 import com.hypertrack.android.ui.common.*
 import com.hypertrack.android.ui.common.show
@@ -15,13 +14,96 @@ import kotlinx.android.synthetic.main.fragment_places.*
 
 class PlacesFragment : ProgressDialogFragment(R.layout.fragment_places) {
 
+    private var state = State.PLACES
     private val vm: PlacesViewModel by viewModels { Injector.provideUserScopeViewModelFactory() }
+    private val visitsVm: PlacesVisitsViewModel by viewModels { Injector.provideUserScopeViewModelFactory() }
 
     private lateinit var adapter: PlacesAdapter
+    private lateinit var visitsAdapter: AllPlacesVisitsAdapter
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        initPlaces()
+        initVisits()
+
+        vm.loadingStateBase.observe(viewLifecycleOwner, {
+            srlPlaces.isRefreshing = (vm.loadingStateBase.value == true
+                    || visitsVm.loadingStateBase.value == true)
+                    && when (state) {
+                State.PLACES -> adapter.itemCount == 0
+                State.VISITS -> visitsAdapter.itemCount == 0
+            }
+            paginationProgressbar.setGoneState(!it || adapter.itemCount == 0)
+        })
+
+        visitsVm.loadingStateBase.observe(viewLifecycleOwner, {
+            srlPlaces.isRefreshing = (vm.loadingStateBase.value == true
+                    || visitsVm.loadingStateBase.value == true)
+                    && when (state) {
+                State.PLACES -> adapter.itemCount == 0
+                State.VISITS -> visitsAdapter.itemCount == 0
+            }
+            paginationProgressbar.setGoneState(!it || adapter.itemCount == 0)
+        })
+
+        vm.destination.observe(viewLifecycleOwner, {
+            findNavController().navigate(it)
+        })
+
+        vm.errorHandler.errorText.observe(viewLifecycleOwner, {
+            SnackbarUtil.showErrorSnackbar(view, it)
+        })
+
+        visitsVm.errorHandler.errorText.observe(viewLifecycleOwner, {
+            SnackbarUtil.showErrorSnackbar(view, it)
+        })
+
+        srlPlaces.setOnRefreshListener {
+            vm.refresh()
+            visitsVm.refresh()
+        }
+
+        fbAddPlace.setOnClickListener {
+            vm.onAddPlaceClicked()
+        }
+
+        bPlaces.setOnClickListener {
+            displayState(State.PLACES)
+        }
+
+        bVisits.setOnClickListener {
+            displayState(State.VISITS)
+        }
+
+        vm.init()
+        visitsVm.init()
+        displayState(State.PLACES)
+    }
+
+    private fun displayState(state: State) {
+        this.state = state
+        when (state) {
+            State.PLACES -> {
+                bPlaces.isSelected = true
+                bPlaces.setTypeface(null, Typeface.BOLD)
+                bVisits.isSelected = false
+                bVisits.setTypeface(null, Typeface.NORMAL)
+                lPlaces.setGoneState(false)
+                lVisits.setGoneState(true)
+            }
+            State.VISITS -> {
+                bPlaces.isSelected = false
+                bPlaces.setTypeface(null, Typeface.NORMAL)
+                bVisits.isSelected = true
+                bVisits.setTypeface(null, Typeface.BOLD)
+                lPlaces.setGoneState(true)
+                lVisits.setGoneState(false)
+            }
+        }
+    }
+
+    private fun initPlaces() {
         rvPlaces.setLinearLayoutManager(requireContext())
         adapter = vm.createPlacesAdapter()
         rvPlaces.adapter = adapter
@@ -51,34 +133,43 @@ class PlacesFragment : ProgressDialogFragment(R.layout.fragment_places) {
                 rvPlaces.show()
             }
         })
+    }
 
-        vm.loadingStateBase.observe(viewLifecycleOwner, {
-            srlPlaces.isRefreshing = it && adapter.itemCount == 0
-            paginationProgressbar.setGoneState(!it || adapter.itemCount == 0)
+    private fun initVisits() {
+        rvVisits.setLinearLayoutManager(requireContext())
+        visitsAdapter = visitsVm.adapter
+        rvVisits.adapter = visitsAdapter
+        visitsAdapter.onItemClickListener = {
+            visitsVm.onVisitClick((it as Visit).visit)
+        }
+        rvVisits.addOnScrollListener(object : EndlessScrollListener(object : OnLoadMoreListener {
+            override fun onLoadMore(page: Int, totalItemsCount: Int) {
+//                Log.v("hypertrack-verbose", "EndlessScrollListener $page $totalItemsCount")
+                visitsVm.onLoadMore()
+            }
+        }) {
+            override val visibleThreshold = 1
         })
 
-        vm.destination.observe(viewLifecycleOwner, {
-            findNavController().navigate(it)
-        })
-
-        vm.errorBase.observe(viewLifecycleOwner, {
-            it.consume {
-                SnackbarUtil.showErrorSnackbar(view, it)
+        visitsVm.visitsPage.observe(viewLifecycleOwner, {
+            if (it != null) {
+                it.consume {
+//                    Log.v("hypertrack-verbose", "-- page ${it.map { it.geofence.name }}")
+                    lVisitsPlaceholder.setGoneState(visitsAdapter.itemCount != 0)
+                    rvVisits.setGoneState(visitsAdapter.itemCount == 0)
+                }
+            } else {
+                lVisitsPlaceholder.hide()
+                rvVisits.show()
             }
         })
-
-        srlPlaces.setOnRefreshListener {
-            vm.refresh()
-        }
-
-        fbAddPlace.setOnClickListener {
-            vm.onAddPlaceClicked()
-        }
-
-        vm.init()
     }
 
     companion object {
         fun getInstance() = PlacesFragment()
+    }
+
+    enum class State {
+        PLACES, VISITS
     }
 }

@@ -144,9 +144,7 @@ class OrderDetailsViewModel(
     }
 
     fun onExit(orderNote: String) {
-        globalScope.launch {
-            tripsInteractor.updateOrderNote(orderId, orderNote)
-        }
+        tripsInteractor.updateOrderNoteAsync(orderId, orderNote)
     }
 
     fun onCopyClick(it: String) {
@@ -160,9 +158,7 @@ class OrderDetailsViewModel(
     }
 
     fun onAddPhotoClicked(activity: Activity, note: String) {
-        globalScope.launch {
-            tripsInteractor.updateOrderNote(orderId, note)
-        }
+        tripsInteractor.updateOrderNoteAsync(orderId, note)
         try {
             val file = osUtilsProvider.createImageFile()
             // Save a file: path for use with ACTION_VIEW intents

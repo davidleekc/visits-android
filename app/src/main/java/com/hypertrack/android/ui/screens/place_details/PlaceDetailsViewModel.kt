@@ -9,7 +9,7 @@ import androidx.lifecycle.Transformations
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.CircleOptions
-import com.hypertrack.android.api.GeofenceMarker
+import com.hypertrack.android.api.GeofenceVisit
 import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.models.Integration
 import com.hypertrack.android.models.local.LocalGeofence
@@ -73,7 +73,7 @@ class PlaceDetailsViewModel(
         it.integration
     }
 
-    val visits: LiveData<List<GeofenceMarker>> = Transformations.map(geofence) { geofence ->
+    val visits: LiveData<List<GeofenceVisit>> = Transformations.map(geofence) { geofence ->
         geofence.markers
     }
 

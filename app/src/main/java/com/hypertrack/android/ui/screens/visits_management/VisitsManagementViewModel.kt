@@ -3,6 +3,7 @@ package com.hypertrack.android.ui.screens.visits_management
 import android.annotation.SuppressLint
 import android.util.Log
 import androidx.lifecycle.*
+import com.hypertrack.android.interactors.HistoryInteractor
 import com.hypertrack.android.interactors.PermissionsInteractor
 import com.hypertrack.android.models.HistoryError
 import com.hypertrack.android.models.Visit
@@ -13,11 +14,9 @@ import com.hypertrack.android.repository.AccountRepository
 import com.hypertrack.android.repository.HistoryRepository
 import com.hypertrack.android.repository.VisitsRepository
 import com.hypertrack.android.ui.base.BaseViewModel
+import com.hypertrack.android.ui.base.ErrorHandler
 import com.hypertrack.android.ui.base.SingleLiveEvent
-import com.hypertrack.android.utils.CrashReportsProvider
-import com.hypertrack.android.utils.FirebaseCrashReportsProvider
-import com.hypertrack.android.utils.MyApplication
-import com.hypertrack.android.utils.TrackingStateValue
+import com.hypertrack.android.utils.*
 import com.hypertrack.logistics.android.github.R
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
@@ -27,11 +26,15 @@ import kotlinx.coroutines.launch
 @SuppressLint("NullSafeMutableLiveData")
 class VisitsManagementViewModel(
     private val visitsRepository: VisitsRepository,
-    private val historyRepository: HistoryRepository,
+    private val historyInteractor: HistoryInteractor,
     private val accountRepository: AccountRepository,
     private val crashReportsProvider: CrashReportsProvider,
+    private val osUtilsProvider: OsUtilsProvider,
     accessTokenRepository: AccessTokenRepository
-) : BaseViewModel() {
+) : BaseViewModel(osUtilsProvider) {
+
+    override val errorHandler =
+        ErrorHandler(osUtilsProvider, historyInteractor.errorFlow.asLiveData())
 
     val isTracking = visitsRepository.isTracking
 
@@ -127,8 +130,6 @@ class VisitsManagementViewModel(
 //    val showCheckIn: Boolean = accountRepository.isManualCheckInAllowed
     val showCheckIn: Boolean = false
 
-    val error = SingleLiveEvent<String>()
-
     fun refreshVisits(block: () -> Unit) {
 
         if (_showSync.value == true) return block()
@@ -160,13 +161,7 @@ class VisitsManagementViewModel(
 
     fun refreshHistory() {
         MainScope().launch {
-            historyRepository.getHistory().also {
-                if (it is HistoryError) {
-                    error.postValue(
-                        it.error?.message ?: MyApplication.context.getString(R.string.history_error)
-                    )
-                }
-            }
+            historyInteractor.loadTodayHistory()
         }
     }
 

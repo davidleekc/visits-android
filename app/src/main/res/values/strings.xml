@@ -160,7 +160,10 @@
     <string name="order_address_not_available">Address for this order is not available</string>
     <string name="order_not_clocked_in">You must be clocked in to complete or cancel an order</string>
 
+    <string name="places_places">Places</string>
+    <string name="places_visits">Visits</string>
     <string name="places_no_places">You don\'t have Places yet</string>
+    <string name="places_no_visits">You don\'t have Place visits yet</string>
     <string name="places_visited">Visited %s</string>
     <string name="places_last_visit">Last visit: %s</string>
     <string name="places_not_visited">Not visited</string>
@@ -249,6 +252,7 @@
     <string name="coordinates">Coordinates</string>
     <string name="address_not_available">Address is not available</string>
     <string name="created_at">Created at</string>
+    <string name="places_visits_loading">Loading...</string>
 
     <plurals name="time">
         <item quantity="one">time</item>

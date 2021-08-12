@@ -24,6 +24,7 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -116,6 +117,24 @@ class ApiClient(
         )
     }
 
+    suspend fun getAllGeofencesVisits(
+        paginationToken: String?,
+    ): VisitsResponse {
+        try {
+            val response = api.getAllGeofencesVisits(
+                deviceId = deviceId,
+                paginationToken = paginationToken,
+            )
+            if (response.isSuccessful) {
+                return response.body()!!
+            } else {
+                throw HttpException(response)
+            }
+        } catch (e: Exception) {
+            throw e
+        }
+    }
+
     suspend fun getTrips(page: String = ""): List<Trip> {
         try {
             val response = api.getTrips(deviceId, page)
@@ -179,13 +198,34 @@ class ApiClient(
                         return HistoryError(HttpException(this))
                     }
                 }
-            } catch (e: Throwable) {
+            } catch (e: Exception) {
                 Log.w(TAG, "Got exception $e fetching device history")
                 return HistoryError(e)
             }
         } else {
             //todo inject mock api client
             MockData.MOCK_HISTORY
+        }
+    }
+
+    suspend fun getHistory(from: ZonedDateTime, to: ZonedDateTime): HistoryResult {
+        try {
+            with(
+                api.getHistoryForPeriod(
+                    deviceId,
+                    from.format(DateTimeFormatter.ISO_INSTANT),
+                    to.format(DateTimeFormatter.ISO_INSTANT)
+                )
+            ) {
+                if (isSuccessful) {
+                    return body().asHistory()
+                } else {
+                    return HistoryError(HttpException(this))
+                }
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Got exception $e fetching device history")
+            return HistoryError(e)
         }
     }
 

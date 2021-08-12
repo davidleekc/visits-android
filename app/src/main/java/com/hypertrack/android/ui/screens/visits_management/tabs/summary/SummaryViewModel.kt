@@ -1,6 +1,7 @@
 package com.hypertrack.android.ui.screens.visits_management.tabs.summary
 
 import androidx.lifecycle.*
+import com.hypertrack.android.interactors.HistoryInteractor
 import com.hypertrack.android.models.HistoryError
 import com.hypertrack.android.repository.HistoryRepository
 import com.hypertrack.android.ui.base.BaseViewModel
@@ -11,12 +12,12 @@ import com.hypertrack.logistics.android.github.R
 import kotlinx.coroutines.launch
 
 class SummaryViewModel(
-    private val historyRepository: HistoryRepository,
+    private val historyInteractor: HistoryInteractor,
     private val osUtilsProvider: OsUtilsProvider,
     private val timeDistanceFormatter: TimeDistanceFormatter
 ) : BaseViewModel() {
 
-    val summary: LiveData<List<SummaryItem>> = Transformations.map(historyRepository.history) {
+    val summary: LiveData<List<SummaryItem>> = Transformations.map(historyInteractor.todayHistory) {
         it.summary.let { summary ->
             listOf(
                 SummaryItem(
@@ -48,11 +49,6 @@ class SummaryViewModel(
     val error = MutableLiveData<HistoryError>()
 
     fun refreshSummary() {
-        viewModelScope.launch {
-            val res = historyRepository.getHistory()
-            if (res is HistoryError) {
-                error.postValue(res)
-            }
-        }
+        historyInteractor.loadTodayHistory()
     }
 }

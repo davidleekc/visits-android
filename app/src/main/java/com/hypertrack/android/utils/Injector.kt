@@ -161,20 +161,23 @@ object Injector {
         imageDecoder: ImageDecoder,
         timeDistanceFormatter: TimeDistanceFormatter
     ): UserScope {
+        val deviceId = accessTokenRepository.deviceId
+
         val apiClient = ApiClient(
             accessTokenRepository,
             BASE_URL,
-            accessTokenRepository.deviceId,
+            deviceId,
             moshi,
             crashReportsProvider
         )
-        val historyRepository = HistoryRepository(
+        val historyRepository = HistoryRepositoryImpl(
             apiClient,
             crashReportsProvider,
             osUtilsProvider
         )
         val scope = CoroutineScope(Dispatchers.IO)
         val placesRepository = PlacesRepositoryImpl(
+            deviceId,
             apiClient,
             moshi,
             osUtilsProvider
@@ -256,20 +259,33 @@ object Injector {
             crashReportsProvider
         )
 
-        val userScope = UserScope(
-            visitsRepo,
+        val placesVisitsInteractor = PlacesVisitsInteractorImpl(
+            placesRepository
+        )
+
+        val historyInteractor = HistoryInteractorImpl(
             historyRepository,
+            osUtilsProvider
+        )
+
+        val userScope = UserScope(
             tripsInteractor,
             placesInteractor,
+            placesVisitsInteractor,
+            historyInteractor,
             feedbackInteractor,
+            visitsRepo,
             integrationsRepository,
+            photoUploadInteractor,
+            hyperTrackService,
+            photoUploadQueueInteractor,
+            apiClient,
             UserScopeViewModelFactory(
-                visitsRepo,
+                { getUserScope() },
                 tripsInteractor,
                 placesInteractor,
                 feedbackInteractor,
                 integrationsRepository,
-                historyRepository,
                 driverRepository,
                 accountRepository,
                 crashReportsProvider,
@@ -281,11 +297,7 @@ object Injector {
                 osUtilsProvider,
                 placesClient,
                 deviceLocationProvider
-            ),
-            photoUploadInteractor,
-            hyperTrackService,
-            photoUploadQueueInteractor,
-            apiClient
+            )
         )
 
         crashReportsProvider.setUserIdentifier(
@@ -457,17 +469,18 @@ class TripCreationScope(
 )
 
 class UserScope(
-    val visitsRepository: VisitsRepository,
-    val historyRepository: HistoryRepository,
     val tripsInteractor: TripsInteractor,
     val placesInteractor: PlacesInteractor,
+    val placesVisitsInteractor: PlacesVisitsInteractor,
+    val historyInteractor: HistoryInteractor,
     val feedbackInteractor: FeedbackInteractor,
+    val visitsRepository: VisitsRepository,
     val integrationsRepository: IntegrationsRepository,
-    val userScopeViewModelFactory: UserScopeViewModelFactory,
     val photoUploadInteractor: PhotoUploadInteractor,
     val hyperTrackService: HyperTrackService,
     val photoUploadQueueInteractor: PhotoUploadQueueInteractor,
-    val apiClient: ApiClient
+    val apiClient: ApiClient,
+    val userScopeViewModelFactory: UserScopeViewModelFactory
 )
 
 fun interface Factory<A, T> {

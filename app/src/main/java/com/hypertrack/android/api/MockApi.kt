@@ -1,20 +1,14 @@
 package com.hypertrack.android.api
 
-import android.util.Log
 import com.fonfon.kgeohash.GeoHash
 import com.hypertrack.android.utils.Injector
-import com.hypertrack.android.utils.Meter
 import com.hypertrack.android.utils.MockData
-import com.hypertrack.android.utils.MyApplication
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import retrofit2.Response
-import retrofit2.http.Query
-import java.lang.RuntimeException
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-import java.util.*
 
 @Suppress("BlockingMethodInNonBlockingContext")
 class MockApi(val remoteApi: ApiInterface) : ApiInterface by remoteApi {
@@ -100,6 +94,37 @@ private val fences = Injector.getMoshi().adapter(GeofenceResponse::class.java)
                 GeofenceResponse(fences, null)
             )
         }
+    }
+
+    override suspend fun getAllGeofencesVisits(
+        deviceId: String,
+        paginationToken: String?
+    ): Response<VisitsResponse> {
+        return Response.success(
+            VisitsResponse(
+                listOf(
+                    MockData.createGeofenceVisit()
+                ), null
+            )
+        )
+    }
+
+    override suspend fun getHistory(
+        deviceId: String,
+        day: String,
+        timezone: String
+    ): Response<HistoryResponse> {
+        delay((Math.random() * 1000 + 500).toLong())
+        return Response.success(MockData.MOCK_HISTORY_RESPONSE)
+    }
+
+    override suspend fun getHistoryForPeriod(
+        deviceId: String,
+        from: String,
+        to: String
+    ): Response<HistoryResponse> {
+        delay((Math.random() * 1000 + 500).toLong())
+        return Response.success(MockData.MOCK_HISTORY_RESPONSE)
     }
 
     override suspend fun getIntegrations(

@@ -14,8 +14,6 @@ import com.hypertrack.android.ui.screens.add_place.AddPlaceViewModel
 import com.hypertrack.android.ui.screens.visits_management.VisitsManagementViewModel
 import com.hypertrack.android.ui.screens.visits_management.tabs.profile.ProfileViewModel
 import com.hypertrack.android.ui.screens.visits_management.tabs.summary.SummaryViewModel
-import com.hypertrack.android.utils.CrashReportsProvider
-import com.hypertrack.android.utils.HyperTrackService
 import com.hypertrack.android.ui.screens.permission_request.PermissionRequestViewModel
 import com.hypertrack.android.ui.common.select_destination.SelectDestinationViewModel
 import com.hypertrack.android.ui.screens.select_trip_destination.SelectTripDestinationViewModel
@@ -24,25 +22,25 @@ import com.hypertrack.android.ui.screens.visits_management.tabs.current_trip.Cur
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
 import com.hypertrack.android.ui.screens.visits_management.tabs.orders.OrdersListViewModel
 import com.hypertrack.android.ui.screens.visits_management.tabs.places.PlacesViewModel
-import com.hypertrack.android.utils.OsUtilsProvider
-import com.hypertrack.android.utils.TimeDistanceFormatter
+import com.hypertrack.android.ui.screens.visits_management.tabs.places.PlacesVisitsViewModel
+import com.hypertrack.android.utils.*
 import com.hypertrack.android.view_models.HistoryViewModel
+import javax.inject.Provider
 
 @Suppress("UNCHECKED_CAST")
 class UserScopeViewModelFactory(
-    private val visitsRepository: VisitsRepository,
+    private val userScopeProvider: Provider<UserScope>,
     private val tripsInteractor: TripsInteractor,
     private val placesInteractor: PlacesInteractor,
     private val feedbackInteractor: FeedbackInteractor,
     private val integrationsRepository: IntegrationsRepository,
-    private val historyRepository: HistoryRepository,
     private val driverRepository: DriverRepository,
     private val accountRepository: AccountRepository,
     private val crashReportsProvider: CrashReportsProvider,
     private val hyperTrackService: HyperTrackService,
     private val permissionsInteractor: PermissionsInteractor,
     private val accessTokenRepository: AccessTokenRepository,
-    private val timeLengthFormatter: TimeDistanceFormatter,
+    private val timeDistanceFormatter: TimeDistanceFormatter,
     private val apiClient: ApiClient,
     private val osUtilsProvider: OsUtilsProvider,
     private val placesClient: PlacesClient,
@@ -83,30 +81,31 @@ class UserScopeViewModelFactory(
                 deviceLocationProvider
             ) as T
             PlacesViewModel::class.java -> PlacesViewModel(
-                placesInteractor,
+                userScopeProvider.get().placesInteractor,
                 osUtilsProvider,
                 deviceLocationProvider,
-                timeLengthFormatter
+                timeDistanceFormatter
             ) as T
             PermissionRequestViewModel::class.java -> PermissionRequestViewModel(
                 permissionsInteractor,
                 hyperTrackService
             ) as T
             SummaryViewModel::class.java -> SummaryViewModel(
-                historyRepository,
+                userScopeProvider.get().historyInteractor,
                 osUtilsProvider,
-                timeLengthFormatter
+                timeDistanceFormatter
             ) as T
             HistoryViewModel::class.java -> HistoryViewModel(
-                historyRepository,
-                timeLengthFormatter,
+                userScopeProvider.get().historyInteractor,
+                timeDistanceFormatter,
                 osUtilsProvider
             ) as T
             VisitsManagementViewModel::class.java -> VisitsManagementViewModel(
-                visitsRepository,
-                historyRepository,
+                userScopeProvider.get().visitsRepository,
+                userScopeProvider.get().historyInteractor,
                 accountRepository,
                 crashReportsProvider,
+                osUtilsProvider,
                 accessTokenRepository
             ) as T
             ProfileViewModel::class.java -> ProfileViewModel(
@@ -121,6 +120,12 @@ class UserScopeViewModelFactory(
                 placesClient,
                 deviceLocationProvider,
                 osUtilsProvider,
+            ) as T
+            PlacesVisitsViewModel::class.java -> PlacesVisitsViewModel(
+                userScopeProvider.get().placesVisitsInteractor,
+                userScopeProvider.get().historyInteractor,
+                osUtilsProvider,
+                timeDistanceFormatter
             ) as T
             else -> throw IllegalArgumentException("Can't instantiate class $modelClass")
         }
