@@ -36,6 +36,7 @@ interface TripsInteractor {
     suspend fun completeOrder(orderId: String): OrderCompletionResponse
     fun getOrder(orderId: String): LocalOrder?
     suspend fun updateOrderNote(orderId: String, orderNote: String)
+    fun updateOrderNoteAsync(orderId: String, orderNote: String)
     suspend fun setOrderPickedUp(orderId: String)
     suspend fun addPhotoToOrder(orderId: String, path: String)
     fun retryPhotoUpload(orderId: String, photoId: String)
@@ -109,14 +110,18 @@ open class TripsInteractorImpl(
     }
 
     override suspend fun updateOrderNote(orderId: String, orderNote: String) {
-        globalScope.launch {
-            try {
-                tripsRepository.updateLocalOrder(orderId) {
-                    it.note = orderNote
-                }
-            } catch (e: Exception) {
-                errorFlow.emit(Consumable(e))
+        try {
+            tripsRepository.updateLocalOrder(orderId) {
+                it.note = orderNote
             }
+        } catch (e: Exception) {
+            errorFlow.emit(Consumable(e))
+        }
+    }
+
+    override fun updateOrderNoteAsync(orderId: String, orderNote: String) {
+        globalScope.launch {
+            updateOrderNote(orderId, orderNote)
         }
     }
 
@@ -240,6 +245,7 @@ open class TripsInteractorImpl(
 //                        }
                     } else {
                         val metadata = (order._metadata ?: Metadata.empty())
+                        Log.v("hypertrack-verbose", "Check metadata ${metadata}")
                         if (
                             metadata.visitsAppMetadata.note != order.note
                             || !(metadata.visitsAppMetadata.photos ?: listOf())
