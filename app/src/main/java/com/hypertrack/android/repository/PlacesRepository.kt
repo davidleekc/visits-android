@@ -30,6 +30,7 @@ interface PlacesRepository {
 }
 
 class PlacesRepositoryImpl(
+    private val deviceId: String,
     private val apiClient: ApiClient,
     private val moshi: Moshi,
     private val osUtilsProvider: OsUtilsProvider
@@ -39,7 +40,14 @@ class PlacesRepositoryImpl(
         return withContext(Dispatchers.IO) {
             val res = apiClient.getGeofences(pageToken, gh.string())
             val localGeofences =
-                res.geofences.map { LocalGeofence.fromGeofence(it, moshi, osUtilsProvider) }
+                res.geofences.map {
+                    LocalGeofence.fromGeofence(
+                        deviceId,
+                        it,
+                        moshi,
+                        osUtilsProvider
+                    )
+                }
             GeofencesPage(
                 localGeofences,
                 res.paginationToken
@@ -51,7 +59,9 @@ class PlacesRepositoryImpl(
         pageToken: String?,
     ): DataPage<GeofenceVisit> {
         return apiClient.getAllGeofencesVisits(pageToken).let {
-            DataPage(it.visits, it.paginationToken)
+            DataPage(it.visits.filter { visit ->
+                visit.deviceId == deviceId
+            }, it.paginationToken)
         }
     }
 
@@ -79,6 +89,7 @@ class PlacesRepositoryImpl(
             if (res.isSuccessful) {
                 return CreateGeofenceSuccess(
                     LocalGeofence.fromGeofence(
+                        deviceId,
                         res.body()!!.first(),
                         moshi,
                         osUtilsProvider

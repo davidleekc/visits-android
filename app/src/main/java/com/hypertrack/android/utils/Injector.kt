@@ -161,10 +161,12 @@ object Injector {
         imageDecoder: ImageDecoder,
         timeDistanceFormatter: TimeDistanceFormatter
     ): UserScope {
+        val deviceId = accessTokenRepository.deviceId
+
         val apiClient = ApiClient(
             accessTokenRepository,
             BASE_URL,
-            accessTokenRepository.deviceId,
+            deviceId,
             moshi,
             crashReportsProvider
         )
@@ -175,6 +177,7 @@ object Injector {
         )
         val scope = CoroutineScope(Dispatchers.IO)
         val placesRepository = PlacesRepositoryImpl(
+            deviceId,
             apiClient,
             moshi,
             osUtilsProvider

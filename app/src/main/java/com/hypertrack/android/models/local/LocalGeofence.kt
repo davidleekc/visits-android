@@ -14,6 +14,7 @@ import java.time.ZonedDateTime
 
 @JsonClass(generateAdapter = true)
 data class LocalGeofence(
+    val currentDeviceId: String,
     val geofence: Geofence,
     val name: String?,
     val address: String?,
@@ -37,7 +38,10 @@ data class LocalGeofence(
         )
 
     val markers =
-        geofence.marker?.visits?.sortedByDescending { it.arrival!!.recordedAt } ?: listOf()
+        geofence.marker?.visits
+            ?.filter { it.deviceId == currentDeviceId }
+            ?.sortedByDescending { it.arrival!!.recordedAt }
+            ?: listOf()
 
     val visitsCount: Int by lazy {
         markers.count()
@@ -53,6 +57,7 @@ data class LocalGeofence(
 
     companion object {
         fun fromGeofence(
+            currentDeviceId: String,
             geofence: Geofence,
             moshi: Moshi,
             osUtilsProvider: OsUtilsProvider
@@ -73,6 +78,7 @@ data class LocalGeofence(
             }
 
             return LocalGeofence(
+                currentDeviceId = currentDeviceId,
                 geofence = geofence,
                 name = metadata.remove(GeofenceMetadata.KEY_NAME) as String?,
                 address = address,
