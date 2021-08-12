@@ -138,31 +138,31 @@ data class VisitsData(
         val visits = visits.sortedByDescending { it.getDay() }
         if (visits.isNotEmpty()) {
             var currentDay: LocalDate? = null
-            var currentMonth: Month? = null
+//            var currentMonth: Month? = null
             val monthPack = mutableListOf<VisitItem>()
 
             fun submitCurrentMonth() {
                 res.addAll(monthPack)
 
-                if (monthPack.filterIsInstance<Day>().all { dayStats[it.date] != null }) {
-                    monthStats[currentMonth!!] =
-                        monthPack.filterIsInstance<Day>().map { dayStats[it.date]!! }.sum()
-                }
+//                if (monthPack.filterIsInstance<Day>().all { dayStats[it.date] != null }) {
+//                    monthStats[currentMonth!!] =
+//                        monthPack.filterIsInstance<Day>().map { dayStats[it.date]!! }.sum()
+//                }
 
                 monthPack.clear()
             }
 
             for (visit in visits) {
                 //new month
-                if (visit.getDay().month != currentMonth) {
-                    //if not first submit previous month
-                    currentMonth?.let {
-                        submitCurrentMonth()
-                    }
-
-                    currentMonth = visit.getDay().month
-                    monthPack.add(MonthItem(currentMonth))
-                }
+//                if (visit.getDay().month != currentMonth) {
+//                    //if not first submit previous month
+//                    currentMonth?.let {
+//                        submitCurrentMonth()
+//                    }
+//
+//                    currentMonth = visit.getDay().month
+//                    monthPack.add(MonthItem(currentMonth))
+//                }
                 //new day
                 if (visit.getDay() != currentDay) {
                     currentDay = visit.getDay()
@@ -213,8 +213,8 @@ class Day(val date: LocalDate) : VisitItem() {
     }
 }
 
-class MonthItem(val month: Month) : VisitItem() {
-    override fun toString(): String {
-        return month.toString()
-    }
-}
+//class MonthItem(val month: Month) : VisitItem() {
+//    override fun toString(): String {
+//        return month.toString()
+//    }
+//}

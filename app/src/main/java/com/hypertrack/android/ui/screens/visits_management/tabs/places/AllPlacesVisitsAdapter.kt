@@ -42,7 +42,7 @@ class AllPlacesVisitsAdapter(
         return when (items[position]) {
             is Day -> Day::class.java.hashCode()
             is Visit -> Visit::class.java.hashCode()
-            is MonthItem -> MonthItem::class.java.hashCode()
+//            is MonthItem -> MonthItem::class.java.hashCode()
         }
     }
 
@@ -52,7 +52,7 @@ class AllPlacesVisitsAdapter(
                 when (viewType) {
                     Day::class.java.hashCode() -> R.layout.item_day
                     Visit::class.java.hashCode() -> itemLayoutResource
-                    MonthItem::class.java.hashCode() -> R.layout.item_month
+//                    MonthItem::class.java.hashCode() -> R.layout.item_month
                     else -> throw IllegalStateException("viewType ${viewType}")
                 },
                 parent,
@@ -87,19 +87,19 @@ class AllPlacesVisitsAdapter(
                             onCopyClickListener
                         )
                     }
-                    is MonthItem -> {
-//                        Log.v(
-//                            "hypertrack-verbose",
-//                            "adapter $item ${visitsData.monthStats} ${visitsData.monthStats}"
-//                        )
-                        val monthTotal = visitsData.monthStats[item.month]?.let {
-                            timeDistanceFormatter.formatDistance(it)
-                        }
-                        containerView.tvTitle.text =
-                            item.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
-                        containerView.tvTotal.text = monthTotal
-                            ?: osUtilsProvider.stringFromResource(R.string.places_visits_loading)
-                    }
+//                    is MonthItem -> {
+////                        Log.v(
+////                            "hypertrack-verbose",
+////                            "adapter $item ${visitsData.monthStats} ${visitsData.monthStats}"
+////                        )
+//                        val monthTotal = visitsData.monthStats[item.month]?.let {
+//                            timeDistanceFormatter.formatDistance(it)
+//                        }
+//                        containerView.tvTitle.text =
+//                            item.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
+//                        containerView.tvTotal.text = monthTotal
+//                            ?: osUtilsProvider.stringFromResource(R.string.places_visits_loading)
+//                    }
                 }
             }
         }
