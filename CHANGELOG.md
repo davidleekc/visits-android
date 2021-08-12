@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.10.0] - 2021-08-12
+- Geofences visits list
+- Daily distance stats
+- Order note fix
+
 ## [0.9.23] - 2021-08-09
 - HyperTrack SDK 4.4.0
 - Deeplink fixes
