@@ -1,5 +1,6 @@
 package com.hypertrack.android.delegates
 
+import com.hypertrack.android.api.GeofenceVisit
 import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.ui.common.formatDateTime
 import com.hypertrack.android.utils.OsUtilsProvider
@@ -9,11 +10,19 @@ class GeofenceNameDelegate(private val osUtilsProvider: OsUtilsProvider) {
 
     fun getName(localGeofence: LocalGeofence): String {
         return localGeofence.name
+            ?: localGeofence.integration?.name
             ?: localGeofence.address
             ?: osUtilsProvider.stringFromResource(
                 R.string.places_created,
                 localGeofence.createdAt.formatDateTime()
             )
+    }
+
+    fun getName(visit: GeofenceVisit): String {
+        return visit.metadata?.name
+            ?: visit.metadata?.integration?.name
+            ?: visit.address
+            ?: visit.geofenceId
     }
 
 }

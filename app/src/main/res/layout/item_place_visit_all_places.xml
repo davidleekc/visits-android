@@ -73,12 +73,13 @@
         android:id="@+id/bCopy"
         android:layout_width="wrap_content"
         android:layout_height="48dp"
+        android:layout_marginTop="8dp"
         android:layout_weight="1"
         android:paddingLeft="16dp"
         android:paddingRight="16dp"
         android:visibility="visible"
         app:layout_constraintEnd_toEndOf="@+id/tvDescription"
-        app:layout_constraintTop_toBottomOf="@+id/tvDescription"
+        app:layout_constraintTop_toBottomOf="@+id/tvPlaceAddress"
         app:srcCompat="@drawable/ic_copy"
         app:tint="#44000000"
         tools:visibility="visible" />
@@ -101,5 +102,27 @@
         app:layout_constraintBottom_toBottomOf="@+id/tvVisitId"
         app:layout_constraintStart_toStartOf="@+id/tvDescription"
         app:layout_constraintTop_toTopOf="@+id/tvVisitId" />
+
+    <TextView
+        android:id="@+id/tvPlaceName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="@+id/tvDescription"
+        app:layout_constraintStart_toStartOf="@+id/tvDescription"
+        app:layout_constraintTop_toBottomOf="@+id/tvDescription"
+        tools:text="TextView" />
+
+    <TextView
+        android:id="@+id/tvPlaceAddress"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        tools:text="TextView"
+        app:layout_constraintEnd_toEndOf="@+id/tvPlaceName"
+        app:layout_constraintStart_toEndOf="@+id/tvPlaceName"
+        app:layout_constraintStart_toStartOf="@+id/tvPlaceName"
+        app:layout_constraintTop_toBottomOf="@+id/tvPlaceName" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

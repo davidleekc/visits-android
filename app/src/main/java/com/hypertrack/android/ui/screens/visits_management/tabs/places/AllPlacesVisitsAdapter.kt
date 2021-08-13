@@ -5,16 +5,19 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.hypertrack.android.api.GeofenceVisit
+import com.hypertrack.android.delegates.GeofenceNameDelegate
 import com.hypertrack.android.models.History
 import com.hypertrack.android.models.Summary
 import com.hypertrack.android.ui.base.BaseAdapter
 import com.hypertrack.android.ui.common.*
+import com.hypertrack.android.ui.common.delegates.GeofenceAddressDelegate
 import com.hypertrack.android.ui.screens.place_details.PlaceVisitsAdapter
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.android.utils.TimeDistanceFormatter
 import com.hypertrack.logistics.android.github.R
 import kotlinx.android.synthetic.main.item_day.view.*
 import kotlinx.android.synthetic.main.item_place.view.tvTitle
+import kotlinx.android.synthetic.main.item_place_visit_all_places.view.*
 import java.time.LocalDate
 import java.time.Month
 import java.time.ZonedDateTime
@@ -28,6 +31,9 @@ class AllPlacesVisitsAdapter(
     private val timeDistanceFormatter: TimeDistanceFormatter,
     private val onCopyClickListener: ((String) -> Unit)
 ) : BaseAdapter<VisitItem, BaseAdapter.BaseVh<VisitItem>>() {
+
+    private val nameDelegate = GeofenceNameDelegate(osUtilsProvider)
+    private val addressDelegate = GeofenceAddressDelegate(osUtilsProvider)
 
     override val itemLayoutResource: Int = R.layout.item_place_visit_all_places
 
@@ -86,6 +92,8 @@ class AllPlacesVisitsAdapter(
                             osUtilsProvider,
                             onCopyClickListener
                         )
+                        containerView.tvPlaceName.text = nameDelegate.getName(item.visit)
+                        containerView.tvPlaceAddress.text = addressDelegate.shortAddress(item.visit)
                     }
 //                    is MonthItem -> {
 ////                        Log.v(

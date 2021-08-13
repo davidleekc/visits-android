@@ -454,7 +454,7 @@ private fun HistoryTripMarkerLocation.asLocation() = Location(
     longitude = coordinates[0]
 )
 
-private fun Geometry.asLocation() =
+fun Geometry.asLocation() =
     Location(
         latitude = latitude,
         longitude = longitude

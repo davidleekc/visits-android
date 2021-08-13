@@ -334,10 +334,14 @@ data class GeofenceVisit(
     @field:Json(name = "geofence_id") val geofenceId: String,
     @field:Json(name = "marker_id") val markerId: String?,
     @field:Json(name = "device_id") val deviceId: String,
+    //todo why null?
     @field:Json(name = "arrival") val arrival: Arrival?,
     @field:Json(name = "exit") val exit: Exit?,
+    @field:Json(name = "geometry") val geometry: Geometry,
     @field:Json(name = "route_to") val routeTo: RouteTo?,
-    @field:Json(name = "duration") val duration: Int?
+    @field:Json(name = "duration") val duration: Int?,
+    @field:Json(name = "address") val address: String?,
+    @field:Json(name = "metadata") val metadata: GeofenceMetadata?
 )
 
 @JsonClass(generateAdapter = true)
