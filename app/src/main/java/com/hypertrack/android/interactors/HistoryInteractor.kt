@@ -55,8 +55,6 @@ class HistoryInteractorImpl(
 
     override fun loadTodayHistory() {
         GlobalScope.launch {
-            errorFlow.emit(Exception("History error null").toConsumable())
-            cancel()
             val res = historyRepository.getHistory(LocalDate.now())
             when (res) {
                 is History -> {

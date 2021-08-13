@@ -163,12 +163,15 @@ object MockData {
                 ZonedDateTime.now().withMonth(date.monthValue).withDayOfMonth(date.dayOfMonth)
                     .format(DateTimeFormatter.ISO_INSTANT),
             ),
+            Point(1.0, 1.0),
             RouteTo(
                 100,
                 100,
                 100,
             ),
             100,
+            null,
+            null,
         )
     }
 

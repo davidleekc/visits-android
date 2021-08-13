@@ -1,10 +1,8 @@
 package com.hypertrack.android.utils
 
-import android.util.Log
 import com.google.firebase.crashlytics.FirebaseCrashlytics
-import com.hypertrack.logistics.android.github.BuildConfig
-import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
+import kotlinx.coroutines.CancellationException
 import retrofit2.HttpException
 import java.net.ConnectException
 import java.net.SocketTimeoutException
@@ -22,12 +20,7 @@ class FirebaseCrashReportsProvider : CrashReportsProvider {
 //        if(MyApplication.DEBUG_MODE) {
 //            e.printStackTrace()
 //        }
-        if (
-            e !is HttpException
-            && e !is SocketTimeoutException
-            && e !is UnknownHostException
-            && e !is ConnectException
-        ) {
+        if (!e.shouldNotBeReported()) {
             metadata.forEach {
                 FirebaseCrashlytics.getInstance().setCustomKey(it.key, it.value)
             }
@@ -60,3 +53,14 @@ class UserIdentifier(
     val driverId: String,
     val pubKey: String,
 )
+
+fun Throwable.shouldNotBeReported(): Boolean {
+    return when (this) {
+        is HttpException,
+        is SocketTimeoutException,
+        is UnknownHostException,
+        is ConnectException,
+        -> true
+        else -> false
+    }
+}

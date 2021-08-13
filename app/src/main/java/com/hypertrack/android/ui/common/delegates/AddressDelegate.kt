@@ -3,6 +3,8 @@ package com.hypertrack.android.ui.common.delegates
 import android.location.Address
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.Place
+import com.hypertrack.android.api.GeofenceVisit
+import com.hypertrack.android.api.asLocation
 import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.models.local.LocalOrder
 import com.hypertrack.android.ui.common.*
@@ -59,6 +61,18 @@ class GeofenceAddressDelegate(val osUtilsProvider: OsUtilsProvider) {
                 geofence.latLng.latitude,
                 geofence.latLng.longitude
             )?.toAddressString()
+            ?: osUtilsProvider.stringFromResource(R.string.address_not_available)
+    }
+
+    fun shortAddress(visit: GeofenceVisit): String {
+        return visit.address
+            ?: visit.metadata?.address
+            ?: visit.geometry?.asLocation()?.let {
+                osUtilsProvider.getPlaceFromCoordinates(
+                    it.latitude,
+                    it.longitude
+                )?.toAddressString(short = true)
+            }
             ?: osUtilsProvider.stringFromResource(R.string.address_not_available)
     }
 
