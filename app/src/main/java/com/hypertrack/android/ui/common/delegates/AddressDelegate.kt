@@ -65,12 +65,15 @@ class GeofenceAddressDelegate(val osUtilsProvider: OsUtilsProvider) {
     }
 
     fun shortAddress(visit: GeofenceVisit): String {
-        return visit.address ?: visit.metadata?.address
-        ?: osUtilsProvider.getPlaceFromCoordinates(
-            visit.geometry.asLocation().latitude,
-            visit.geometry.asLocation().longitude
-        )?.toAddressString(short = true)
-        ?: osUtilsProvider.stringFromResource(R.string.address_not_available)
+        return visit.address
+            ?: visit.metadata?.address
+            ?: visit.geometry?.asLocation()?.let {
+                osUtilsProvider.getPlaceFromCoordinates(
+                    it.latitude,
+                    it.longitude
+                )?.toAddressString(short = true)
+            }
+            ?: osUtilsProvider.stringFromResource(R.string.address_not_available)
     }
 
 }

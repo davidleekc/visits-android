@@ -337,7 +337,7 @@ data class GeofenceVisit(
     //todo why null?
     @field:Json(name = "arrival") val arrival: Arrival?,
     @field:Json(name = "exit") val exit: Exit?,
-    @field:Json(name = "geometry") val geometry: Geometry,
+    @field:Json(name = "geometry") val geometry: Geometry?,
     @field:Json(name = "route_to") val routeTo: RouteTo?,
     @field:Json(name = "duration") val duration: Int?,
     @field:Json(name = "address") val address: String?,
