@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.10.1] - 2021-08-13
+- Geofence name and address in visits list
+- Bugfixes
+
 ## [0.10.0] - 2021-08-12
 - Geofences visits list
 - Daily distance stats
