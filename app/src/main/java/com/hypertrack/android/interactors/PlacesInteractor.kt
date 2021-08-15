@@ -23,7 +23,7 @@ interface PlacesInteractor {
     val isLoadingForLocation: MutableLiveData<Boolean>
 
     fun loadGeofencesForMap(center: LatLng)
-    fun getGeofence(geofenceId: String): LocalGeofence
+    suspend fun getGeofence(geofenceId: String): GeofenceResult
     fun invalidateCache()
     suspend fun createGeofence(
         latitude: Double,
@@ -92,8 +92,17 @@ class PlacesInteractorImpl(
         }
     }
 
-    override fun getGeofence(geofenceId: String): LocalGeofence {
-        return geofences.value!!.getValue(geofenceId)
+    override suspend fun getGeofence(geofenceId: String): GeofenceResult {
+        val cached = geofences.value?.get(geofenceId)
+        if (cached != null) {
+            return GeofenceSuccess(cached)
+        } else {
+            return placesRepository.getGeofence(geofenceId).also {
+                if (it is GeofenceSuccess) {
+                    addGeofencesToCache(listOf(it.geofence))
+                }
+            }
+        }
     }
 
     override suspend fun hasAdjacentGeofence(latLng: LatLng, radius: Int?): Boolean {
@@ -298,3 +307,8 @@ class PlacesInteractorImpl(
     }
 
 }
+
+
+sealed class GeofenceResult
+class GeofenceSuccess(val geofence: LocalGeofence) : GeofenceResult()
+class GeofenceError(val e: Exception) : GeofenceResult()

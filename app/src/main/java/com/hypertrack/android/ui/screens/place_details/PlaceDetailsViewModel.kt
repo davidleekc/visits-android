@@ -6,10 +6,13 @@ import android.graphics.Color
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
+import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.CircleOptions
 import com.hypertrack.android.api.GeofenceVisit
+import com.hypertrack.android.interactors.GeofenceError
+import com.hypertrack.android.interactors.GeofenceSuccess
 import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.models.Integration
 import com.hypertrack.android.models.local.LocalGeofence
@@ -24,6 +27,7 @@ import com.hypertrack.android.utils.CrashReportsProvider
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.logistics.android.github.R
 import com.squareup.moshi.Moshi
+import kotlinx.coroutines.launch
 
 class PlaceDetailsViewModel(
     private val geofenceId: String,
@@ -31,7 +35,7 @@ class PlaceDetailsViewModel(
     private val osUtilsProvider: OsUtilsProvider,
     private val crashReportsProvider: CrashReportsProvider,
     private val moshi: Moshi
-) : BaseViewModel() {
+) : BaseViewModel(osUtilsProvider) {
 
     private val addressDelegate = GeofenceAddressDelegate(osUtilsProvider)
 
@@ -40,10 +44,17 @@ class PlaceDetailsViewModel(
     val loadingState = MutableLiveData<Boolean>(false)
 
     private val geofence = MutableLiveData<LocalGeofence>().apply {
-        try {
-            postValue(placesInteractor.getGeofence(geofenceId))
-        } catch (e: Exception) {
-            //todo handle
+        viewModelScope.launch {
+            loadingState.postValue(true)
+            when (val res = placesInteractor.getGeofence(geofenceId)) {
+                is GeofenceSuccess -> {
+                    postValue(res.geofence)
+                }
+                is GeofenceError -> {
+                    errorHandler.postException(res.e)
+                }
+            }
+            loadingState.postValue(false)
         }
     }
 

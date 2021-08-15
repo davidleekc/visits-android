@@ -62,7 +62,7 @@ class PlacesVisitsViewModel(
         onLoadMore()
     }
 
-    fun onVisitClick(visit: GeofenceVisit) {
+    private fun onVisitClick(visit: GeofenceVisit) {
         destination.postValue(
             VisitsManagementFragmentDirections.actionVisitManagementFragmentToPlaceDetailsFragment(
                 visit.geofenceId
@@ -119,6 +119,12 @@ class PlacesVisitsViewModel(
             timeDistanceFormatter,
         ) {
             osUtilsProvider.copyToClipboard(it)
+        }.apply {
+            onItemClickListener = {
+                if (it is Visit) {
+                    onVisitClick(it.visit)
+                }
+            }
         }
     }
 

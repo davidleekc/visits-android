@@ -50,6 +50,11 @@ interface ApiInterface {
         @Query("sort_nearest") sortNearest: Boolean = true,
     ): Response<GeofenceResponse>
 
+    @GET("client/geofences/{geofence_id}")
+    suspend fun getGeofenceMetadata(
+        @Path("geofence_id") geofenceId: String,
+    ): Response<Geofence>
+
     @POST("client/devices/{device_id}/geofences")
     suspend fun createGeofences(
         @Path("device_id") deviceId: String,
@@ -63,6 +68,11 @@ interface ApiInterface {
     suspend fun getAllGeofencesVisits(
         @Query("device_id") deviceId: String,
         @Query("pagination_token") paginationToken: String? = null,
+    ): Response<VisitsResponse>
+
+    @GET("client/geofences/visits")
+    suspend fun getGeofenceVisits(
+        @Query("geofence_id") geofenceId: String,
     ): Response<VisitsResponse>
 
     @GET("client/trips")
