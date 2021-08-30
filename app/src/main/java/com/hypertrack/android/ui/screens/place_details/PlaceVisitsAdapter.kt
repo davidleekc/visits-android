@@ -68,7 +68,7 @@ class PlaceVisitsAdapter(
                 it.setGoneState(item.routeTo == null)
             }
 
-            containerView.setOnClickListener {
+            containerView.bCopy.setOnClickListener {
                 item.markerId?.let {
                     onCopyClickListener?.invoke(it)
                 }

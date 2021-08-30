@@ -149,12 +149,15 @@ object MockData {
         )
     }
 
-    fun createGeofenceVisit(_date: LocalDate? = null): GeofenceVisit {
+    fun createGeofenceVisit(
+        _date: LocalDate? = null,
+        deviceId: String = "device_id"
+    ): GeofenceVisit {
         val date = _date ?: LocalDate.now()
         return GeofenceVisit(
             "1",
             "1",
-            "1",
+            deviceId,
             Arrival(
                 ZonedDateTime.now().withMonth(date.monthValue).withDayOfMonth(date.dayOfMonth)
                     .minusHours(1).format(DateTimeFormatter.ISO_INSTANT)

@@ -3,6 +3,9 @@ package com.hypertrack.android.repository
 import com.fonfon.kgeohash.GeoHash
 import com.hypertrack.android.api.ApiClient
 import com.hypertrack.android.api.GeofenceVisit
+import com.hypertrack.android.interactors.GeofenceError
+import com.hypertrack.android.interactors.GeofenceResult
+import com.hypertrack.android.interactors.GeofenceSuccess
 import com.hypertrack.android.models.GeofenceMetadata
 import com.hypertrack.android.models.Integration
 import com.hypertrack.android.models.local.LocalGeofence
@@ -16,7 +19,11 @@ import retrofit2.HttpException
 
 interface PlacesRepository {
     //todo use DataPage
-    suspend fun loadGeofencesPage(pageToken: String?, gh: GeoHash? = null): GeofencesPage
+    suspend fun loadGeofencesPage(
+        pageToken: String?,
+        gh: GeoHash? = null
+    ): GeofencesPage
+
     suspend fun loadAllGeofencesVisitsPage(pageToken: String?): DataPage<GeofenceVisit>
     suspend fun createGeofence(
         latitude: Double,
@@ -27,6 +34,8 @@ interface PlacesRepository {
         description: String? = null,
         integration: Integration? = null
     ): CreateGeofenceResult
+
+    suspend fun getGeofence(geofenceId: String): GeofenceResult
 }
 
 class PlacesRepositoryImpl(
@@ -103,6 +112,22 @@ class PlacesRepositoryImpl(
         }
     }
 
+    override suspend fun getGeofence(geofenceId: String): GeofenceResult {
+        return try {
+            apiClient.getGeofence(geofenceId).let {
+                LocalGeofence.fromGeofence(
+                    deviceId,
+                    it,
+                    moshi,
+                    osUtilsProvider
+                )
+            }.let {
+                GeofenceSuccess(it)
+            }
+        } catch (e: Exception) {
+            GeofenceError(e)
+        }
+    }
 }
 
 fun GeoHash?.string() = this?.let { it.toString() }

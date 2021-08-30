@@ -97,6 +97,26 @@ class ApiClient(
         }
     }
 
+    suspend fun getGeofence(geofenceId: String): Geofence {
+        try {
+            val metadataResponse = api.getGeofenceMetadata(geofenceId).apply {
+                if (!isSuccessful) throw HttpException(this)
+            }
+            val visitsResponse = api.getGeofenceVisits(geofenceId).apply {
+                if (!isSuccessful) throw HttpException(this)
+            }
+            val visitsBody = visitsResponse.body()!!
+            return metadataResponse.body()!!.copy(
+                marker = GeofenceMarkersResponse(
+                    visitsBody.visits,
+                    visitsBody.paginationToken,
+                )
+            )
+        } catch (e: Exception) {
+            throw e
+        }
+    }
+
     suspend fun createGeofence(
         latitude: Double,
         longitude: Double,
@@ -134,6 +154,7 @@ class ApiClient(
             throw e
         }
     }
+
 
     suspend fun getTrips(page: String = ""): List<Trip> {
         try {

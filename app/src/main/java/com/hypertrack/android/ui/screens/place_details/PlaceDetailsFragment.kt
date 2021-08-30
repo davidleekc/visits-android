@@ -89,6 +89,10 @@ class PlaceDetailsFragment : ProgressDialogFragment(R.layout.fragment_place_deta
             }
         })
 
+        vm.errorHandler.errorText.observe(viewLifecycleOwner, {
+            SnackbarUtil.showErrorSnackbar(view, it)
+        })
+
 //        srlPlaces.setOnRefreshListener {
 //            vm.onRefresh()
 //        }

@@ -51,6 +51,10 @@ class PlacesFragment : ProgressDialogFragment(R.layout.fragment_places) {
             findNavController().navigate(it)
         })
 
+        visitsVm.destination.observe(viewLifecycleOwner, {
+            findNavController().navigate(it)
+        })
+
         vm.errorHandler.errorText.observe(viewLifecycleOwner, {
             SnackbarUtil.showErrorSnackbar(view, it)
         })
@@ -139,9 +143,6 @@ class PlacesFragment : ProgressDialogFragment(R.layout.fragment_places) {
         rvVisits.setLinearLayoutManager(requireContext())
         visitsAdapter = visitsVm.adapter
         rvVisits.adapter = visitsAdapter
-        visitsAdapter.onItemClickListener = {
-            visitsVm.onVisitClick((it as Visit).visit)
-        }
         rvVisits.addOnScrollListener(object : EndlessScrollListener(object : OnLoadMoreListener {
             override fun onLoadMore(page: Int, totalItemsCount: Int) {
 //                Log.v("hypertrack-verbose", "EndlessScrollListener $page $totalItemsCount")
