@@ -3,7 +3,7 @@ package com.hypertrack.android.ui.screens.visits_management.tabs.summary
 import android.view.View
 import androidx.annotation.DrawableRes
 import com.hypertrack.android.ui.base.BaseAdapter
-import com.hypertrack.android.ui.common.toView
+import com.hypertrack.android.ui.common.util.toView
 import com.hypertrack.logistics.android.github.R
 import kotlinx.android.synthetic.main.item_summary.view.*
 

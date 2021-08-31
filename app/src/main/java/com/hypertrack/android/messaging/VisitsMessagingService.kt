@@ -6,7 +6,7 @@ import android.content.Intent
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.hypertrack.android.ui.MainActivity
-import com.hypertrack.android.ui.common.NotificationUtils
+import com.hypertrack.android.ui.common.util.NotificationUtils
 
 @SuppressLint("MissingFirebaseInstanceTokenRefresh")
 class VisitsMessagingService : FirebaseMessagingService() {

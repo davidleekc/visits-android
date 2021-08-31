@@ -7,7 +7,10 @@ import com.hypertrack.android.api.GeofenceVisit
 import com.hypertrack.android.api.asLocation
 import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.models.local.LocalOrder
-import com.hypertrack.android.ui.common.*
+import com.hypertrack.android.ui.common.util.format
+import com.hypertrack.android.ui.common.util.formatDateTime
+import com.hypertrack.android.ui.common.util.nullIfBlank
+import com.hypertrack.android.ui.common.util.nullIfEmpty
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.logistics.android.github.R
 

@@ -20,8 +20,8 @@ import com.hypertrack.android.ui.base.ZipNotNullableLiveData
 import com.hypertrack.android.ui.common.HypertrackMapWrapper
 import com.hypertrack.android.ui.common.KeyValueItem
 import com.hypertrack.android.ui.common.delegates.GeofenceAddressDelegate
-import com.hypertrack.android.ui.common.format
-import com.hypertrack.android.ui.common.formatDateTime
+import com.hypertrack.android.ui.common.util.format
+import com.hypertrack.android.ui.common.util.formatDateTime
 import com.hypertrack.android.utils.CrashReportsProvider
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.logistics.android.github.R

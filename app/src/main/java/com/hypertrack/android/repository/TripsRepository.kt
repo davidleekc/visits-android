@@ -15,7 +15,7 @@ import com.hypertrack.android.models.local.LocalTrip
 import com.hypertrack.android.models.local.OrderStatus
 import com.hypertrack.android.models.local.TripStatus
 import com.hypertrack.android.ui.base.Consumable
-import com.hypertrack.android.ui.common.toMap
+import com.hypertrack.android.ui.common.util.toMap
 import com.hypertrack.android.utils.HyperTrackService
 import com.hypertrack.logistics.android.github.BuildConfig
 import kotlinx.coroutines.CoroutineScope

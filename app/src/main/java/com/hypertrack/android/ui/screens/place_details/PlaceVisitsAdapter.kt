@@ -4,6 +4,10 @@ import android.view.View
 import com.hypertrack.android.api.GeofenceVisit
 import com.hypertrack.android.ui.base.BaseAdapter
 import com.hypertrack.android.ui.common.*
+import com.hypertrack.android.ui.common.util.DateTimeUtils
+import com.hypertrack.android.ui.common.util.formatDate
+import com.hypertrack.android.ui.common.util.setGoneState
+import com.hypertrack.android.ui.common.util.toView
 import com.hypertrack.android.utils.*
 import com.hypertrack.logistics.android.github.R
 import kotlinx.android.synthetic.main.item_place_visit.view.*

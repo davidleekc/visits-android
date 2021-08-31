@@ -19,8 +19,8 @@ import com.hypertrack.android.ui.base.ErrorHandler
 import com.hypertrack.android.ui.base.ZipNotNullableLiveData
 import com.hypertrack.android.ui.common.KeyValueItem
 import com.hypertrack.android.ui.common.delegates.OrderAddressDelegate
-import com.hypertrack.android.ui.common.format
-import com.hypertrack.android.ui.common.requireValue
+import com.hypertrack.android.ui.common.util.format
+import com.hypertrack.android.ui.common.util.requireValue
 import com.hypertrack.android.ui.screens.visit_details.VisitDetailsFragment
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.logistics.android.github.R

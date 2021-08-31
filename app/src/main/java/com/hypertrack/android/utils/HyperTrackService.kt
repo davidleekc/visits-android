@@ -1,17 +1,13 @@
 package com.hypertrack.android.utils
 
 import android.location.Location
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
-import com.google.gson.Gson
-import com.hypertrack.android.models.KEY_NOTE
 import com.hypertrack.android.models.Visit
 import com.hypertrack.android.models.VisitStatus
 import com.hypertrack.android.models.local.LocalOrder
-import com.hypertrack.android.ui.common.isEmail
-import com.hypertrack.android.ui.common.nullIfBlank
+import com.hypertrack.android.ui.common.util.nullIfBlank
 import com.hypertrack.sdk.HyperTrack
 import com.hypertrack.sdk.TrackingError
 import com.hypertrack.sdk.TrackingStateObserver

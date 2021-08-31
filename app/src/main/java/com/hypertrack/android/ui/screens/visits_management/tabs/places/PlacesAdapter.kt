@@ -1,22 +1,21 @@
 package com.hypertrack.android.ui.screens.visits_management.tabs.places
 
-import android.location.Address
-import android.util.Log
 import android.view.View
-import com.hypertrack.android.api.Geofence
 import com.hypertrack.android.delegates.GeofenceNameDelegate
 import com.hypertrack.android.models.Location
 import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.ui.base.BaseAdapter
-import com.hypertrack.android.ui.common.*
 import com.hypertrack.android.ui.common.delegates.GeofenceAddressDelegate
+import com.hypertrack.android.ui.common.util.LocationUtils
+import com.hypertrack.android.ui.common.util.formatDateTime
+import com.hypertrack.android.ui.common.util.setGoneState
+import com.hypertrack.android.ui.common.util.toView
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
 import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.android.utils.TimeDistanceFormatter
 import com.hypertrack.logistics.android.github.R
 import kotlinx.android.synthetic.main.item_place.view.*
-import java.time.ZonedDateTime
 
 
 class PlacesAdapter(

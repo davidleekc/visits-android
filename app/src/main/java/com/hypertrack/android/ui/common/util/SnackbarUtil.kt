@@ -1,4 +1,4 @@
-package com.hypertrack.android.ui.common
+package com.hypertrack.android.ui.common.util
 
 import android.view.View
 import android.widget.TextView

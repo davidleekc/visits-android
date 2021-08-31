@@ -1,14 +1,5 @@
 package com.hypertrack.android.models
 
-import com.hypertrack.android.api.Point
-import com.hypertrack.android.api.TripDestination
-import com.hypertrack.android.createBaseOrder
-import com.hypertrack.android.models.local.LocalOrder
-import com.hypertrack.android.ui.common.delegates.OrderAddressDelegate
-import com.hypertrack.android.ui.common.formatDateTime
-import com.hypertrack.logistics.android.github.R
-import io.mockk.every
-import io.mockk.mockk
 import junit.framework.Assert.assertEquals
 import org.junit.Test
 

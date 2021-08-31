@@ -10,10 +10,9 @@ import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.hypertrack.android.models.local.LocalTrip
 import com.hypertrack.android.ui.base.ProgressDialogFragment
-import com.hypertrack.android.ui.common.*
 import com.hypertrack.android.ui.common.delegates.OrderAddressDelegate
 import com.hypertrack.android.ui.common.select_destination.DestinationData
-import com.hypertrack.android.ui.screens.visits_management.VisitsManagementFragment
+import com.hypertrack.android.ui.common.util.*
 import com.hypertrack.android.ui.screens.visits_management.tabs.orders.OrdersAdapter
 import com.hypertrack.android.utils.Injector
 import com.hypertrack.android.utils.MyApplication

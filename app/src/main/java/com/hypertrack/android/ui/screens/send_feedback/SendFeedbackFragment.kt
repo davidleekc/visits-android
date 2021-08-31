@@ -6,11 +6,10 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.hypertrack.android.ui.MainActivity
 import com.hypertrack.android.ui.base.BaseFragment
-import com.hypertrack.android.ui.common.textString
+import com.hypertrack.android.ui.common.util.textString
 import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.android.utils.stringFromResource
 import com.hypertrack.logistics.android.github.R
-import kotlinx.android.synthetic.main.fragment_add_place_info.*
 import kotlinx.android.synthetic.main.fragment_send_feedback.*
 import kotlinx.android.synthetic.main.fragment_send_feedback.toolbar
 

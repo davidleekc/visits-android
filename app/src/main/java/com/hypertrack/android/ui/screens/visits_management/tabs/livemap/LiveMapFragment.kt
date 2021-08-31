@@ -11,23 +11,17 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.hypertrack.android.models.AbstractBackendProvider
-import com.hypertrack.android.models.GeofenceLocation
-import com.hypertrack.android.models.HomeLocationResultError
-import com.hypertrack.android.models.NoHomeLocation
-import com.hypertrack.android.ui.common.setGoneState
+import com.hypertrack.android.ui.common.util.setGoneState
 import com.hypertrack.android.utils.HyperTrackService
 import com.hypertrack.android.utils.TrackingStateValue
 import com.hypertrack.logistics.android.github.R
 import kotlinx.android.synthetic.main.fragment_tab_map_view.*
 import kotlinx.android.synthetic.main.fragment_tab_map_webview.progress
 import kotlinx.android.synthetic.main.progress_bar.*
-import kotlinx.coroutines.launch
 import java.util.*
 import javax.inject.Inject
 

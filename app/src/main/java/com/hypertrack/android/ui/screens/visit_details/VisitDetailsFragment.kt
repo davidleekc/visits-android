@@ -23,9 +23,9 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.hypertrack.android.decodeBase64Bitmap
 import com.hypertrack.android.models.Visit
 import com.hypertrack.android.ui.base.ProgressDialogFragment
-import com.hypertrack.android.ui.common.SnackbarUtil
-import com.hypertrack.android.ui.common.setGoneState
-import com.hypertrack.android.ui.common.toView
+import com.hypertrack.android.ui.common.util.SnackbarUtil
+import com.hypertrack.android.ui.common.util.setGoneState
+import com.hypertrack.android.ui.common.util.toView
 import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.android.view_models.VisitDetailsViewModel
 import com.hypertrack.logistics.android.github.R

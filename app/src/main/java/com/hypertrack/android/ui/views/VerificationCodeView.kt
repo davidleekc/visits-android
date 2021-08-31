@@ -1,6 +1,5 @@
 package com.hypertrack.android.ui.views
 
-import android.animation.AnimatorInflater
 import android.content.Context
 import android.content.res.TypedArray
 import android.graphics.Rect
@@ -9,16 +8,14 @@ import android.text.InputType
 import android.util.AttributeSet
 import android.view.KeyEvent
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.view.animation.Animation
 import android.view.inputmethod.EditorInfo
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
-import com.hypertrack.android.ui.common.SimpleTextWatcher
-import com.hypertrack.android.ui.common.hide
-import com.hypertrack.android.ui.common.show
+import com.hypertrack.android.ui.common.util.SimpleTextWatcher
+import com.hypertrack.android.ui.common.util.hide
+import com.hypertrack.android.ui.common.util.show
 import com.hypertrack.logistics.android.github.R
 import kotlinx.android.synthetic.main.view_verification_code_item.view.*
 

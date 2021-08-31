@@ -8,7 +8,6 @@ import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.style.StyleSpan
 import android.view.View
-import android.view.View.OnFocusChangeListener
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
@@ -18,6 +17,10 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.SupportMapFragment
 import com.hypertrack.android.ui.base.ProgressDialogFragment
 import com.hypertrack.android.ui.common.*
+import com.hypertrack.android.ui.common.util.SnackbarUtil
+import com.hypertrack.android.ui.common.util.setGoneState
+import com.hypertrack.android.ui.common.util.setLinearLayoutManager
+import com.hypertrack.android.ui.common.util.textString
 import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.android.utils.stringFromResource
 import com.hypertrack.logistics.android.github.R
@@ -32,8 +35,6 @@ import kotlinx.android.synthetic.main.fragment_order_detail.tvAddress
 import kotlinx.android.synthetic.main.fragment_order_detail.tvCancel
 import kotlinx.android.synthetic.main.fragment_order_detail.tvPickUp
 import kotlinx.android.synthetic.main.fragment_order_detail.tvTakePicture
-import kotlinx.android.synthetic.main.fragment_place_details.*
-import kotlinx.android.synthetic.main.fragment_visit_detail.*
 
 
 class OrderDetailsFragment : ProgressDialogFragment(R.layout.fragment_order_detail) {

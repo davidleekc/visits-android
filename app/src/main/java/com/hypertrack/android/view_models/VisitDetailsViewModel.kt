@@ -8,7 +8,6 @@ import com.hypertrack.android.models.VisitPhotoState
 import com.hypertrack.android.models.VisitStatus
 import com.hypertrack.android.repository.VisitsRepository
 import com.hypertrack.android.ui.base.BaseViewModel
-import com.hypertrack.android.ui.common.nullIfEmpty
 import com.hypertrack.android.ui.screens.visit_details.VisitPhotoItem
 import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.android.utils.OsUtilsProvider

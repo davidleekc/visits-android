@@ -2,21 +2,21 @@ package com.hypertrack.android.ui.screens.add_order_info
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.view.MotionEvent
 import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.google.android.gms.maps.SupportMapFragment
-import com.hypertrack.android.models.Integration
 import com.hypertrack.android.ui.base.ProgressDialogFragment
-import com.hypertrack.android.ui.common.*
+import com.hypertrack.android.ui.common.util.SimpleTextWatcher
+import com.hypertrack.android.ui.common.util.SnackbarUtil
+import com.hypertrack.android.ui.common.util.silentUpdate
+import com.hypertrack.android.ui.common.util.textString
 import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.logistics.android.github.R
 import kotlinx.android.synthetic.main.fragment_add_place_info.*
 import kotlinx.android.synthetic.main.fragment_add_place_info.confirm
 import kotlinx.android.synthetic.main.fragment_add_place_info.toolbar
-import kotlinx.android.synthetic.main.inflate_integration.*
 
 class AddOrderInfoFragment : ProgressDialogFragment(R.layout.fragment_add_order_info) {
 

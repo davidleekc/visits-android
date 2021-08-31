@@ -1,10 +1,8 @@
 package com.hypertrack.android.gui
 
-import com.hypertrack.android.ui.common.formatDate
-import com.hypertrack.android.ui.common.formatDateTime
+import com.hypertrack.android.ui.common.util.formatDate
 import com.hypertrack.android.ui.screens.place_details.PlaceVisitsAdapter
 import com.hypertrack.android.utils.OsUtilsProvider
-import com.hypertrack.android.utils.SimpleTimeDistanceFormatter
 import com.hypertrack.android.utils.TimeDistanceFormatter
 import com.hypertrack.logistics.android.github.R
 import io.mockk.every

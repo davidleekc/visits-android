@@ -3,7 +3,6 @@ package com.hypertrack.android.ui.common.delegates
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.*
@@ -12,7 +11,7 @@ import com.hypertrack.android.interactors.PlacesInteractorImpl
 import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.ui.common.HypertrackMapWrapper
 import com.hypertrack.android.ui.common.ManagedObserver
-import com.hypertrack.android.ui.common.toLatLng
+import com.hypertrack.android.ui.common.util.toLatLng
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.logistics.android.github.R
 import net.sharewire.googlemapsclustering.*

@@ -2,15 +2,14 @@ package com.hypertrack.android.ui.common.select_destination
 
 import android.os.Bundle
 import android.os.Parcelable
-import android.text.Editable
 import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.hypertrack.android.ui.base.ProgressDialogFragment
-import com.hypertrack.android.ui.common.*
-import com.hypertrack.android.ui.common.Utils.isDoneAction
+import com.hypertrack.android.ui.common.util.*
+import com.hypertrack.android.ui.common.util.Utils.isDoneAction
 import com.hypertrack.android.ui.screens.visits_management.tabs.current_trip.CurrentTripFragment
 import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.logistics.android.github.R

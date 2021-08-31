@@ -1,13 +1,7 @@
 package com.hypertrack.android.repository
 
-import com.hypertrack.android.ui.common.isEmail
-import com.hypertrack.android.utils.Injector
-import com.hypertrack.android.view_models.SplashScreenVieswModelTest
-import com.squareup.moshi.Types
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.slot
-import io.mockk.verify
 import junit.framework.TestCase.assertEquals
 import org.junit.Test
 

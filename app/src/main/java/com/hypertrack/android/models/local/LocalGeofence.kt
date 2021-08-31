@@ -1,13 +1,12 @@
 package com.hypertrack.android.models.local
 
-import android.annotation.SuppressLint
 import android.os.Parcelable
 import com.google.android.gms.maps.model.LatLng
 import com.hypertrack.android.api.Geofence
 import com.hypertrack.android.api.GeofenceVisit
 import com.hypertrack.android.api.Polygon
 import com.hypertrack.android.models.*
-import com.hypertrack.android.ui.common.nullIfBlank
+import com.hypertrack.android.ui.common.util.nullIfBlank
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
