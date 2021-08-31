@@ -44,7 +44,7 @@ import java.time.ZoneId
 import java.util.*
 
 
-class OsUtilsProvider(
+public class OsUtilsProvider(
     private val context: Context,
     private val crashReportsProvider: CrashReportsProvider
 ) {

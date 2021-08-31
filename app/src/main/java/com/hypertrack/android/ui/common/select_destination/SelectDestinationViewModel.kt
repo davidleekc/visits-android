@@ -138,7 +138,7 @@ open class SelectDestinationViewModel(
 
         geofencesMapDelegate = GeofencesMapDelegate(
             context,
-            googleMap,
+            HypertrackMapWrapper(googleMap, osUtilsProvider),
             placesInteractor,
             osUtilsProvider
         ) {

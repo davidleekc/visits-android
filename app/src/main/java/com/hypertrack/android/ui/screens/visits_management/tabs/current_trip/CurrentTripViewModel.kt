@@ -19,6 +19,7 @@ import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.base.ZipLiveData
 import com.hypertrack.android.ui.base.ZipNotNullableLiveData
+import com.hypertrack.android.ui.common.HypertrackMapWrapper
 import com.hypertrack.android.ui.common.delegates.GeofencesMapDelegate
 import com.hypertrack.android.ui.common.nullIfEmpty
 import com.hypertrack.android.ui.common.requireValue
@@ -171,7 +172,7 @@ class CurrentTripViewModel(
 
         geofencesMapDelegate = object : GeofencesMapDelegate(
             context,
-            googleMap,
+            HypertrackMapWrapper(googleMap, osUtilsProvider),
             placesInteractor,
             osUtilsProvider,
             {
@@ -185,11 +186,11 @@ class CurrentTripViewModel(
             }
         ) {
             override fun updateGeofencesOnMap(
-                googleMap: GoogleMap,
+                mapWrapper: HypertrackMapWrapper,
                 geofences: List<LocalGeofence>
             ) {
                 if (trip.value == null) {
-                    super.updateGeofencesOnMap(googleMap, geofences)
+                    super.updateGeofencesOnMap(mapWrapper, geofences)
                 }
             }
 

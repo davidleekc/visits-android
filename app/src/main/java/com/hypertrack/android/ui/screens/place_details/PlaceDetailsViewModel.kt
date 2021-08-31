@@ -2,14 +2,12 @@ package com.hypertrack.android.ui.screens.place_details
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.graphics.Color
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.model.CircleOptions
 import com.hypertrack.android.api.GeofenceVisit
 import com.hypertrack.android.interactors.GeofenceError
 import com.hypertrack.android.interactors.GeofenceSuccess
@@ -19,6 +17,7 @@ import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.base.ZipNotNullableLiveData
+import com.hypertrack.android.ui.common.HypertrackMapWrapper
 import com.hypertrack.android.ui.common.KeyValueItem
 import com.hypertrack.android.ui.common.delegates.GeofenceAddressDelegate
 import com.hypertrack.android.ui.common.format
@@ -39,7 +38,7 @@ class PlaceDetailsViewModel(
 
     private val addressDelegate = GeofenceAddressDelegate(osUtilsProvider)
 
-    private val map = MutableLiveData<GoogleMap>()
+    private val mapWrapper = MutableLiveData<HypertrackMapWrapper>()
 
     val loadingState = MutableLiveData<Boolean>(false)
 
@@ -92,7 +91,7 @@ class PlaceDetailsViewModel(
 
     init {
         //todo check leak
-        ZipNotNullableLiveData(geofence, map).apply {
+        ZipNotNullableLiveData(geofence, mapWrapper).apply {
             observeForever {
                 displayGeofenceLocation(it.first, it.second)
             }
@@ -103,37 +102,19 @@ class PlaceDetailsViewModel(
     fun onMapReady(googleMap: GoogleMap) {
         googleMap.uiSettings.apply {
             isScrollGesturesEnabled = false
-            isMyLocationButtonEnabled = true
+            isMyLocationButtonEnabled = false
             isZoomControlsEnabled = true
         }
         try {
             googleMap.isMyLocationEnabled = true
         } catch (_: Exception) {
         }
-        map.postValue(googleMap)
+        mapWrapper.postValue(HypertrackMapWrapper(googleMap, osUtilsProvider))
     }
 
-    private fun displayGeofenceLocation(geofence: LocalGeofence, googleMap: GoogleMap) {
-        geofence.radius?.let { radius ->
-            googleMap.addCircle(
-                CircleOptions()
-                    .center(geofence.latLng)
-                    .fillColor(osUtilsProvider.colorFromResource(R.color.colorGeofenceFill))
-                    .strokeColor(osUtilsProvider.colorFromResource(R.color.colorGeofence))
-                    .strokeWidth(3f)
-                    .radius(radius.toDouble())
-                    .visible(true)
-            )
-        }
-        googleMap.addCircle(
-            CircleOptions()
-                .center(geofence.latLng)
-                .fillColor(osUtilsProvider.colorFromResource(R.color.colorGeofence))
-                .strokeColor(Color.TRANSPARENT)
-                .radius(30.0)
-                .visible(true)
-        )
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(geofence.latLng, 15.0f))
+    private fun displayGeofenceLocation(geofence: LocalGeofence, mapWrapper: HypertrackMapWrapper) {
+        mapWrapper.addGeofenceCircle(geofence)
+        mapWrapper.googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(geofence.latLng, 14.0f))
     }
 
     fun onDirectionsClick() {
