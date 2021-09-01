@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.10.2] - 2021-08-30
+- Polygon geofences
+- Bugfixes
+
 ## [0.10.1] - 2021-08-13
 - Geofence name and address in visits list
 - Bugfixes
