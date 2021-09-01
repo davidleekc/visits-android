@@ -11,9 +11,8 @@ import androidx.lifecycle.LiveData
 import androidx.recyclerview.widget.RecyclerView
 import com.hypertrack.android.models.*
 import com.hypertrack.android.ui.common.formatUnderscore
-import com.hypertrack.android.ui.common.nullIfBlank
-import com.hypertrack.android.ui.common.nullIfEmpty
-import com.hypertrack.android.ui.common.setGoneState
+import com.hypertrack.android.ui.common.util.nullIfBlank
+import com.hypertrack.android.ui.common.util.setGoneState
 import com.hypertrack.logistics.android.github.R
 import kotlinx.android.synthetic.main.inflate_header_item.view.*
 

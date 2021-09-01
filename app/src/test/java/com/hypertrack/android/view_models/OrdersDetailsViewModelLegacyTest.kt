@@ -16,7 +16,7 @@ import com.hypertrack.android.models.local.OrderStatus
 import com.hypertrack.android.models.local.TripStatus
 import com.hypertrack.android.observeAndGetValue
 import com.hypertrack.android.ui.base.Consumable
-import com.hypertrack.android.ui.common.updateValue
+import com.hypertrack.android.ui.common.util.updateValue
 import com.hypertrack.android.ui.screens.visit_details.VisitDetailsFragment
 import com.hypertrack.android.utils.HyperTrackService
 import com.hypertrack.android.utils.TrackingState

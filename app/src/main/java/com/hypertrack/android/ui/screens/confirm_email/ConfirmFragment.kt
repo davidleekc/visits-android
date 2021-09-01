@@ -9,8 +9,8 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.hypertrack.android.ui.base.ProgressDialogFragment
-import com.hypertrack.android.ui.common.SnackbarUtil
-import com.hypertrack.android.ui.common.Utils
+import com.hypertrack.android.ui.common.util.SnackbarUtil
+import com.hypertrack.android.ui.common.util.Utils
 import com.hypertrack.android.ui.views.VerificationCodeView
 import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.logistics.android.github.R

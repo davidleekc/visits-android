@@ -4,8 +4,9 @@ import android.os.Parcelable
 import com.google.android.gms.maps.model.LatLng
 import com.hypertrack.android.api.Geofence
 import com.hypertrack.android.api.GeofenceVisit
+import com.hypertrack.android.api.Polygon
 import com.hypertrack.android.models.*
-import com.hypertrack.android.ui.common.nullIfBlank
+import com.hypertrack.android.ui.common.util.nullIfBlank
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
@@ -21,10 +22,12 @@ data class LocalGeofence(
     val integration: Integration?,
     val metadata: Map<String, String>
 ) {
+
     val id = geofence.geofence_id
 
     val latitude: Double
         get() = geofence.geometry.latitude
+
     val longitude: Double
         get() = geofence.geometry.longitude
 
@@ -36,6 +39,14 @@ data class LocalGeofence(
             latitude = latitude,
             longitude = longitude
         )
+
+    val isPolygon: Boolean = geofence.geometry is Polygon
+
+    val polygon: List<LatLng>? = if (geofence.geometry is Polygon) {
+        geofence.geometry.coordinates.first().map {
+            LatLng(it[1], it[0])
+        }
+    } else null
 
     val markers =
         geofence.marker?.visits

@@ -1,28 +1,21 @@
 package com.hypertrack.android.ui.screens.visits_management
 
 import android.os.Bundle
-import android.os.Parcelable
 import android.view.View
 import android.widget.Toast
-import androidx.annotation.DrawableRes
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentPagerAdapter
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import androidx.viewpager.widget.ViewPager
 import com.hypertrack.android.models.Visit
 import com.hypertrack.android.models.VisitStatusGroup
-import com.hypertrack.android.models.local.LocalGeofence
-import com.hypertrack.android.models.local.LocalGeofenceJson
-import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.base.ProgressDialogFragment
-import com.hypertrack.android.ui.common.NotificationUtils
-import com.hypertrack.android.ui.common.SimplePageChangedListener
-import com.hypertrack.android.ui.common.SnackbarUtil
+import com.hypertrack.android.ui.common.util.NotificationUtils
+import com.hypertrack.android.ui.common.util.SimplePageChangedListener
+import com.hypertrack.android.ui.common.util.SnackbarUtil
 import com.hypertrack.android.ui.common.Tab
-import com.hypertrack.android.ui.common.select_destination.DestinationData
 import com.hypertrack.android.ui.screens.visits_management.tabs.current_trip.CurrentTripFragment
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.MapViewFragment
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.MapViewFragmentOld
@@ -37,8 +30,6 @@ import com.hypertrack.android.utils.Injector
 import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.logistics.android.github.BuildConfig
 import com.hypertrack.logistics.android.github.R
-import kotlinx.android.parcel.Parcelize
-import kotlinx.android.synthetic.main.fragment_signup.*
 import kotlinx.android.synthetic.main.fragment_visits_management.*
 
 class VisitsManagementFragment : ProgressDialogFragment(R.layout.fragment_visits_management) {

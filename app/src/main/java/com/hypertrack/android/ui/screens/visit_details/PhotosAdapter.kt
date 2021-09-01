@@ -2,12 +2,11 @@ package com.hypertrack.android.ui.screens.visit_details
 
 import android.graphics.Bitmap
 import android.view.View
-import com.hypertrack.android.interactors.PhotoForUpload
 import com.hypertrack.android.models.VisitPhoto
 import com.hypertrack.android.models.VisitPhotoState
 import com.hypertrack.android.ui.base.BaseAdapter
-import com.hypertrack.android.ui.common.setGoneState
-import com.hypertrack.android.ui.common.toView
+import com.hypertrack.android.ui.common.util.setGoneState
+import com.hypertrack.android.ui.common.util.toView
 import com.hypertrack.logistics.android.github.R
 import kotlinx.android.synthetic.main.item_photo.view.*
 

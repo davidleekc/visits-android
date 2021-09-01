@@ -9,15 +9,13 @@ import com.hypertrack.android.repository.FileRepository
 import com.hypertrack.android.repository.VisitsRepository
 import com.hypertrack.android.retryWithBackoff
 import com.hypertrack.android.ui.base.Consumable
-import com.hypertrack.android.ui.common.toMap
+import com.hypertrack.android.ui.common.util.toMap
 import com.hypertrack.android.utils.CrashReportsProvider
 import com.hypertrack.android.utils.ImageDecoder
 import com.hypertrack.android.utils.MAX_IMAGE_SIDE_LENGTH_PX
-import com.hypertrack.logistics.android.github.BuildConfig
 import com.squareup.moshi.JsonClass
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import retrofit2.HttpException

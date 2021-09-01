@@ -3,13 +3,11 @@ package com.hypertrack.android.ui.screens.visits_management.tabs.summary
 import androidx.lifecycle.*
 import com.hypertrack.android.interactors.HistoryInteractor
 import com.hypertrack.android.models.HistoryError
-import com.hypertrack.android.repository.HistoryRepository
 import com.hypertrack.android.ui.base.BaseViewModel
-import com.hypertrack.android.ui.common.DateTimeUtils
+import com.hypertrack.android.ui.common.util.DateTimeUtils
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.android.utils.TimeDistanceFormatter
 import com.hypertrack.logistics.android.github.R
-import kotlinx.coroutines.launch
 
 class SummaryViewModel(
     private val historyInteractor: HistoryInteractor,

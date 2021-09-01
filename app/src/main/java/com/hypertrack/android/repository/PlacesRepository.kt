@@ -10,7 +10,7 @@ import com.hypertrack.android.models.GeofenceMetadata
 import com.hypertrack.android.models.Integration
 import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.ui.common.DataPage
-import com.hypertrack.android.ui.common.nullIfBlank
+import com.hypertrack.android.ui.common.util.nullIfBlank
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.squareup.moshi.Moshi
 import kotlinx.coroutines.Dispatchers

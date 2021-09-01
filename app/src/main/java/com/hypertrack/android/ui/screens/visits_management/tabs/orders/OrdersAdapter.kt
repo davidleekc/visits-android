@@ -5,8 +5,8 @@ import com.hypertrack.android.models.local.LocalOrder
 import com.hypertrack.android.models.local.OrderStatus
 import com.hypertrack.android.ui.base.BaseAdapter
 import com.hypertrack.android.ui.common.delegates.OrderAddressDelegate
-import com.hypertrack.android.ui.common.setGoneState
-import com.hypertrack.android.ui.common.toView
+import com.hypertrack.android.ui.common.util.setGoneState
+import com.hypertrack.android.ui.common.util.toView
 import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.android.utils.TimeDistanceFormatter
 import com.hypertrack.logistics.android.github.R

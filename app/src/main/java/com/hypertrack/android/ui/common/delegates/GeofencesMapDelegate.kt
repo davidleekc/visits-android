@@ -9,15 +9,16 @@ import com.google.android.gms.maps.model.*
 import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.interactors.PlacesInteractorImpl
 import com.hypertrack.android.models.local.LocalGeofence
+import com.hypertrack.android.ui.common.HypertrackMapWrapper
 import com.hypertrack.android.ui.common.ManagedObserver
-import com.hypertrack.android.ui.common.toLatLng
+import com.hypertrack.android.ui.common.util.toLatLng
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.logistics.android.github.R
 import net.sharewire.googlemapsclustering.*
 
 open class GeofencesMapDelegate(
     private val context: Context,
-    private val googleMap: GoogleMap,
+    private val mapWrapper: HypertrackMapWrapper,
     private val placesInteractor: PlacesInteractor,
     private val osUtilsProvider: OsUtilsProvider,
     private val onMarkerClickListener: (GeofenceClusterItem) -> Unit
@@ -25,18 +26,16 @@ open class GeofencesMapDelegate(
 
     private val managedObserver = ManagedObserver()
 
-    private val icon = GeofenceClusterItem.createIcon(osUtilsProvider)
-
     private val clusterIcon = GeofenceClusterItem.createClusterIcon(osUtilsProvider)
     private val clusterManager = createClusterManager()
 
     init {
         placesInteractor.geofences.value?.let {
-            updateGeofencesOnMap(googleMap, it.values.toList())
+            updateGeofencesOnMap(mapWrapper, it.values.toList())
         }
 
         managedObserver.observeManaged(placesInteractor.geofences) {
-            updateGeofencesOnMap(googleMap, it.values.toList())
+            updateGeofencesOnMap(mapWrapper, it.values.toList())
         }
 
 //        (placesInteractor as PlacesInteractorImpl).debugCacheState.observeManaged {
@@ -47,36 +46,20 @@ open class GeofencesMapDelegate(
     }
 
     open fun onCameraIdle() {
-        placesInteractor.loadGeofencesForMap(googleMap.cameraPosition.target)
+        placesInteractor.loadGeofencesForMap(mapWrapper.googleMap.cameraPosition.target)
         clusterManager.onCameraIdle()
     }
 
-    protected open fun updateGeofencesOnMap(googleMap: GoogleMap, geofences: List<LocalGeofence>) {
+    protected open fun updateGeofencesOnMap(
+        mapWrapper: HypertrackMapWrapper,
+        geofences: List<LocalGeofence>
+    ) {
         //todo filter by viewport
-        googleMap.clear()
+        mapWrapper.googleMap.clear()
         geofences.forEach {
-            it.radius?.let { radius ->
-                googleMap.addCircle(
-                    CircleOptions()
-                        .radius(radius.toDouble())
-                        .center(it.latLng)
-                        .strokeColor(
-                            osUtilsProvider.colorFromResource(
-                                R.color.colorHyperTrackGreenSemitransparent
-                            )
-                        )
-                )
-            }
-
-            googleMap.addMarker(
-                MarkerOptions()
-                    .icon(icon)
-                    .snippet(it.id)
-                    .position(it.latLng)
-                    .anchor(0.5f, 0.5f)
-            )
+            mapWrapper.addGeofenceMarker(it)
         }
-        googleMap.setOnMarkerClickListener {
+        mapWrapper.googleMap.setOnMarkerClickListener {
             it.snippet?.let {
                 placesInteractor.geofences.value?.get(it)?.let {
                     onMarkerClickListener.invoke(GeofenceClusterItem(it))
@@ -111,8 +94,8 @@ open class GeofencesMapDelegate(
     private fun createClusterManager(): ClusterManager<GeofenceClusterItem> {
         return ClusterManager<GeofenceClusterItem>(
             context,
-            googleMap,
-            object : ClusterRenderer<GeofenceClusterItem>(context, googleMap) {
+            mapWrapper.googleMap,
+            object : ClusterRenderer<GeofenceClusterItem>(context, mapWrapper.googleMap) {
 
             }).apply {
             setMinClusterSize(10)
@@ -122,7 +105,7 @@ open class GeofencesMapDelegate(
                 }
 
                 override fun getClusterItemIcon(clusterItem: GeofenceClusterItem): BitmapDescriptor {
-                    return icon
+                    return mapWrapper.geofenceMarkerIcon
                 }
             })
             setCallbacks(object : ClusterManager.Callbacks<GeofenceClusterItem> {
@@ -211,14 +194,6 @@ class GeofenceClusterItem(
     override fun getSnippet() = geofence.id
 
     companion object {
-        fun createIcon(osUtilsProvider: OsUtilsProvider): BitmapDescriptor {
-            return BitmapDescriptorFactory.fromBitmap(
-                osUtilsProvider.bitmapFormResource(
-                    R.drawable.ic_ht_departure_active
-                )
-            )
-        }
-
         fun createClusterIcon(osUtilsProvider: OsUtilsProvider): BitmapDescriptor {
             return BitmapDescriptorFactory.fromBitmap(
                 osUtilsProvider.bitmapFormResource(
@@ -228,3 +203,4 @@ class GeofenceClusterItem(
         }
     }
 }
+

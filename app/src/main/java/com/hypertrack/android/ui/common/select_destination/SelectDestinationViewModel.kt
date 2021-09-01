@@ -10,7 +10,6 @@ import com.google.android.gms.maps.model.*
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.model.RectangularBounds
-import com.google.android.libraries.places.api.model.TypeFilter
 import com.google.android.libraries.places.api.net.FetchPlaceRequest
 import com.google.android.libraries.places.api.net.FetchPlaceResponse
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
@@ -23,6 +22,8 @@ import com.hypertrack.android.ui.base.ZipNotNullableLiveData
 import com.hypertrack.android.ui.common.*
 import com.hypertrack.android.ui.common.delegates.GeofencesMapDelegate
 import com.hypertrack.android.ui.common.delegates.GooglePlaceAddressDelegate
+import com.hypertrack.android.ui.common.util.nullIfEmpty
+import com.hypertrack.android.ui.common.util.requireValue
 import com.hypertrack.android.ui.screens.add_place.AddPlaceFragmentDirections
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
 import com.hypertrack.android.utils.OsUtilsProvider
@@ -138,7 +139,7 @@ open class SelectDestinationViewModel(
 
         geofencesMapDelegate = GeofencesMapDelegate(
             context,
-            googleMap,
+            HypertrackMapWrapper(googleMap, osUtilsProvider),
             placesInteractor,
             osUtilsProvider
         ) {

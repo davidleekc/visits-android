@@ -2,7 +2,7 @@ package com.hypertrack.android.models
 
 import android.annotation.SuppressLint
 import android.location.Location
-import com.hypertrack.android.ui.common.nullIfEmpty
+import com.hypertrack.android.ui.common.util.nullIfEmpty
 import com.hypertrack.android.utils.AccountPreferencesProvider
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.squareup.moshi.JsonClass

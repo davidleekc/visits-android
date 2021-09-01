@@ -1,8 +1,6 @@
-package com.hypertrack.android.ui.common
+package com.hypertrack.android.ui.common.util
 
-import android.location.Address
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.libraries.places.api.model.Place
 import com.hypertrack.android.models.Location
 import kotlin.math.pow
 import kotlin.math.round

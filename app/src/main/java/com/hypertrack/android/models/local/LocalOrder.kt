@@ -6,19 +6,10 @@ import com.hypertrack.android.interactors.PhotoForUpload
 import com.hypertrack.android.models.Estimate
 import com.hypertrack.android.models.Metadata
 import com.hypertrack.android.models.Order
-import com.hypertrack.android.models.VisitsAppMetadata
-import com.hypertrack.android.ui.common.formatDateTime
-import com.hypertrack.android.ui.common.nullIfBlank
-import com.hypertrack.android.ui.common.nullIfEmpty
+import com.hypertrack.android.ui.common.util.nullIfBlank
 import com.squareup.moshi.JsonClass
-import java.time.Instant
-import java.time.ZoneId
 import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 import java.time.temporal.ChronoUnit
-import java.util.*
-import java.util.concurrent.TimeUnit
 
 @JsonClass(generateAdapter = true)
 data class LocalOrder(

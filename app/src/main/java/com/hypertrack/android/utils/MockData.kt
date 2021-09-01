@@ -126,14 +126,11 @@ object MockData {
 
     fun createGeofence(
         page: Int? = 0,
-        lat: Double? = 122.395223,
-        lon: Double? = 37.794763
+        lat: Double = 37.794763,
+        lon: Double = 122.395223,
+        polygon: Boolean = false
     ): Geofence {
-        return Geofence(
-            UUID.randomUUID().hashCode().toString(),
-            "",
-            ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT),
-            mapOf("name" to page.toString()),
+        val geometry = if (!polygon) {
             """
                 {
                 "type":"Point",
@@ -141,7 +138,22 @@ object MockData {
             }
             """.let {
                 Injector.getMoshi().adapter(Geometry::class.java).fromJson(it)!!
-            },
+            }
+        } else {
+            val coords: MutableList<List<Double>> = mutableListOf()
+            coords.add(listOf(lon, lat))
+            coords.add(listOf(lon + 0.001, lat))
+            coords.add(listOf(lon + 0.001, lat + 0.001))
+            coords.add(listOf(lon, lat + 0.001))
+            Polygon(listOf(coords))
+        }
+
+        return Geofence(
+            UUID.randomUUID().hashCode().toString(),
+            "",
+            ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT),
+            mapOf("name" to page.toString()),
+            geometry,
             null,
             (1000 * Math.random()).toInt(),
             "",

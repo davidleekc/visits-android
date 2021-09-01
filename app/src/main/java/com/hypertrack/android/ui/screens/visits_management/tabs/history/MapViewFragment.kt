@@ -17,8 +17,8 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.math.MathUtils
 import com.hypertrack.android.models.HistoryTile
-import com.hypertrack.android.ui.common.SnackbarUtil
-import com.hypertrack.android.ui.common.setGoneState
+import com.hypertrack.android.ui.common.util.SnackbarUtil
+import com.hypertrack.android.ui.common.util.setGoneState
 import com.hypertrack.android.utils.Factory
 import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.android.view_models.HistoryViewModel

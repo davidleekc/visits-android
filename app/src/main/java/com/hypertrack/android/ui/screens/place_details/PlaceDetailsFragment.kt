@@ -8,9 +8,9 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.SupportMapFragment
 import com.hypertrack.android.ui.base.ProgressDialogFragment
 import com.hypertrack.android.ui.common.*
+import com.hypertrack.android.ui.common.util.*
 import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.logistics.android.github.R
-import kotlinx.android.synthetic.main.fragment_add_place_info.*
 import kotlinx.android.synthetic.main.fragment_place_details.*
 import kotlinx.android.synthetic.main.fragment_place_details.lIntegration
 import kotlinx.android.synthetic.main.inflate_integration.*

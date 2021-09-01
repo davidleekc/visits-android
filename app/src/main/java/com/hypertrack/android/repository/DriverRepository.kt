@@ -1,8 +1,7 @@
 package com.hypertrack.android.repository
 
 import com.hypertrack.android.data.AccountDataStorage
-import com.hypertrack.android.ui.common.isEmail
-import com.hypertrack.android.ui.common.nullIfBlank
+import com.hypertrack.android.ui.common.util.isEmail
 import com.hypertrack.android.utils.CrashReportsProvider
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.android.utils.ServiceLocator

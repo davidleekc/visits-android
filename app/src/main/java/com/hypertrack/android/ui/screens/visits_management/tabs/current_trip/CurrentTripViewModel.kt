@@ -2,7 +2,6 @@ package com.hypertrack.android.ui.screens.visits_management.tabs.current_trip
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.util.Log
 import android.util.TypedValue
 import androidx.lifecycle.*
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -19,11 +18,12 @@ import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.base.ZipLiveData
 import com.hypertrack.android.ui.base.ZipNotNullableLiveData
+import com.hypertrack.android.ui.common.HypertrackMapWrapper
 import com.hypertrack.android.ui.common.delegates.GeofencesMapDelegate
-import com.hypertrack.android.ui.common.nullIfEmpty
-import com.hypertrack.android.ui.common.requireValue
+import com.hypertrack.android.ui.common.util.nullIfEmpty
+import com.hypertrack.android.ui.common.util.requireValue
 import com.hypertrack.android.ui.common.select_destination.DestinationData
-import com.hypertrack.android.ui.common.updateValue
+import com.hypertrack.android.ui.common.util.updateValue
 import com.hypertrack.android.ui.screens.visits_management.VisitsManagementFragmentDirections
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
 import com.hypertrack.android.utils.CrashReportsProvider
@@ -171,7 +171,7 @@ class CurrentTripViewModel(
 
         geofencesMapDelegate = object : GeofencesMapDelegate(
             context,
-            googleMap,
+            HypertrackMapWrapper(googleMap, osUtilsProvider),
             placesInteractor,
             osUtilsProvider,
             {
@@ -185,11 +185,11 @@ class CurrentTripViewModel(
             }
         ) {
             override fun updateGeofencesOnMap(
-                googleMap: GoogleMap,
+                mapWrapper: HypertrackMapWrapper,
                 geofences: List<LocalGeofence>
             ) {
                 if (trip.value == null) {
-                    super.updateGeofencesOnMap(googleMap, geofences)
+                    super.updateGeofencesOnMap(mapWrapper, geofences)
                 }
             }
 

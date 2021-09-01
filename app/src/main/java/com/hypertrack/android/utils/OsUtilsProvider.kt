@@ -29,10 +29,9 @@ import com.google.android.gms.maps.model.LatLng
 import com.hypertrack.android.decodeBase64Bitmap
 import com.hypertrack.android.models.Address
 import com.hypertrack.android.toBase64
-import com.hypertrack.android.ui.base.Consumable
-import com.hypertrack.android.ui.common.ClipboardUtil
-import com.hypertrack.android.ui.common.LocationUtils
-import com.hypertrack.android.ui.common.isEmail
+import com.hypertrack.android.ui.common.util.ClipboardUtil
+import com.hypertrack.android.ui.common.util.LocationUtils
+import com.hypertrack.android.ui.common.util.isEmail
 import com.hypertrack.android.ui.screens.visits_management.tabs.livemap.TrackingPresenter
 import com.hypertrack.logistics.android.github.R
 import retrofit2.HttpException
@@ -44,7 +43,7 @@ import java.time.ZoneId
 import java.util.*
 
 
-class OsUtilsProvider(
+public class OsUtilsProvider(
     private val context: Context,
     private val crashReportsProvider: CrashReportsProvider
 ) {

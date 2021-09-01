@@ -1,6 +1,5 @@
 package com.hypertrack.android.ui.screens.visits_management.tabs.places
 
-import android.util.Log
 import androidx.lifecycle.asLiveData
 import com.hypertrack.android.api.GeofenceVisit
 import com.hypertrack.android.interactors.HistoryInteractor
@@ -9,8 +8,8 @@ import com.hypertrack.android.models.History
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.base.SingleLiveEvent
-import com.hypertrack.android.ui.common.format
-import com.hypertrack.android.ui.common.requireValue
+import com.hypertrack.android.ui.common.util.format
+import com.hypertrack.android.ui.common.util.requireValue
 import com.hypertrack.android.ui.screens.visits_management.VisitsManagementFragmentDirections
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.android.utils.TimeDistanceFormatter

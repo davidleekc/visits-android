@@ -1,6 +1,5 @@
 package com.hypertrack.android.ui.screens.background_permissions
 
-import android.content.pm.PackageManager
 import android.graphics.Typeface
 import android.os.Build
 import android.os.Bundle
@@ -12,7 +11,7 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.hypertrack.android.ui.MainActivity
 import com.hypertrack.android.ui.base.BaseFragment
-import com.hypertrack.android.ui.common.hide
+import com.hypertrack.android.ui.common.util.hide
 import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.logistics.android.github.R
 import kotlinx.android.synthetic.main.fragment_background_permission.*

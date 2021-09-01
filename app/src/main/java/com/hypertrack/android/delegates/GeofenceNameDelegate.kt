@@ -2,7 +2,7 @@ package com.hypertrack.android.delegates
 
 import com.hypertrack.android.api.GeofenceVisit
 import com.hypertrack.android.models.local.LocalGeofence
-import com.hypertrack.android.ui.common.formatDateTime
+import com.hypertrack.android.ui.common.util.formatDateTime
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.logistics.android.github.R
 

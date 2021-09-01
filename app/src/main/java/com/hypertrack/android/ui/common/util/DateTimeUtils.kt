@@ -1,4 +1,4 @@
-package com.hypertrack.android.ui.common
+package com.hypertrack.android.ui.common.util
 
 import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.logistics.android.github.R

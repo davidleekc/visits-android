@@ -2,6 +2,8 @@ package com.hypertrack.android.ui.common
 
 import android.view.View
 import com.hypertrack.android.ui.base.BaseAdapter
+import com.hypertrack.android.ui.common.util.setGoneState
+import com.hypertrack.android.ui.common.util.toView
 import com.hypertrack.logistics.android.github.R
 import kotlinx.android.synthetic.main.item_key_value.view.*
 import java.util.*

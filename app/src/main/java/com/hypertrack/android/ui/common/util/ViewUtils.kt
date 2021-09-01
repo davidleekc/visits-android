@@ -1,4 +1,4 @@
-package com.hypertrack.android.ui.common
+package com.hypertrack.android.ui.common.util
 
 import android.content.Context
 import android.graphics.Bitmap
