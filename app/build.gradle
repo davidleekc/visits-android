@@ -88,7 +88,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.hypertrack:hypertrack:5.4.1'
+    implementation 'com.hypertrack:hypertrack:5.4.0'
 
     implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
     implementation project(path: ':android-kotlin-geohash')
