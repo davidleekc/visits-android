@@ -1,6 +1,11 @@
 # Changelog
 
+## [0.10.3] - 2021-09-03
+- HyperTrack SDK 5.4.3
+- Bugfixes
+
 ## [0.10.2] - 2021-08-30
+- HyperTrack SDK 5.4.0
 - Polygon geofences
 - Bugfixes
 
