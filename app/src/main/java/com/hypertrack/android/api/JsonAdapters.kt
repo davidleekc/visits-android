@@ -37,8 +37,14 @@ internal class GeometryJsonAdapter {
     @FromJson
     fun jsonToGeometry(json: Map<String, Any>): Geometry {
         return when (json["type"]) {
+            //todo check format
             "Point" -> Point(json["coordinates"] as List<Double>)
-            "Polygon" -> Polygon(json["coordinates"] as List<List<List<Double>>>)
+            "Polygon" -> {
+                val coords: List<List<List<Double>>> =
+                    json["coordinates"] as List<List<List<Double>>>
+//                check(coords[0][0][0] is Double)
+                Polygon(coords)
+            }
             else -> throw JsonDataException("Unknown geometry type ${json["type"]}")
         }
     }

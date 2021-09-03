@@ -7,7 +7,10 @@ import com.hypertrack.android.api.GeofenceVisit
 import com.hypertrack.android.api.Polygon
 import com.hypertrack.android.models.*
 import com.hypertrack.android.ui.common.util.nullIfBlank
+import com.hypertrack.android.utils.CrashReportsProvider
+import com.hypertrack.android.utils.Injector
 import com.hypertrack.android.utils.OsUtilsProvider
+import com.hypertrack.android.utils.format
 import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
 import kotlinx.android.parcel.Parcelize
@@ -71,7 +74,8 @@ data class LocalGeofence(
             currentDeviceId: String,
             geofence: Geofence,
             moshi: Moshi,
-            osUtilsProvider: OsUtilsProvider
+            osUtilsProvider: OsUtilsProvider,
+            crashReportsProvider: CrashReportsProvider
         ): LocalGeofence {
             //all parsed metadata fields should be removed to avoid duplication
             val metadata = geofence.metadata?.toMutableMap() ?: mutableMapOf()
@@ -79,11 +83,13 @@ data class LocalGeofence(
             val metadataAddress = metadata.remove(GeofenceMetadata.KEY_ADDRESS) as String?
             val address = geofence.address.nullIfBlank()
                 ?: metadataAddress.nullIfBlank()
+
             val integration = metadata.remove(GeofenceMetadata.KEY_INTEGRATION)?.let {
                 try {
-                    moshi.adapter(GeofenceMetadata::class.java)
-                        .fromJsonValue(metadata)?.integration
-                } catch (_: Exception) {
+                    moshi.adapter(Integration::class.java)
+                        .fromJsonValue(it)
+                } catch (e: Exception) {
+                    crashReportsProvider.logException(e)
                     null
                 }
             }

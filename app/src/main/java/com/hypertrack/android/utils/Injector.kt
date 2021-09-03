@@ -180,7 +180,8 @@ object Injector {
             deviceId,
             apiClient,
             moshi,
-            osUtilsProvider
+            osUtilsProvider,
+            crashReportsProvider
         )
         val integrationsRepository = IntegrationsRepositoryImpl(apiClient)
         val placesInteractor = PlacesInteractorImpl(

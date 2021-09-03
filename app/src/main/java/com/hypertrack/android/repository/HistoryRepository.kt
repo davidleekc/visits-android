@@ -28,7 +28,7 @@ class HistoryRepositoryImpl(
     override val history = MutableLiveData<Map<LocalDate, History>>(mapOf())
 
     private val cache = mutableMapOf<LocalDate, History>()
-    private val periodCache = mutableMapOf<String, History>()
+//    private val periodCache = mutableMapOf<String, History>()
 
     override suspend fun getHistory(date: LocalDate): HistoryResult {
         if (cache.containsKey(date) && date != LocalDate.now()) {

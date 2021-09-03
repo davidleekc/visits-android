@@ -40,7 +40,8 @@ class PlacesInteractorTest {
                 "1",
                 apiClient,
                 Injector.getMoshi(),
-                mockk(relaxed = true)
+                mockk(relaxed = true),
+                mockk(relaxed = true),
             ),
             mockk(relaxed = true),
             mockk(relaxed = true),

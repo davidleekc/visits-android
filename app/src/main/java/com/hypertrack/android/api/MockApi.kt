@@ -49,6 +49,11 @@ private val fences = Injector.getMoshi().adapter(GeofenceResponse::class.java)
         return Response.success(
             GeofenceResponse(fences, null)
         )
+
+//        return Response.success(
+//            GeofenceResponse(listOf(MockData.createGeofence(polygon = true)), null)
+//        )
+
 //        return Response.success(
 //            Injector.getMoshi().adapter(GeofenceResponse::class.java)
 //                .fromJson(MockData.MOCK_GEOFENCES_JSON)

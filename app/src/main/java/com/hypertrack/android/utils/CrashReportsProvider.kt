@@ -17,9 +17,9 @@ interface CrashReportsProvider {
 
 class FirebaseCrashReportsProvider : CrashReportsProvider {
     override fun logException(e: Throwable, metadata: Map<String, String>) {
-//        if(MyApplication.DEBUG_MODE) {
-//            e.printStackTrace()
-//        }
+        if (MyApplication.DEBUG_MODE) {
+            e.printStackTrace()
+        }
         if (!e.shouldNotBeReported()) {
             metadata.forEach {
                 FirebaseCrashlytics.getInstance().setCustomKey(it.key, it.value)

@@ -7,6 +7,7 @@ import java.time.LocalDate
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
+import kotlin.Metadata
 
 object MockData {
 
@@ -128,7 +129,8 @@ object MockData {
         page: Int? = 0,
         lat: Double = 37.794763,
         lon: Double = 122.395223,
-        polygon: Boolean = false
+        polygon: Boolean = false,
+        metadata: Map<String, Any> = mapOf("name" to page.toString())
     ): Geofence {
         val geometry = if (!polygon) {
             """
@@ -152,7 +154,7 @@ object MockData {
             UUID.randomUUID().hashCode().toString(),
             "",
             ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT),
-            mapOf("name" to page.toString()),
+            metadata,
             geometry,
             null,
             (1000 * Math.random()).toInt(),
