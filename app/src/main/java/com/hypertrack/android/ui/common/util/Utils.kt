@@ -18,10 +18,13 @@ object Utils {
     }
 
     fun showKeyboard(activity: Activity, view: View? = null) {
-        view?.requestFocus()
-        val inputMethodManager =
-            MyApplication.context.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
-        inputMethodManager.showSoftInput(activity.currentFocus, 0)
+        try {
+            view?.requestFocus()
+            val inputMethodManager =
+                MyApplication.context.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+            inputMethodManager.showSoftInput(activity.currentFocus, 0)
+        } catch (_: Exception) {
+        }
     }
 
     fun isDoneAction(actionId: Int, event: KeyEvent?): Boolean {
