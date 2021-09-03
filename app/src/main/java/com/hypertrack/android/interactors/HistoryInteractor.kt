@@ -33,7 +33,7 @@ class HistoryInteractorImpl(
     override val todayHistory = MutableLiveData<History>()
 
     override val history = Transformations.map(historyRepository.history) {
-        it.toMutableMap().apply {
+        HashMap(it).apply {
             todayHistory.value?.let { put(LocalDate.now(), it) }
         }.toMap()
     }.toHotTransformation().liveData
