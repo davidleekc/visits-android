@@ -23,6 +23,7 @@ import com.hypertrack.android.ui.common.delegates.GeofenceAddressDelegate
 import com.hypertrack.android.ui.common.util.format
 import com.hypertrack.android.ui.common.util.formatDateTime
 import com.hypertrack.android.utils.CrashReportsProvider
+import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.logistics.android.github.R
 import com.squareup.moshi.Moshi
@@ -63,6 +64,12 @@ class PlaceDetailsViewModel(
 
     val metadata: LiveData<List<KeyValueItem>> = Transformations.map(geofence) { geofence ->
         geofence.metadata.toMutableMap().apply {
+            if (MyApplication.DEBUG_MODE) {
+                put(
+                    "Geofence ID (debug)",
+                    geofence.id
+                )
+            }
             put(
                 osUtilsProvider.stringFromResource(R.string.place_visits_count),
                 geofence.visitsCount.toString()
