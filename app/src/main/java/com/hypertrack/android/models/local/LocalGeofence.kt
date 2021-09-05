@@ -3,14 +3,11 @@ package com.hypertrack.android.models.local
 import android.os.Parcelable
 import com.google.android.gms.maps.model.LatLng
 import com.hypertrack.android.api.Geofence
-import com.hypertrack.android.api.GeofenceVisit
 import com.hypertrack.android.api.Polygon
 import com.hypertrack.android.models.*
 import com.hypertrack.android.ui.common.util.nullIfBlank
 import com.hypertrack.android.utils.CrashReportsProvider
-import com.hypertrack.android.utils.Injector
 import com.hypertrack.android.utils.OsUtilsProvider
-import com.hypertrack.android.utils.format
 import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
 import kotlinx.android.parcel.Parcelize
@@ -23,7 +20,8 @@ data class LocalGeofence(
     val name: String?,
     val address: String?,
     val integration: Integration?,
-    val metadata: Map<String, String>
+    val metadata: Map<String, String>,
+    val visits: List<LocalGeofenceVisit>
 ) {
 
     val id = geofence.geofence_id
@@ -51,18 +49,12 @@ data class LocalGeofence(
         }
     } else null
 
-    val markers =
-        geofence.marker?.visits
-            ?.filter { it.deviceId == currentDeviceId }
-            ?.sortedByDescending { it.arrival!!.recordedAt }
-            ?: listOf()
-
     val visitsCount: Int by lazy {
-        markers.count()
+        visits.count()
     }
 
-    val lastVisit: GeofenceVisit? by lazy {
-        markers.firstOrNull()
+    val lastVisit: LocalGeofenceVisit? by lazy {
+        visits.firstOrNull()
     }
 
     val radius = geofence.radius
@@ -100,7 +92,15 @@ data class LocalGeofence(
                 name = metadata.remove(GeofenceMetadata.KEY_NAME) as String?,
                 address = address,
                 integration = integration,
-                metadata = metadata.filter { it.value is String } as Map<String, String>
+                metadata = metadata.filter { it.value is String } as Map<String, String>,
+                visits = (geofence.marker?.visits
+                    ?.filter { it.deviceId == currentDeviceId }
+                    ?.sortedByDescending { it.arrival!!.recordedAt }
+                    ?: listOf())
+                    .map {
+                        LocalGeofenceVisit.fromVisit(it)
+                    }
+
             )
         }
     }

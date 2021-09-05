@@ -1,14 +1,12 @@
 package com.hypertrack.android.repository
 
+import com.hypertrack.android.TestMockData
 import com.hypertrack.android.api.*
 import com.hypertrack.android.interactors.GeofenceSuccess
-import com.hypertrack.android.models.GeofenceMetadata
+import com.hypertrack.android.models.local.LocalGeofenceVisit
 import com.hypertrack.android.utils.Injector
 import com.hypertrack.android.utils.MockData
-import com.squareup.moshi.Json
-import com.squareup.moshi.JsonClass
 import io.mockk.coEvery
-import io.mockk.every
 import io.mockk.mockk
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -91,7 +89,7 @@ class PlacesRepositoryTest {
 
         runBlocking {
             placesRepository.loadGeofencesPage(null).let {
-                assertEquals(listOf("device_id"), it.geofences[0].markers.map { it.deviceId })
+                assertEquals(listOf("device_id"), it.geofences[0].visits.map { it.deviceId })
             }
 
             placesRepository.loadAllGeofencesVisitsPage(null).let {
@@ -99,7 +97,7 @@ class PlacesRepositoryTest {
             }
 
             (placesRepository.getGeofence("id") as GeofenceSuccess).let {
-                assertEquals(listOf("device_id"), it.geofence.markers.map { it.deviceId })
+                assertEquals(listOf("device_id"), it.geofence.visits.map { it.deviceId })
             }
         }
 

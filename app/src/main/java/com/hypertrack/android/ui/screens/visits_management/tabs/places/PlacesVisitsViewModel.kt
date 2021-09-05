@@ -5,6 +5,7 @@ import com.hypertrack.android.api.GeofenceVisit
 import com.hypertrack.android.interactors.HistoryInteractor
 import com.hypertrack.android.interactors.PlacesVisitsInteractor
 import com.hypertrack.android.models.History
+import com.hypertrack.android.models.local.LocalGeofenceVisit
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.base.SingleLiveEvent
@@ -32,7 +33,7 @@ class PlacesVisitsViewModel(
     private var nextPageToken: String? = null
     private var updateJob: Job? = null
 
-    val visitsPage = SingleLiveEvent<Consumable<List<GeofenceVisit>>?>()
+    val visitsPage = SingleLiveEvent<Consumable<List<LocalGeofenceVisit>>?>()
 
     init {
         historyInteractor.errorFlow.asLiveData().observeManaged {
@@ -61,7 +62,7 @@ class PlacesVisitsViewModel(
         onLoadMore()
     }
 
-    private fun onVisitClick(visit: GeofenceVisit) {
+    private fun onVisitClick(visit: LocalGeofenceVisit) {
         destination.postValue(
             VisitsManagementFragmentDirections.actionVisitManagementFragmentToPlaceDetailsFragment(
                 visit.geofenceId
@@ -130,7 +131,7 @@ class PlacesVisitsViewModel(
 }
 
 data class VisitsData(
-    val visits: List<GeofenceVisit>,
+    val visits: List<LocalGeofenceVisit>,
     val dayStats: Map<LocalDate, Int>,
 ) {
     val adapterData: List<VisitItem>
@@ -181,7 +182,7 @@ data class VisitsData(
         this.monthStats = monthStats
     }
 
-    fun newInstanceWithNewVisits(newVisits: List<GeofenceVisit>): VisitsData {
+    fun newInstanceWithNewVisits(newVisits: List<LocalGeofenceVisit>): VisitsData {
         return VisitsData(visits.applyAddAll(newVisits), dayStats)
     }
 
@@ -196,17 +197,8 @@ data class VisitsData(
     }
 }
 
-
-fun GeofenceVisit.getDay(): LocalDate {
-    return if (exit != null) {
-        ZonedDateTime.parse(exit.recordedAt).toLocalDate()
-    } else {
-        ZonedDateTime.parse(arrival!!.recordedAt).toLocalDate()
-    }
-}
-
 sealed class VisitItem
-class Visit(val visit: GeofenceVisit) : VisitItem() {
+class Visit(val visit: LocalGeofenceVisit) : VisitItem() {
     override fun toString(): String {
         return "visit ${visit.getDay().format()}"
     }

@@ -2,6 +2,7 @@ package com.hypertrack.android.api
 
 import android.graphics.Bitmap
 import android.net.Uri
+import android.util.Log
 import com.google.android.gms.maps.model.LatLng
 import com.hypertrack.android.models.*
 import com.hypertrack.android.toBase64
@@ -321,8 +322,8 @@ class Point(
         get() = coordinates[0]
 }
 
-class Polygon(
-        @field:Json(name = "coordinates") override val coordinates: List<List<List<Double>>>
+data class Polygon(
+    @field:Json(name = "coordinates") override val coordinates: List<List<List<Double>>>
 ) : Geometry() {
     override val type: String
         get() = "Polygon"

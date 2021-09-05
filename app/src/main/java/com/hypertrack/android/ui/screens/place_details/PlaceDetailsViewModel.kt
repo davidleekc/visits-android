@@ -8,12 +8,12 @@ import androidx.lifecycle.Transformations
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
-import com.hypertrack.android.api.GeofenceVisit
 import com.hypertrack.android.interactors.GeofenceError
 import com.hypertrack.android.interactors.GeofenceSuccess
 import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.models.Integration
 import com.hypertrack.android.models.local.LocalGeofence
+import com.hypertrack.android.models.local.LocalGeofenceVisit
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.base.ZipNotNullableLiveData
@@ -90,8 +90,8 @@ class PlaceDetailsViewModel(
         it.integration
     }
 
-    val visits: LiveData<List<GeofenceVisit>> = Transformations.map(geofence) { geofence ->
-        geofence.markers
+    val visits: LiveData<List<LocalGeofenceVisit>> = Transformations.map(geofence) { geofence ->
+        geofence.visits
     }
 
     val externalMapsIntent = MutableLiveData<Consumable<Intent>>()

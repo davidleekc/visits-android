@@ -63,7 +63,7 @@ class PlacesAdapter(
                         } $timesString"
                             .toView(containerView.tvVisited)
 
-                        item.geofence.lastVisit?.arrival?.recordedAt?.formatDateTime()
+                        item.geofence.lastVisit?.arrival?.formatDateTime()
                             ?.let {
                                 MyApplication.context.getString(
                                     R.string.places_last_visit,

@@ -6,6 +6,7 @@ import com.google.android.libraries.places.api.model.Place
 import com.hypertrack.android.api.GeofenceVisit
 import com.hypertrack.android.api.asLocation
 import com.hypertrack.android.models.local.LocalGeofence
+import com.hypertrack.android.models.local.LocalGeofenceVisit
 import com.hypertrack.android.models.local.LocalOrder
 import com.hypertrack.android.ui.common.util.format
 import com.hypertrack.android.ui.common.util.formatDateTime
@@ -67,10 +68,10 @@ class GeofenceAddressDelegate(val osUtilsProvider: OsUtilsProvider) {
             ?: osUtilsProvider.stringFromResource(R.string.address_not_available)
     }
 
-    fun shortAddress(visit: GeofenceVisit): String {
+    fun shortAddress(visit: LocalGeofenceVisit): String {
         return visit.address
             ?: visit.metadata?.address
-            ?: visit.geometry?.asLocation()?.let {
+            ?: visit.location.let {
                 osUtilsProvider.getPlaceFromCoordinates(
                     it.latitude,
                     it.longitude
