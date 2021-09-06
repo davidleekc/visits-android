@@ -59,6 +59,8 @@ class PlaceVisitsAdapter(
             item.durationSeconds?.let { DateTimeUtils.secondsToLocalizedString(it) }
                 ?.toView(containerView.tvDescription)
             item.id.toView(containerView.tvVisitId)
+
+
             item.routeTo?.let {
                 if (it.distance == null) return@let null
                 if (it.duration == null) return@let null

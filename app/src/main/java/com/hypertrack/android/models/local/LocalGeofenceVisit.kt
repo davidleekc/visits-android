@@ -36,7 +36,12 @@ class LocalGeofenceVisit(
                 arrival = ZonedDateTime.parse(visit.arrival!!.recordedAt),
                 exit = ZonedDateTime.parse(visit.exit?.recordedAt),
                 location = visit.geometry!!.let { LatLng(it.latitude, it.longitude) },
-                routeTo = visit.routeTo,
+                routeTo = visit.routeTo?.let {
+                    //todo workaround
+                    if (it.idleTime == null && it.distance == null && it.duration == null) {
+                        null
+                    } else it
+                },
                 durationSeconds = visit.duration,
                 address = visit.address,
                 metadata = visit.metadata,
