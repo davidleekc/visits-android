@@ -328,9 +328,23 @@ data class Polygon(
     override val type: String
         get() = "Polygon"
     override val latitude: Double
-        get() = coordinates[0].map { it[1] }.average()
+        get() {
+            //todo remove (workaround for faulty coordinates)
+            return try {
+                coordinates[0].map { it[1] }.average()
+            } catch (e: Exception) {
+                0.0
+            }
+        }
     override val longitude: Double
-        get() = coordinates[0].map { it[0] }.average()
+        get() {
+            //todo remove (workaround for faulty coordinates)
+            return try {
+                coordinates[0].map { it[0] }.average()
+            } catch (e: Exception) {
+                0.0
+            }
+        }
 }
 
 abstract class Geometry {
