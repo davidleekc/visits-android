@@ -7,17 +7,12 @@ import com.hypertrack.android.data.AccountDataStorage
 import com.hypertrack.android.interactors.PhotoForUpload
 import com.hypertrack.android.interactors.PhotoUploadQueueStorage
 import com.hypertrack.android.interactors.PhotoUploadingState
-import com.hypertrack.android.models.Visit
 import com.hypertrack.android.models.local.LocalTrip
+import com.hypertrack.android.ui.screens.visits_management.tabs.places.Visit
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-
-interface VisitsStorage {
-    fun saveVisits(visits: List<Visit>)
-    fun restoreVisits(): List<Visit>
-}
 
 interface TripsStorage {
     suspend fun saveTrips(trips: List<LocalTrip>)
@@ -25,7 +20,7 @@ interface TripsStorage {
 }
 
 class MyPreferences(context: Context, private val moshi: Moshi) :
-    AccountDataStorage, VisitsStorage, TripsStorage, PhotoUploadQueueStorage {
+    AccountDataStorage, TripsStorage, PhotoUploadQueueStorage {
 
     private val sharedPreferences: SharedPreferences =
         context.getSharedPreferences("hyper_track_pref", Context.MODE_PRIVATE)
@@ -96,20 +91,6 @@ class MyPreferences(context: Context, private val moshi: Moshi) :
                                 .adapter(BasicAuthAccessTokenConfig::class.java)
                                 .toJson(repo.getConfig() as BasicAuthAccessTokenConfig)
                 )?.apply()
-    }
-
-    override fun saveVisits(visits: List<Visit>) {
-        sharedPreferences.edit().putString(VISITS_KEY, visitsListAdapter.toJson(visits))?.apply()
-    }
-
-    override fun restoreVisits(): List<Visit> {
-        try {
-            return visitsListAdapter
-                .fromJson(sharedPreferences.getString(VISITS_KEY, "[]")!!) ?: emptyList()
-        } catch (e: Throwable) {
-            Log.w(TAG, "Can't deserialize visits ${e.message}")
-        }
-        return emptyList()
     }
 
     override suspend fun saveTrips(trips: List<LocalTrip>) {

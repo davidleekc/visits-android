@@ -21,7 +21,6 @@ import com.hypertrack.android.ui.common.util.SnackbarUtil
 import com.hypertrack.android.ui.common.util.setGoneState
 import com.hypertrack.android.utils.Factory
 import com.hypertrack.android.utils.MyApplication
-import com.hypertrack.android.view_models.HistoryViewModel
 import com.hypertrack.logistics.android.github.R
 import kotlinx.android.synthetic.main.fragment_tab_map_webview.*
 import kotlinx.android.synthetic.main.progress_bar.*

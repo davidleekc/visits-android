@@ -1,5 +1,6 @@
 package com.hypertrack.android
 
+import com.hypertrack.android.utils.toNote
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

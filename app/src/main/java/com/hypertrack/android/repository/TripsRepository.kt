@@ -114,7 +114,7 @@ class TripsRepositoryImpl(
 
     private suspend fun updateTrip(remoteTrip: Trip) {
         trips.postValue(trips.value!!.map {
-            if (it.id == remoteTrip.tripId) {
+            if (it.id == remoteTrip.id) {
                 localTripFromRemote(
                     remoteTrip,
                     localOrdersFromRemote(
@@ -158,8 +158,8 @@ class TripsRepositoryImpl(
         } else {
             val localTrips = tripsStorage.getTrips().toMap { it.id }
             val newTrips = remoteTrips.map { remoteTrip ->
-                if (remoteTrip.tripId in localTrips.keys) {
-                    val localTrip = localTrips.getValue(remoteTrip.tripId)
+                if (remoteTrip.id in localTrips.keys) {
+                    val localTrip = localTrips.getValue(remoteTrip.id)
                     val remoteOrders = (remoteTrip.orders ?: listOf())
                     val localOrders = localTrip.orders
 
@@ -182,7 +182,7 @@ class TripsRepositoryImpl(
     }
 
     private suspend fun localTripFromLegacyRemoteTrip(legacyTrip: Trip): LocalTrip {
-        val oldLocalOrders = trips.value!!.firstOrNull { it.id == legacyTrip._id }
+        val oldLocalOrders = trips.value!!.firstOrNull { it.id == legacyTrip.id }
             ?.orders ?: listOf()
         return localTripFromRemote(
             legacyTrip,
@@ -197,7 +197,7 @@ class TripsRepositoryImpl(
     @Suppress("UNCHECKED_CAST")
     private fun localTripFromRemote(remoteTrip: Trip, newLocalOrders: List<LocalOrder>): LocalTrip {
         return LocalTrip(
-            remoteTrip.tripId,
+            remoteTrip.id,
             TripStatus.fromString(remoteTrip.status),
             ((remoteTrip.metadata ?: mapOf<String, String>())
                 .filter { it.value is String } as Map<String, String>)
@@ -227,7 +227,7 @@ class TripsRepositoryImpl(
 
     private fun createLegacyRemoteOrder(trip: Trip): Order {
         return Order(
-            id = trip._id,
+            id = trip.id,
             destination = trip.destination!!,
             _status = OrderStatus.ONGOING.value,
             scheduledAt = null,

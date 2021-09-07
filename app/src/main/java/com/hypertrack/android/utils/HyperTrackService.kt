@@ -4,10 +4,9 @@ import android.location.Location
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
-import com.hypertrack.android.models.Visit
-import com.hypertrack.android.models.VisitStatus
 import com.hypertrack.android.models.local.LocalOrder
 import com.hypertrack.android.ui.common.util.nullIfBlank
+import com.hypertrack.android.ui.screens.visits_management.tabs.places.Visit
 import com.hypertrack.sdk.HyperTrack
 import com.hypertrack.sdk.TrackingError
 import com.hypertrack.sdk.TrackingStateObserver
@@ -58,17 +57,6 @@ class HyperTrackService(
         })
     }
 
-    fun sendCompletionEvent(visit: Visit) {
-        val payload = mapOf(
-            visit.typeKey to visit._id,
-            "type" to if (visit.state == VisitStatus.COMPLETED) Constants.VISIT_MARKED_COMPLETE else Constants.VISIT_MARKED_CANCELED,
-            "visit_note" to visit.visitNote,
-            "_visit_photos" to visit.photos.map { it.imageId }.toSet()
-        )
-        sdkInstance.addGeotag(payload, visit.expectedLocation)
-        crashReportsProvider?.log("sendCompletionEvent ${visit._id}")
-    }
-
     fun sendCompletionEvent(legacyOrder: LocalOrder, canceled: Boolean) {
         val payload = mapOf(
             "trip_id" to legacyOrder.id,
@@ -98,14 +86,14 @@ class HyperTrackService(
         sdkInstance.addGeotag(mapOf(typeKey to id, "type" to Constants.PICK_UP))
     }
 
-    fun clockOut() {
-        crashReportsProvider?.log("clockOut")
-        sdkInstance.stop()
-    }
-
-    fun clockIn() {
+    fun startTracking() {
         crashReportsProvider?.log("clockIn")
         sdkInstance.start()
+    }
+
+    fun stopTracking() {
+        crashReportsProvider?.log("clockOut")
+        sdkInstance.stop()
     }
 
     fun syncDeviceSettings() {

@@ -6,7 +6,6 @@ import com.hypertrack.android.api.BackendException
 import com.hypertrack.android.api.LiveAccountApi
 import com.hypertrack.android.repository.AccountRepository
 import com.hypertrack.android.repository.DriverRepository
-import com.hypertrack.android.toBase64
 import com.hypertrack.android.utils.*
 import java.util.*
 import javax.inject.Provider

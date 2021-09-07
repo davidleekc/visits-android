@@ -2,7 +2,6 @@ package com.hypertrack.android.api
 
 import android.graphics.Bitmap
 import android.util.Log
-import com.fonfon.kgeohash.GeoHash
 import com.google.android.gms.maps.model.LatLng
 import com.hypertrack.android.models.*
 import com.hypertrack.android.models.local.OrderStatus
@@ -162,7 +161,7 @@ class ApiClient(
             if (response.isSuccessful) {
                 // Log.v(TAG, "Got response ${response.body()}")
                 return response.body()?.trips?.filterNot {
-                    it.destination == null || it.tripId.isEmpty()
+                    it.destination == null || it.id.isEmpty()
                 }
                     ?: emptyList()
             }
@@ -258,7 +257,7 @@ class ApiClient(
                     ShareableTripSuccess(
                         trip.views.shareUrl,
                         trip.views.embedUrl,
-                        trip.tripId,
+                        trip.id,
                         trip.estimate?.route?.remainingDuration
                     )
                 } else CreateTripError(HttpException(this))

@@ -1,4 +1,4 @@
-package com.hypertrack.android
+package com.hypertrack.android.utils
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory

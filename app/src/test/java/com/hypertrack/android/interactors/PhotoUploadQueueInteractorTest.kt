@@ -3,12 +3,12 @@ package com.hypertrack.android.interactors
 import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Looper
-import com.hypertrack.android.RetryParams
 import com.hypertrack.android.api.ApiClient
 import com.hypertrack.android.repository.FileRepository
 import com.hypertrack.android.utils.CrashReportsProvider
 import com.hypertrack.android.utils.ImageDecoder
 import com.hypertrack.android.utils.MAX_IMAGE_SIDE_LENGTH_PX
+import com.hypertrack.android.utils.RetryParams
 import io.mockk.coEvery
 import io.mockk.coVerifyAll
 import io.mockk.every

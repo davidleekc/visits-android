@@ -70,11 +70,6 @@
     <string name="cancel_visit_confirmation">Are you sure you want to cancel this visit?</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
-    <string-array name="visit_state_group_names">
-        <item>@string/pending</item>
-        <item>@string/visited</item>
-        <item>@string/completed</item>
-    </string-array>
     <string name="duration">%1$d hr, %2$d min</string>
     <string name="duration_minutes">%1$d min</string>
     <string name="steps">%1$d steps</string>

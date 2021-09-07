@@ -21,7 +21,6 @@ import com.hypertrack.android.ui.common.KeyValueItem
 import com.hypertrack.android.ui.common.delegates.OrderAddressDelegate
 import com.hypertrack.android.ui.common.util.format
 import com.hypertrack.android.ui.common.util.requireValue
-import com.hypertrack.android.ui.screens.visit_details.VisitDetailsFragment
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.logistics.android.github.R
 import kotlinx.coroutines.CoroutineScope
@@ -166,7 +165,7 @@ class OrderDetailsViewModel(
 
             activity.startActivityForResult(
                 osUtilsProvider.createTakePictureIntent(activity, file),
-                VisitDetailsFragment.REQUEST_IMAGE_CAPTURE
+                REQUEST_IMAGE_CAPTURE
             )
         } catch (e: Exception) {
             errorHandler.postText(R.string.cannot_create_file_msg)
@@ -174,7 +173,7 @@ class OrderDetailsViewModel(
     }
 
     fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (requestCode == VisitDetailsFragment.REQUEST_IMAGE_CAPTURE && resultCode == AppCompatActivity.RESULT_OK) {
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == AppCompatActivity.RESULT_OK) {
             viewModelScope.launch {
                 currentPhotoPath?.let {
                     loadingStateBase.postValue(true)
@@ -271,6 +270,10 @@ class OrderDetailsViewModel(
                     }
                 }
         )
+    }
+
+    companion object {
+        const val REQUEST_IMAGE_CAPTURE = 1
     }
 
 }

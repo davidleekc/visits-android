@@ -2,7 +2,6 @@ package com.hypertrack.android.interactors
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.asLiveData
 import com.google.android.gms.maps.model.LatLng
 import com.hypertrack.android.api.*
 import com.hypertrack.android.createBaseOrder
@@ -16,17 +15,11 @@ import com.hypertrack.android.models.local.TripStatus
 import com.hypertrack.android.observeAndAssertNull
 import com.hypertrack.android.observeAndGetValue
 import com.hypertrack.android.repository.*
-import com.hypertrack.android.ui.common.select_destination.DestinationData
-import com.hypertrack.android.ui.screens.visits_management.tabs.current_trip.CurrentTripViewModel
 import com.hypertrack.android.utils.HyperTrackService
-import com.hypertrack.android.utils.Injector
 import io.mockk.*
 import io.mockk.coVerify
 import junit.framework.Assert.*
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.TestCoroutineScope
 import org.junit.Rule
@@ -100,7 +93,7 @@ class TripInteractorTest {
     fun `it should get orders list for current trip (first with ongoing status)`() {
         val backendOrders = listOf(
             createBaseTrip().copy(
-                tripId = "tripId",
+                id = "tripId",
                 status = TripStatus.ACTIVE.value, orders = listOf<Order>(
                     createBaseOrder().copy(
                         id = "1",
@@ -117,7 +110,7 @@ class TripInteractorTest {
                 )
             ),
             createBaseTrip().copy(
-                tripId = "tripId1",
+                id = "tripId1",
                 status = TripStatus.ACTIVE.value, orders = listOf(
                     createBaseOrder().copy(
                         _status = OrderStatus.ONGOING.value
@@ -302,7 +295,7 @@ class TripInteractorTest {
     fun `it should persist local orders state when refreshing trip for legacy trip`() {
         val backendTrips = listOf(
             createBaseTrip().copy(
-                tripId = "tripId",
+                id = "tripId",
                 orders = null
             ),
         )
@@ -330,7 +323,7 @@ class TripInteractorTest {
     @Test
     fun `it should complete order on order complete`() {
         val trip = createBaseTrip().copy(
-            tripId = "3", status = TripStatus.ACTIVE.value, orders = listOf(
+            id = "3", status = TripStatus.ACTIVE.value, orders = listOf(
                 createBaseOrder().copy(id = "1"),
                 createBaseOrder().copy(id = "2"),
             )
@@ -361,7 +354,7 @@ class TripInteractorTest {
     @Test
     fun `it should cancel order on order cancel`() {
         val trip = createBaseTrip().copy(
-            tripId = "3", status = TripStatus.ACTIVE.value, orders = listOf(
+            id = "3", status = TripStatus.ACTIVE.value, orders = listOf(
                 createBaseOrder().copy(id = "1"),
                 createBaseOrder().copy(id = "2"),
             )
@@ -393,7 +386,7 @@ class TripInteractorTest {
     fun `it should update metadata before order completion or cancellation if it was changed`() {
         val backendTrips = listOf(
             createBaseTrip().copy(
-                tripId = "3", status = TripStatus.ACTIVE.value, orders = listOf(
+                id = "3", status = TripStatus.ACTIVE.value, orders = listOf(
                     createBaseOrder().copy(id = "1"),
                     createBaseOrder().copy(id = "2"),
                     createBaseOrder().copy(id = "3"),

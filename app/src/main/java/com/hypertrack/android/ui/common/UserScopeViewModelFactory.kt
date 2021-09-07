@@ -24,7 +24,7 @@ import com.hypertrack.android.ui.screens.visits_management.tabs.orders.OrdersLis
 import com.hypertrack.android.ui.screens.visits_management.tabs.places.PlacesViewModel
 import com.hypertrack.android.ui.screens.visits_management.tabs.places.PlacesVisitsViewModel
 import com.hypertrack.android.utils.*
-import com.hypertrack.android.view_models.HistoryViewModel
+import com.hypertrack.android.ui.screens.visits_management.tabs.history.HistoryViewModel
 import javax.inject.Provider
 
 @Suppress("UNCHECKED_CAST")
@@ -101,9 +101,9 @@ class UserScopeViewModelFactory(
                 osUtilsProvider
             ) as T
             VisitsManagementViewModel::class.java -> VisitsManagementViewModel(
-                userScopeProvider.get().visitsRepository,
                 userScopeProvider.get().historyInteractor,
                 accountRepository,
+                hyperTrackService,
                 crashReportsProvider,
                 osUtilsProvider,
                 accessTokenRepository

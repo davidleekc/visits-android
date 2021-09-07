@@ -82,6 +82,12 @@ class OrdersFragment : BaseFragment<MainActivity>(R.layout.fragment_orders) {
         }
     }
 
+    fun refresh() {
+        if (isAdded) {
+            vm.onRefresh()
+        }
+    }
+
     companion object {
         fun newInstance() = OrdersFragment()
     }
