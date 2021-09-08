@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
+import android.util.Log
 import com.google.android.libraries.places.api.Places
 import com.hypertrack.logistics.android.github.BuildConfig
 import com.hypertrack.logistics.android.github.R
@@ -34,6 +35,8 @@ class MyApplication : Application() {
         buildNotificationChannels()
 
         injector.batteryLevelMonitor.init(this)
+
+        Log.w("hypertrack-verbose", "app start")
     }
 
     private fun buildNotificationChannels() {

@@ -61,10 +61,10 @@ class UserScopeViewModelFactory(
                 integrationsRepository
             ) as T
             AddPlaceViewModel::class.java -> AddPlaceViewModel(
+                userScopeProvider.get().placesInteractor,
+                userScopeProvider.get().googlePlacesInteractor,
                 osUtilsProvider,
-                placesClient,
-                deviceLocationProvider,
-                placesInteractor
+                deviceLocationProvider
             ) as T
             CurrentTripViewModel::class.java -> CurrentTripViewModel(
                 tripsInteractor,
@@ -75,9 +75,9 @@ class UserScopeViewModelFactory(
                 crashReportsProvider
             ) as T
             SelectDestinationViewModel::class.java -> SelectDestinationViewModel(
-                placesInteractor,
+                userScopeProvider.get().placesInteractor,
+                userScopeProvider.get().googlePlacesInteractor,
                 osUtilsProvider,
-                placesClient,
                 deviceLocationProvider
             ) as T
             PlacesViewModel::class.java -> PlacesViewModel(
@@ -116,8 +116,8 @@ class UserScopeViewModelFactory(
                 crashReportsProvider,
             ) as T
             SelectTripDestinationViewModel::class.java -> SelectTripDestinationViewModel(
-                placesInteractor,
-                placesClient,
+                userScopeProvider.get().placesInteractor,
+                userScopeProvider.get().googlePlacesInteractor,
                 deviceLocationProvider,
                 osUtilsProvider,
             ) as T

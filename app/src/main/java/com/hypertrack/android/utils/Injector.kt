@@ -222,10 +222,15 @@ object Injector {
             osUtilsProvider
         )
 
+        val googlePlacesInteractor = GooglePlacesInteractorImpl(
+            placesClient
+        )
+
         val userScope = UserScope(
             tripsInteractor,
             placesInteractor,
             placesVisitsInteractor,
+            googlePlacesInteractor,
             historyInteractor,
             feedbackInteractor,
             integrationsRepository,
@@ -396,6 +401,7 @@ class UserScope(
     val tripsInteractor: TripsInteractor,
     val placesInteractor: PlacesInteractor,
     val placesVisitsInteractor: PlacesVisitsInteractor,
+    val googlePlacesInteractor: GooglePlacesInteractor,
     val historyInteractor: HistoryInteractor,
     val feedbackInteractor: FeedbackInteractor,
     val integrationsRepository: IntegrationsRepository,

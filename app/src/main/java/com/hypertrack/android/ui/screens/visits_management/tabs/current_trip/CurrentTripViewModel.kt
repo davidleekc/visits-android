@@ -14,10 +14,7 @@ import com.hypertrack.android.models.local.LocalTrip
 import com.hypertrack.android.models.local.OrderStatus
 import com.hypertrack.android.repository.TripCreationError
 import com.hypertrack.android.repository.TripCreationSuccess
-import com.hypertrack.android.ui.base.BaseViewModel
-import com.hypertrack.android.ui.base.Consumable
-import com.hypertrack.android.ui.base.ZipLiveData
-import com.hypertrack.android.ui.base.ZipNotNullableLiveData
+import com.hypertrack.android.ui.base.*
 import com.hypertrack.android.ui.common.HypertrackMapWrapper
 import com.hypertrack.android.ui.common.delegates.GeofencesMapDelegate
 import com.hypertrack.android.ui.common.util.nullIfEmpty
@@ -54,14 +51,17 @@ class CurrentTripViewModel(
     private val map = MutableLiveData<GoogleMap>()
     private lateinit var geofencesMapDelegate: GeofencesMapDelegate
 
-    override val exception = MediatorLiveData<Consumable<Exception>>().apply {
-        addSource(tripsInteractor.errorFlow.asLiveData()) {
-            postValue(it)
-        }
-        addSource(placesInteractor.errorFlow.asLiveData()) {
-            postValue(it)
-        }
-    }
+    override val errorHandler = ErrorHandler(
+        osUtilsProvider,
+        exceptionSource = MediatorLiveData<Consumable<Exception>>().apply {
+            addSource(tripsInteractor.errorFlow.asLiveData()) {
+                postValue(it)
+            }
+            addSource(placesInteractor.errorFlow.asLiveData()) {
+                postValue(it)
+            }
+        })
+
     val trip = MediatorLiveData<LocalTrip?>()
     val userLocation = MutableLiveData<LatLng?>()
     val showWhereAreYouGoing: LiveData<Boolean> =
@@ -224,7 +224,7 @@ class CurrentTripViewModel(
                 is TripCreationSuccess -> {
                 }
                 is TripCreationError -> {
-                    errorBase.postValue(Consumable(osUtilsProvider.getErrorMessage(res.exception)))
+                    errorHandler.postException(res.exception)
                 }
             }
             loadingStateBase.postValue(false)

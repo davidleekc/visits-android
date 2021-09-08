@@ -1,14 +1,16 @@
 package com.hypertrack.android.ui.common
 
 import android.graphics.Color
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
-import com.google.android.gms.maps.model.CircleOptions
-import com.google.android.gms.maps.model.MarkerOptions
-import com.google.android.gms.maps.model.PolygonOptions
+import com.google.android.gms.maps.model.*
 import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.logistics.android.github.R
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class HypertrackMapWrapper(
     val googleMap: GoogleMap,
@@ -92,4 +94,27 @@ class HypertrackMapWrapper(
         )
     }
 
+    fun moveCamera(latLng: LatLng) {
+        GlobalScope.launch(Dispatchers.Main) {
+            googleMap.moveCamera(latLng)
+        }
+    }
+
+    override fun toString(): String {
+        return javaClass.simpleName
+    }
+
+    companion object {
+        const val DEFAULT_ZOOM = 13f
+    }
+
 }
+
+fun GoogleMap.moveCamera(latLng: LatLng) {
+    moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, HypertrackMapWrapper.DEFAULT_ZOOM))
+}
+
+val GoogleMap.viewportPosition: LatLng
+    get() {
+        return cameraPosition.target
+    }

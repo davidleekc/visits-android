@@ -6,7 +6,9 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
+import com.google.android.gms.maps.model.LatLng
 import com.hypertrack.android.utils.MyApplication
+import kotlin.math.abs
 
 object Utils {
     fun hideKeyboard(activity: Activity) {
@@ -61,5 +63,10 @@ fun String?.isEmail(): Boolean {
     return if (this != null) {
         return Patterns.EMAIL_ADDRESS.matcher(this).matches()
     } else false
+}
+
+fun LatLng.isNearZero(): Boolean {
+    return abs(latitude) < 0.1
+            && abs(longitude) < 0.1
 }
 

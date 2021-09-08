@@ -201,6 +201,7 @@
     <string name="profile_report_sent">App state is successfully reported</string>
 
     <string name="select_destination">Select destination</string>
+    <string name="select_destination_button">Select</string>
 
     <string name="feedback_text">Enter description of your issue\n\nPlease include steps that is needed to perform to reproduce it (if it possible)</string>
     <string name="feedback_send">Send feedback</string>

@@ -17,11 +17,4 @@ open class AddOrderFragment : SelectDestinationFragment() {
         MyApplication.injector.provideParamVmFactory(args.tripId)
     }
 
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        toolbar.title = getString(R.string.select_destination)
-    }
-
 }
