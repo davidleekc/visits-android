@@ -18,6 +18,8 @@ import com.hypertrack.android.ui.common.select_destination.reducer.*
 import com.hypertrack.android.ui.common.util.nullIfEmpty
 import com.hypertrack.android.ui.screens.add_place.AddPlaceFragmentDirections
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
+import com.hypertrack.android.utils.CrashReportsProvider
+import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.android.utils.asNonEmpty
 import kotlinx.coroutines.async
@@ -28,6 +30,7 @@ open class SelectDestinationViewModel(
     private val googlePlacesInteractor: GooglePlacesInteractor,
     private val osUtilsProvider: OsUtilsProvider,
     private val deviceLocationProvider: DeviceLocationProvider,
+    private val crashReportsProvider: CrashReportsProvider
 ) : BaseViewModel(osUtilsProvider) {
 
     private val reducer = SelectDestinationViewModelReducer()
@@ -56,10 +59,21 @@ open class SelectDestinationViewModel(
 
     protected fun sendAction(action: Action) {
         viewModelScope.launch {
-            Log.v("hypertrack-verbose", "action = ${action}")
-            val res = reducer.reduceAction(state, action)
-            applyState(res.newState)
-            applyEffects(res.effects)
+            val actionLog = "action = $action"
+//            Log.v("hypertrack-verbose", actionLog)
+            crashReportsProvider.log(actionLog)
+            try {
+                val res = reducer.reduceAction(state, action)
+                applyState(res.newState)
+                applyEffects(res.effects)
+            } catch (e: Exception) {
+                if (MyApplication.DEBUG_MODE) {
+                    throw e
+                } else {
+                    errorHandler.postException(e)
+                    crashReportsProvider.logException(e)
+                }
+            }
         }
     }
 
@@ -81,12 +95,16 @@ open class SelectDestinationViewModel(
             }
         }.let { }
         this.state = state
-        Log.v("hypertrack-verbose", "new state = $state")
+        val stateLog = "new state = $state"
+//        Log.v("hypertrack-verbose", stateLog)
+        crashReportsProvider.log(stateLog)
     }
 
     private fun applyEffects(effects: Set<Effect>) {
         for (effect in effects) {
-            Log.v("hypertrack-verbose", "effect = $effect")
+            val effectLog = "effect = $effect"
+//            Log.v("hypertrack-verbose", effectLog)
+            crashReportsProvider.log(effectLog)
             when (effect) {
                 is DisplayAddress -> {
                     address.postValue(effect.address)

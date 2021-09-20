@@ -12,6 +12,9 @@ fun <T> List<T>.applyAddAll(toAdd: List<T>): List<T> {
     return toMutableList().apply { addAll(toAdd) }
 }
 
+class IllegalActionException(action: Any, state: Any) :
+    IllegalStateException("Illegal action $action for state $state")
+
 sealed class AlgBoolean
 object True : AlgBoolean() {
     override fun toString(): String {

@@ -3,6 +3,7 @@ package com.hypertrack.android.ui.common.select_destination.reducer
 import com.google.android.gms.maps.model.LatLng
 import com.hypertrack.android.ui.common.util.isNearZero
 import com.hypertrack.android.utils.False
+import com.hypertrack.android.utils.IllegalActionException
 
 class SelectDestinationViewModelReducer {
 
@@ -96,8 +97,7 @@ class SelectDestinationViewModelReducer {
                     is AutocompleteIsActive -> reduce(action, state, state.mapLocationState)
                     is Initial -> reduce(action, state, state.mapLocationState)
                     is MapIsActive -> reduce(action, state, state.mapLocationState)
-                    //todo ISE
-                    is Confirmed -> state
+                    is Confirmed -> throw IllegalActionException(action, state)
                 }.withEffects(CloseKeyboard)
             }
             ConfirmClicked -> {
@@ -128,15 +128,16 @@ class SelectDestinationViewModelReducer {
                             )
                         )
                     }
-                    //todo ISE
-                    is Initial, is MapIsActive, is Confirmed -> state
+                    is Initial, is MapIsActive, is Confirmed -> throw IllegalActionException(
+                        action,
+                        state
+                    )
                 }.withEffects(CloseKeyboard)
             }
             Reset -> {
                 when (state) {
                     is Confirmed -> state.lastState
-                    //todo ise
-                    else -> state
+                    else -> throw IllegalActionException(action, state)
                 }.asReducerResult()
             }
         }
@@ -181,8 +182,7 @@ class SelectDestinationViewModelReducer {
 
     private fun reduce(action: MapCameraMoved, state: MapLocationState): MapLocationState {
         return when (state.map) {
-            //todo ISE
-            MapNotReady -> state
+            MapNotReady -> throw IllegalActionException(action, state)
             is MapReady -> {
                 state.withPosition(state.map, action.latLng)
             }

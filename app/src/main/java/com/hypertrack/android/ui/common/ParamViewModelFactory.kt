@@ -70,6 +70,7 @@ class ParamViewModelFactory<T>(
                 userScopeProvider.get().googlePlacesInteractor,
                 deviceLocationProvider,
                 osUtilsProvider,
+                crashReportsProvider
             ) as T
             else -> throw IllegalArgumentException("Can't instantiate class $modelClass")
         }

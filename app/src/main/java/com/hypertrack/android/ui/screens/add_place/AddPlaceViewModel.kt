@@ -13,6 +13,7 @@ import com.hypertrack.android.ui.common.select_destination.reducer.Proceed
 import com.hypertrack.android.ui.common.select_destination.reducer.Reset
 import com.hypertrack.android.ui.common.select_destination.toDestinationData
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
+import com.hypertrack.android.utils.CrashReportsProvider
 import com.hypertrack.android.utils.OsUtilsProvider
 import kotlinx.coroutines.launch
 
@@ -21,12 +22,14 @@ class AddPlaceViewModel(
     private val placesInteractor: PlacesInteractor,
     private val googlePlacesInteractor: GooglePlacesInteractor,
     private val osUtilsProvider: OsUtilsProvider,
-    private val deviceLocationProvider: DeviceLocationProvider
+    private val deviceLocationProvider: DeviceLocationProvider,
+    private val crashReportsProvider: CrashReportsProvider
 ) : SelectDestinationViewModel(
     placesInteractor,
     googlePlacesInteractor,
     osUtilsProvider,
-    deviceLocationProvider
+    deviceLocationProvider,
+    crashReportsProvider
 ) {
     val adjacentGeofenceDialog = MutableLiveData<Consumable<DestinationData>>()
 
