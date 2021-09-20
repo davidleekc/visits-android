@@ -203,11 +203,9 @@ open class SelectDestinationViewModel(
                 place.latLng?.let { ll ->
                     sendAction(
                         PlaceSelectedAction(
-                            addressDelegate.displayAddress(place),
-                            //todo strictAddress
-//                            osUtilsProvider.strictAddress(place),
-                            null,
-                            place.name,
+                            displayAddress = addressDelegate.displayAddress(place),
+                            strictAddress = addressDelegate.strictAddress(place),
+                            name = place.name,
                             ll
                         )
                     )
