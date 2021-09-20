@@ -22,7 +22,6 @@ class GooglePlacesSearchDelegate(
         // and once again when the user makes a selection (for example when calling selectPlace()).
         if (token == null) {
             token = googlePlacesInteractor.createSessionToken()
-            Log.v("hypertrack-verbose", "token created ${token}")
         }
 
         return googlePlacesInteractor.getPlaces(query, token!!, location)

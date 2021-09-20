@@ -1,5 +1,6 @@
 package com.hypertrack.android.interactors
 
+import android.util.Log
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken
 import com.google.android.libraries.places.api.model.Place
@@ -35,6 +36,9 @@ class GooglePlacesInteractorImpl(
 
     override fun createSessionToken(): AutocompleteSessionToken {
         return AutocompleteSessionToken.newInstance()
+//            .also {
+//                Log.v("hypertrack-verbose", "token created ${it}")
+//            }
     }
 
     override suspend fun getPlaces(
@@ -77,12 +81,11 @@ class GooglePlacesInteractorImpl(
 
         placesClient.fetchPlace(request)
             .addOnSuccessListener { response: FetchPlaceResponse ->
+//                Log.v("hypertrack-verbose", "place fetched fot token $token")
                 it.resume(response.place)
-                val place = response.place
-
             }
-            .addOnFailureListener { exception: java.lang.Exception ->
-                //todo handle error
+            .addOnFailureListener { e: java.lang.Exception ->
+                it.resumeWithException(e)
             }
     }
 

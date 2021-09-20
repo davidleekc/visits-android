@@ -119,20 +119,29 @@ class SelectDestinationViewModelReducer {
             is PlaceSelectedAction -> {
                 when (state) {
                     is AutocompleteIsActive -> {
-                        MapIsActive(
-                            state.mapLocationState, PlaceSelected(
-                                displayAddress = action.displayAddress,
-                                strictAddress = action.strictAddress,
-                                name = action.name,
-                                latLng = action.latLng
-                            )
-                        )
+                        when (val map = state.mapLocationState.map) {
+                            is MapReady -> {
+                                MapIsActive(
+                                    state.mapLocationState, PlaceSelected(
+                                        displayAddress = action.displayAddress,
+                                        strictAddress = action.strictAddress,
+                                        name = action.name,
+                                        latLng = action.latLng
+                                    )
+                                ).withEffects(
+                                    CloseKeyboard,
+                                    RemoveSearchFocus,
+                                    MoveMap(action.latLng, map.mapWrapper)
+                                )
+                            }
+                            else -> throw IllegalActionException(action, state)
+                        }
                     }
                     is Initial, is MapIsActive, is Confirmed -> throw IllegalActionException(
                         action,
                         state
                     )
-                }.withEffects(CloseKeyboard)
+                }
             }
             Reset -> {
                 when (state) {
