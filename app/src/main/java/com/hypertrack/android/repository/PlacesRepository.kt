@@ -9,6 +9,7 @@ import com.hypertrack.android.interactors.GeofenceSuccess
 import com.hypertrack.android.models.GeofenceMetadata
 import com.hypertrack.android.models.Integration
 import com.hypertrack.android.models.local.LocalGeofence
+import com.hypertrack.android.models.local.LocalGeofenceVisit
 import com.hypertrack.android.ui.common.DataPage
 import com.hypertrack.android.ui.common.util.nullIfBlank
 import com.hypertrack.android.utils.CrashReportsProvider
@@ -25,7 +26,7 @@ interface PlacesRepository {
         gh: GeoHash? = null
     ): GeofencesPage
 
-    suspend fun loadAllGeofencesVisitsPage(pageToken: String?): DataPage<GeofenceVisit>
+    suspend fun loadAllGeofencesVisitsPage(pageToken: String?): DataPage<LocalGeofenceVisit>
     suspend fun createGeofence(
         latitude: Double,
         longitude: Double,
@@ -69,11 +70,14 @@ class PlacesRepositoryImpl(
 
     override suspend fun loadAllGeofencesVisitsPage(
         pageToken: String?,
-    ): DataPage<GeofenceVisit> {
+    ): DataPage<LocalGeofenceVisit> {
         return apiClient.getAllGeofencesVisits(pageToken).let {
-            DataPage(it.visits.filter { visit ->
-                visit.deviceId == deviceId
-            }, it.paginationToken)
+            DataPage(
+                it.visits.filter { visit ->
+                    visit.deviceId == deviceId
+                }.map { LocalGeofenceVisit.fromVisit(it) },
+                it.paginationToken
+            )
         }
     }
 

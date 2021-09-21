@@ -6,7 +6,6 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.net.PlacesClient
-import com.hypertrack.android.RetryParams
 import com.hypertrack.android.api.*
 import com.hypertrack.android.interactors.*
 import com.hypertrack.android.models.AbstractBackendProvider
@@ -17,8 +16,6 @@ import com.hypertrack.android.ui.common.UserScopeViewModelFactory
 import com.hypertrack.android.ui.common.ViewModelFactory
 import com.hypertrack.android.ui.common.select_destination.DestinationData
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.*
-import com.hypertrack.android.utils.injection.CustomFragmentFactory
-import com.hypertrack.android.view_models.VisitDetailsViewModel
 import com.hypertrack.logistics.android.github.R
 import com.hypertrack.sdk.HyperTrack
 import com.hypertrack.sdk.ServiceNotificationConfig
@@ -110,19 +107,6 @@ object Injector {
         return getUserScope().userScopeViewModelFactory
     }
 
-    fun provideVisitStatusViewModel(context: Context, visitId: String): VisitDetailsViewModel {
-        return VisitDetailsViewModel(
-            getVisitsRepo(context),
-            getVisitsInteractor(),
-            visitId,
-            getOsUtilsProvider(MyApplication.context)
-        )
-    }
-
-    private fun isTwmoEnabled(): Boolean {
-        return MyApplication.TWMO_ENABLED
-    }
-
     fun provideTabs(): List<Tab> = mutableListOf<Tab>().apply {
         addAll(
             listOf(
@@ -130,13 +114,7 @@ object Injector {
                 Tab.HISTORY,
             )
         )
-        add(
-            if (isTwmoEnabled()) {
-                Tab.ORDERS
-            } else {
-                Tab.VISITS
-            }
-        )
+        add(Tab.ORDERS)
         addAll(
             listOf(
                 Tab.PLACES,
@@ -192,31 +170,6 @@ object Injector {
         )
         val hyperTrackService = serviceLocator.getHyperTrackService(publishableKey)
 
-        val visitsRepo = VisitsRepository(
-            permissionsInteractor,
-            osUtilsProvider,
-            apiClient,
-            myPreferences,
-            hyperTrackService,
-            accountRepository,
-            deviceLocationProvider
-        )
-
-        val photoUploadInteractor = PhotoUploadInteractorImpl(
-            visitsRepo,
-            fileRepository,
-            crashReportsProvider,
-            imageDecoder,
-            apiClient,
-            scope,
-            RetryParams(
-                retryTimes = 3,
-                initialDelay = 1000,
-                factor = 10.0,
-                maxDelay = 30 * 1000
-            )
-        )
-
         val photoUploadQueueInteractor = PhotoUploadQueueInteractorImpl(
             myPreferences,
             fileRepository,
@@ -269,15 +222,18 @@ object Injector {
             osUtilsProvider
         )
 
+        val googlePlacesInteractor = GooglePlacesInteractorImpl(
+            placesClient
+        )
+
         val userScope = UserScope(
             tripsInteractor,
             placesInteractor,
             placesVisitsInteractor,
+            googlePlacesInteractor,
             historyInteractor,
             feedbackInteractor,
-            visitsRepo,
             integrationsRepository,
-            photoUploadInteractor,
             hyperTrackService,
             photoUploadQueueInteractor,
             apiClient,
@@ -389,14 +345,6 @@ object Injector {
     private fun getMyPreferences(context: Context): MyPreferences =
         MyPreferences(context, getMoshi())
 
-    private fun getVisitsInteractor(): VisitsInteractor {
-        return VisitsInteractorImpl(
-            getVisitsRepo(MyApplication.context),
-            getImageDecoder(),
-            getUserScope().photoUploadInteractor
-        )
-    }
-
     fun accessTokenRepository(context: Context): BasicAuthAccessTokenRepository =
         (getMyPreferences(context).restoreRepository()
             ?: throw IllegalStateException("No access token repository was saved"))
@@ -410,10 +358,6 @@ object Injector {
 
     fun getOsUtilsProvider(context: Context): OsUtilsProvider {
         return OsUtilsProvider(context, crashReportsProvider)
-    }
-
-    fun getVisitsRepo(context: Context): VisitsRepository {
-        return getUserScope().visitsRepository
     }
 
     private fun getImageDecoder(): ImageDecoder = SimpleImageDecoder()
@@ -447,22 +391,6 @@ object Injector {
     fun getTimeDistanceFormatter() =
         LocalizedTimeDistanceFormatter(getOsUtilsProvider(MyApplication.context))
 
-    fun getCustomFragmentFactory(applicationContext: Context): FragmentFactory {
-        val publishableKeyProvider: Provider<String> =
-            Provider<String> { getAccountRepo(applicationContext).publishableKey }
-        val hyperTrackServiceProvider = Provider { getUserScope().hyperTrackService }
-        val apiClientProvider: Provider<AbstractBackendProvider> =
-            Provider { getUserScope().apiClient }
-
-        return CustomFragmentFactory(
-            MapStyleOptions.loadRawResourceStyle(applicationContext, R.raw.style_map),
-            MapStyleOptions.loadRawResourceStyle(applicationContext, R.raw.style_map_silver),
-            hyperTrackServiceProvider,
-            { HyperTrackViews.getInstance(applicationContext, publishableKeyProvider.get()) },
-            apiClientProvider
-        )
-    }
-
 }
 
 class TripCreationScope(
@@ -473,11 +401,10 @@ class UserScope(
     val tripsInteractor: TripsInteractor,
     val placesInteractor: PlacesInteractor,
     val placesVisitsInteractor: PlacesVisitsInteractor,
+    val googlePlacesInteractor: GooglePlacesInteractor,
     val historyInteractor: HistoryInteractor,
     val feedbackInteractor: FeedbackInteractor,
-    val visitsRepository: VisitsRepository,
     val integrationsRepository: IntegrationsRepository,
-    val photoUploadInteractor: PhotoUploadInteractor,
     val hyperTrackService: HyperTrackService,
     val photoUploadQueueInteractor: PhotoUploadQueueInteractor,
     val apiClient: ApiClient,

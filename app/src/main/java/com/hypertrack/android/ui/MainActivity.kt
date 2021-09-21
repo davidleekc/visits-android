@@ -2,6 +2,7 @@ package com.hypertrack.android.ui
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.viewModels
 import androidx.navigation.NavDestination
 import androidx.navigation.findNavController
@@ -29,10 +30,7 @@ class MainActivity : NavActivity(), DeeplinkResultListener {
 
     override val navHostId: Int = R.id.navHost
 
-    private val customFragmentFactory = Injector.getCustomFragmentFactory(MyApplication.context)
-
     override fun onCreate(savedInstanceState: Bundle?) {
-        supportFragmentManager.fragmentFactory = customFragmentFactory
         super.onCreate(savedInstanceState)
         tvMockMode.setGoneState(MyApplication.MOCK_MODE.not())
     }
@@ -40,9 +38,10 @@ class MainActivity : NavActivity(), DeeplinkResultListener {
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
         if (intent?.action == Intent.ACTION_SYNC) {
-            if (getCurrentFragment() is VisitsManagementFragment) {
-                //todo share vm
-                (getCurrentFragment() as VisitsManagementFragment).refreshVisits()
+            val currentFragment = getCurrentFragment()
+            if (currentFragment is VisitsManagementFragment) {
+                //todo test
+                currentFragment.refreshOrders()
             } else {
                 findNavController(R.id.root).navigate(NavGraphDirections.actionGlobalVisitManagementFragment())
             }

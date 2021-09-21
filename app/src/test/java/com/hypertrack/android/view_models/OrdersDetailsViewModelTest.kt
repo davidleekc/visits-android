@@ -22,7 +22,7 @@ import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.common.KeyValueItem
 import com.hypertrack.android.ui.common.formatUnderscore
 import com.hypertrack.android.ui.screens.order_details.OrderDetailsViewModel
-import com.hypertrack.android.ui.screens.visit_details.VisitDetailsFragment
+import com.hypertrack.android.ui.screens.order_details.OrderDetailsViewModel.Companion.REQUEST_IMAGE_CAPTURE
 import com.hypertrack.logistics.android.github.R
 import io.mockk.*
 import junit.framework.Assert.*
@@ -187,7 +187,7 @@ class OrdersDetailsViewModelTest {
     fun `it should persist order photos`() {
         runBlocking {
             var trip = createBaseTrip().copy(
-                tripId = "t1",
+                id = "t1",
                 status = TripStatus.ACTIVE.value,
                 orders = listOf(
                     createBaseOrder().copy(id = "1")
@@ -249,7 +249,7 @@ class OrdersDetailsViewModelTest {
             createVm("1", tripsInteractor, false, queueInteractor).let {
                 it.onAddPhotoClicked(mockk(relaxed = true), "")
                 it.onActivityResult(
-                    VisitDetailsFragment.REQUEST_IMAGE_CAPTURE,
+                    REQUEST_IMAGE_CAPTURE,
                     AppCompatActivity.RESULT_OK,
                     null
                 )
@@ -280,7 +280,7 @@ class OrdersDetailsViewModelTest {
         val apiClient = createMockApiClient(
             backendTrips = listOf(
                 createBaseTrip().copy(
-                    tripId = "1",
+                    id = "1",
                     orders = listOf(order)
                 )
             )
@@ -325,7 +325,7 @@ class OrdersDetailsViewModelTest {
         val apiClient = createMockApiClient(
             backendTrips = listOf(
                 createBaseTrip().copy(
-                    tripId = "1",
+                    id = "1",
                     orders = listOf(order)
                 )
             )
@@ -364,7 +364,7 @@ class OrdersDetailsViewModelTest {
     fun `it should upload order photos`() {
         runBlocking {
             var trip = createBaseTrip().copy(
-                tripId = "t1",
+                id = "t1",
                 status = TripStatus.ACTIVE.value,
                 orders = listOf(
                     createBaseOrder().copy(id = "1")
@@ -426,13 +426,13 @@ class OrdersDetailsViewModelTest {
                 )
 
                 it.onActivityResult(
-                    VisitDetailsFragment.REQUEST_IMAGE_CAPTURE,
+                    REQUEST_IMAGE_CAPTURE,
                     AppCompatActivity.RESULT_OK,
                     null
                 )
 
                 it.onActivityResult(
-                    VisitDetailsFragment.REQUEST_IMAGE_CAPTURE,
+                    REQUEST_IMAGE_CAPTURE,
                     AppCompatActivity.RESULT_OK,
                     null
                 )

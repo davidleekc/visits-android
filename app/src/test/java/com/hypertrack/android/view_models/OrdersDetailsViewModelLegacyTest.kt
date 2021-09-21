@@ -17,7 +17,7 @@ import com.hypertrack.android.models.local.TripStatus
 import com.hypertrack.android.observeAndGetValue
 import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.common.util.updateValue
-import com.hypertrack.android.ui.screens.visit_details.VisitDetailsFragment
+import com.hypertrack.android.ui.screens.order_details.OrderDetailsViewModel.Companion.REQUEST_IMAGE_CAPTURE
 import com.hypertrack.android.utils.HyperTrackService
 import com.hypertrack.android.utils.TrackingState
 import com.hypertrack.android.utils.TrackingStateValue
@@ -102,7 +102,7 @@ class OrdersDetailsViewModelLegacyTest {
     fun `it should save note on legacy order completion`() {
         val pickUpAllowed = true
         val tripsInteractor: TripsInteractor = TripInteractorTest.createTripInteractorImpl(
-            backendTrips = listOf(createBaseTrip().copy(tripId = "1", orders = null)),
+            backendTrips = listOf(createBaseTrip().copy(id = "1", orders = null)),
             accountRepository = mockk { coEvery { isPickUpAllowed } returns pickUpAllowed }
         )
         runBlocking {
@@ -120,7 +120,7 @@ class OrdersDetailsViewModelLegacyTest {
     fun `it should save note on exit for legacy order`() {
         val pickUpAllowed = true
         val tripsInteractor: TripsInteractor = TripInteractorTest.createTripInteractorImpl(
-            backendTrips = listOf(createBaseTrip().copy(tripId = "1", orders = null)),
+            backendTrips = listOf(createBaseTrip().copy(id = "1", orders = null)),
             accountRepository = mockk { coEvery { isPickUpAllowed } returns pickUpAllowed }
         )
 
@@ -144,7 +144,7 @@ class OrdersDetailsViewModelLegacyTest {
     @Test
     fun `it should persist order note and photos for legacy order`() {
         val tripsInteractor: TripsInteractor = TripInteractorTest.createTripInteractorImpl(
-            backendTrips = listOf(createBaseTrip().copy(tripId = "1", orders = null)),
+            backendTrips = listOf(createBaseTrip().copy(id = "1", orders = null)),
             accountRepository = mockk { coEvery { isPickUpAllowed } returns false }
         )
         runBlocking {
@@ -168,7 +168,7 @@ class OrdersDetailsViewModelLegacyTest {
         runBlocking {
             val backendTrips = listOf(
                 createBaseTrip().copy(
-                    tripId = "1",
+                    id = "1",
                     status = TripStatus.ACTIVE.value,
                     orders = null
                 ),
@@ -208,7 +208,7 @@ class OrdersDetailsViewModelLegacyTest {
                 )
 
                 it.onActivityResult(
-                    VisitDetailsFragment.REQUEST_IMAGE_CAPTURE,
+                    REQUEST_IMAGE_CAPTURE,
                     AppCompatActivity.RESULT_OK,
                     null
                 )
@@ -225,7 +225,7 @@ class OrdersDetailsViewModelLegacyTest {
         runBlocking {
             val backendTrips = listOf(
                 createBaseTrip().copy(
-                    tripId = "1",
+                    id = "1",
                     status = TripStatus.ACTIVE.value,
                     orders = null
                 ),
@@ -299,7 +299,7 @@ class OrdersDetailsViewModelLegacyTest {
         runBlocking {
             val backendTrips = listOf(
                 createBaseTrip().copy(
-                    tripId = "1",
+                    id = "1",
                     status = TripStatus.ACTIVE.value,
                     orders = null
                 ),
@@ -368,7 +368,7 @@ class OrdersDetailsViewModelLegacyTest {
         runBlocking {
             val backendTrips = listOf(
                 createBaseTrip().copy(
-                    tripId = "1",
+                    id = "1",
                     status = TripStatus.ACTIVE.value,
                     orders = null
                 ),

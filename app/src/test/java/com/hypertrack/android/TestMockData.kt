@@ -325,4 +325,41 @@ object TestMockData {
             }
         """.trimIndent()
 
+    val VISIT_WITH_TRACKING_STOPPED_EXIT = """
+            {
+            "marker_id": "81a18d2b-1719-419d-b2e6-93e023d2a52b",
+            "device_id": "device1",
+            "created_at": "2021-07-12T16:11:01.012Z",
+            "arrival": {
+                "recorded_at": "2021-07-12T16:11:01.012Z",
+                "location": {
+                    "coordinates": [
+                        -122.089475,
+                        37.395912,
+                        2.52
+                    ],
+                    "type": "Point"
+                }
+            },
+            "exit": {
+                "recorded_at": "2021-08-15T14:59:35.067Z",
+                "location": null
+            },
+            "outage_event": null,
+            "geofence_type": "device",
+            "geofence_id": "c1aca31a-fef7-45fb-a076-4a16980517fc",
+            "metadata": {
+                "address": "Mountain View, Mariposa Avenue, 336"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -122.08947490900756,
+                    37.39593753392873
+                ]
+            },
+            "duration": 2933314
+        }
+        """.trimIndent()
+
 }

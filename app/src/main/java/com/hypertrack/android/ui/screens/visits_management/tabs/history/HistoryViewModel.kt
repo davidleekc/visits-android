@@ -1,18 +1,15 @@
-package com.hypertrack.android.view_models
+package com.hypertrack.android.ui.screens.visits_management.tabs.history
 
 import android.util.Log
 import androidx.lifecycle.*
 import com.hypertrack.android.interactors.HistoryInteractor
 import com.hypertrack.android.models.*
-import com.hypertrack.android.repository.HistoryRepository
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.ErrorHandler
-import com.hypertrack.android.ui.base.SingleLiveEvent
 import com.hypertrack.android.utils.Constants
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.android.utils.TimeDistanceFormatter
 import com.hypertrack.logistics.android.github.R
-import kotlinx.coroutines.launch
 
 class HistoryViewModel(
     private val historyInteractor: HistoryInteractor,

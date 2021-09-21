@@ -27,7 +27,7 @@ fun createBaseOrder(): Order {
 
 fun createBaseTrip(): Trip {
     return Trip(
-        tripId = "tripId " + Math.random(),
+        id = "tripId " + Math.random(),
         status = TripStatus.ACTIVE.value,
         orders = null,
         views = Views("", null),

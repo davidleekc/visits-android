@@ -22,8 +22,6 @@ open class BaseViewModel(
     //todo remove loadingState from children and rename to loadingState
     open val loadingStateBase = MutableLiveData<Boolean>()
 
-    open val errorBase = MutableLiveData<Consumable<String>>()
-
     open val exception: MutableLiveData<Consumable<Exception>> =
         SingleLiveEvent<Consumable<Exception>>()
     open val errorText: MutableLiveData<Consumable<String>> by lazy {

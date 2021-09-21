@@ -2,10 +2,10 @@ package com.hypertrack.android.api
 
 import android.graphics.Bitmap
 import android.net.Uri
+import android.util.Log
 import com.google.android.gms.maps.model.LatLng
 import com.hypertrack.android.models.*
-import com.hypertrack.android.toBase64
-import com.hypertrack.android.toNote
+import com.hypertrack.android.utils.toBase64
 import com.hypertrack.logistics.android.github.R
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
@@ -233,33 +233,14 @@ data class ImageResponse(
 @JsonClass(generateAdapter = true)
 data class Trip(
     @field:Json(name = "views") val views: Views,
-    @field:Json(name = "trip_id") val tripId: String,
+    @field:Json(name = "trip_id") val id: String,
     @field:Json(name = "status") val status: String,
-    @field:Json(name = "started_at") override val createdAt: String,
+    @field:Json(name = "started_at") val createdAt: String,
     @field:Json(name = "metadata") val metadata: Map<String, Any>?,
     @field:Json(name = "destination") val destination: TripDestination?,
     @field:Json(name = "estimate") val estimate: Estimate?,
     @field:Json(name = "orders") val orders: List<Order>?,
-) : VisitDataSource {
-    override val visitedAt: String
-        get() = destination?.arrivedAt ?: ""
-    override val _id: String
-        get() = tripId
-    override val customerNote: String
-        get() = metadata.toNote()
-    override val latitude: Double
-        get() = destination?.geometry?.latitude ?: 0.0
-    override val longitude: Double
-        get() = destination?.geometry?.longitude ?: 0.0
-    override val address: Address?
-        get() = destination?.address?.let { Address(it, "", "", "") }
-    override val visitType: VisitType
-        get() = VisitType.TRIP
-    override val visitNamePrefixId: Int
-        get() = R.string.trip_to
-    override val visitNameSuffix: String
-        get() = if (destination?.address == null) " [$longitude, $latitude]" else " ${destination.address}"
-}
+)
 
 @JsonClass(generateAdapter = true)
 data class TripDestination(
@@ -321,15 +302,29 @@ class Point(
         get() = coordinates[0]
 }
 
-class Polygon(
-        @field:Json(name = "coordinates") override val coordinates: List<List<List<Double>>>
+data class Polygon(
+    @field:Json(name = "coordinates") override val coordinates: List<List<List<Double>>>
 ) : Geometry() {
     override val type: String
         get() = "Polygon"
     override val latitude: Double
-        get() = coordinates[0].map { it[1] }.average()
+        get() {
+            //todo remove (workaround for faulty coordinates)
+            return try {
+                coordinates[0].map { it[1] }.average()
+            } catch (e: Exception) {
+                0.0
+            }
+        }
     override val longitude: Double
-        get() = coordinates[0].map { it[0] }.average()
+        get() {
+            //todo remove (workaround for faulty coordinates)
+            return try {
+                coordinates[0].map { it[0] }.average()
+            } catch (e: Exception) {
+                0.0
+            }
+        }
 }
 
 abstract class Geometry {

@@ -70,11 +70,6 @@
     <string name="cancel_visit_confirmation">Are you sure you want to cancel this visit?</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
-    <string-array name="visit_state_group_names">
-        <item>@string/pending</item>
-        <item>@string/visited</item>
-        <item>@string/completed</item>
-    </string-array>
     <string name="duration">%1$d hr, %2$d min</string>
     <string name="duration_minutes">%1$d min</string>
     <string name="steps">%1$d steps</string>
@@ -206,6 +201,7 @@
     <string name="profile_report_sent">App state is successfully reported</string>
 
     <string name="select_destination">Select destination</string>
+    <string name="select_destination_button">Select</string>
 
     <string name="feedback_text">Enter description of your issue\n\nPlease include steps that is needed to perform to reproduce it (if it possible)</string>
     <string name="feedback_send">Send feedback</string>

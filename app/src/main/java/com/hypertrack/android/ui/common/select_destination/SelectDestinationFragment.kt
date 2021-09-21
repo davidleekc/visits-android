@@ -2,6 +2,7 @@ package com.hypertrack.android.ui.common.select_destination
 
 import android.os.Bundle
 import android.os.Parcelable
+import android.util.Log
 import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -16,7 +17,6 @@ import com.hypertrack.logistics.android.github.R
 import kotlinx.android.synthetic.main.fragment_select_destination.*
 import kotlinx.android.parcel.Parcelize
 
-//todo merge with add place
 open class SelectDestinationFragment :
     ProgressDialogFragment(R.layout.fragment_select_destination) {
 
@@ -47,7 +47,9 @@ open class SelectDestinationFragment :
 
         val watcher = object : SimpleTextWatcher() {
             override fun afterChanged(text: String) {
-                vm.onSearchQueryChanged(text)
+                if (search.hasFocus()) {
+                    vm.onSearchQueryChanged(text)
+                }
             }
         }
         search.addTextChangedListener(watcher)
@@ -61,14 +63,17 @@ open class SelectDestinationFragment :
             } else false
         }
 
+        vm.loadingStateBase.observe(viewLifecycleOwner, {
+            progressbar.setGoneState(!it)
+        })
+
         vm.placesResults.observe(viewLifecycleOwner, {
             adapter.clear()
             adapter.addAll(it)
             adapter.notifyDataSetChanged()
         })
 
-        vm.error.observe(viewLifecycleOwner, {
-            Utils.hideKeyboard(mainActivity())
+        vm.errorHandler.errorText.observe(viewLifecycleOwner, {
             SnackbarUtil.showErrorSnackbar(view, it)
         })
 
@@ -76,6 +81,10 @@ open class SelectDestinationFragment :
             Utils.hideKeyboard(mainActivity())
             search.silentUpdate(watcher, it)
             search.setSelection(search.textString().length)
+        })
+
+        vm.showConfirmButton.observe(viewLifecycleOwner, {
+            confirm.setGoneState(!it)
         })
 
         vm.destination.observe(viewLifecycleOwner, {
@@ -95,6 +104,10 @@ open class SelectDestinationFragment :
             Utils.hideKeyboard(requireActivity())
         })
 
+        vm.removeSearchFocusEvent.observe(viewLifecycleOwner, {
+            search.clearFocus()
+        })
+
         set_on_map.hide()
         destination_on_map.show()
         confirm.show()
@@ -102,6 +115,8 @@ open class SelectDestinationFragment :
         confirm.setOnClickListener {
             vm.onConfirmClicked()
         }
+
+        vm.onViewCreated()
     }
 
 }

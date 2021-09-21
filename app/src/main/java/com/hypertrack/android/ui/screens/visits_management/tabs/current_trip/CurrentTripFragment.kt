@@ -123,7 +123,7 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
             whereAreYouGoing.setGoneState(!it)
         })
 
-        vm.errorText.observe(viewLifecycleOwner, {
+        vm.errorHandler.errorText.observe(viewLifecycleOwner, {
             it.consume {
                 SnackbarUtil.showErrorSnackbar(view, it)
             }

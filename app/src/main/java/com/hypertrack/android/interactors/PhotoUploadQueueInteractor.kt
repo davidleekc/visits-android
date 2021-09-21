@@ -3,16 +3,11 @@ package com.hypertrack.android.interactors
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.hypertrack.android.RetryParams
 import com.hypertrack.android.api.ApiClient
 import com.hypertrack.android.repository.FileRepository
-import com.hypertrack.android.repository.VisitsRepository
-import com.hypertrack.android.retryWithBackoff
 import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.common.util.toMap
-import com.hypertrack.android.utils.CrashReportsProvider
-import com.hypertrack.android.utils.ImageDecoder
-import com.hypertrack.android.utils.MAX_IMAGE_SIDE_LENGTH_PX
+import com.hypertrack.android.utils.*
 import com.squareup.moshi.JsonClass
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.BufferOverflow
@@ -128,7 +123,7 @@ class PhotoUploadQueueInteractorImpl(
             errorFlow.emit(Consumable(t))
             when (t) {
                 is java.net.UnknownHostException, is java.net.ConnectException, is java.net.SocketTimeoutException -> {
-                    Log.i(VisitsRepository.TAG, "Failed to upload image", t)
+                    Log.v("hypertrack-verbose", "Failed to upload image $t")
                 }
                 else -> crashReportsProvider.logException(t)
             }

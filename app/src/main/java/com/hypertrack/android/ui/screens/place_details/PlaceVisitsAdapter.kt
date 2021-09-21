@@ -1,7 +1,7 @@
 package com.hypertrack.android.ui.screens.place_details
 
 import android.view.View
-import com.hypertrack.android.api.GeofenceVisit
+import com.hypertrack.android.models.local.LocalGeofenceVisit
 import com.hypertrack.android.ui.base.BaseAdapter
 import com.hypertrack.android.ui.common.*
 import com.hypertrack.android.ui.common.util.DateTimeUtils
@@ -19,16 +19,16 @@ class PlaceVisitsAdapter(
     private val osUtilsProvider: OsUtilsProvider,
     private val timeDistanceFormatter: TimeDistanceFormatter,
     private val onCopyClickListener: ((String) -> Unit)
-) : BaseAdapter<GeofenceVisit, BaseAdapter.BaseVh<GeofenceVisit>>() {
+) : BaseAdapter<LocalGeofenceVisit, BaseAdapter.BaseVh<LocalGeofenceVisit>>() {
 
     override val itemLayoutResource: Int = R.layout.item_place_visit
 
     override fun createViewHolder(
         view: View,
         baseClickListener: (Int) -> Unit
-    ): BaseVh<GeofenceVisit> {
-        return object : BaseContainerVh<GeofenceVisit>(view, baseClickListener) {
-            override fun bind(item: GeofenceVisit) {
+    ): BaseVh<LocalGeofenceVisit> {
+        return object : BaseContainerVh<LocalGeofenceVisit>(view, baseClickListener) {
+            override fun bind(item: LocalGeofenceVisit) {
                 bindVisit(
                     containerView,
                     item,
@@ -45,20 +45,22 @@ class PlaceVisitsAdapter(
     companion object {
         fun bindVisit(
             containerView: View,
-            item: GeofenceVisit,
+            item: LocalGeofenceVisit,
             timeDistanceFormatter: TimeDistanceFormatter,
             osUtilsProvider: OsUtilsProvider,
             onCopyClickListener: ((String) -> Unit)?
         ) {
             formatDate(
-                item.arrival!!.recordedAt,
-                item.exit?.recordedAt,
+                item.arrival,
+                item.exit,
                 osUtilsProvider,
                 timeDistanceFormatter
             ).toView(containerView.tvTitle)
-            item.duration?.let { DateTimeUtils.secondsToLocalizedString(it) }
+            item.durationSeconds?.let { DateTimeUtils.secondsToLocalizedString(it) }
                 ?.toView(containerView.tvDescription)
-            item.markerId?.toView(containerView.tvVisitId)
+            item.id.toView(containerView.tvVisitId)
+
+
             item.routeTo?.let {
                 if (it.distance == null) return@let null
                 if (it.duration == null) return@let null
@@ -73,7 +75,7 @@ class PlaceVisitsAdapter(
             }
 
             containerView.bCopy.setOnClickListener {
-                item.markerId?.let {
+                item.id.let {
                     onCopyClickListener?.invoke(it)
                 }
             }
@@ -81,17 +83,13 @@ class PlaceVisitsAdapter(
 
         //todo test
         fun formatDate(
-            enter: String?,
-            exit: String?,
+            enterDt: ZonedDateTime,
+            exitDt: ZonedDateTime?,
             osUtilsProvider: OsUtilsProvider,
             timeDistanceFormatter: TimeDistanceFormatter
         ): String {
-            val enterDt = ZonedDateTime.parse(enter)
-            val exitDt = exit?.let { ZonedDateTime.parse(it) }
             val equalDay = enterDt.dayOfMonth == exitDt?.dayOfMonth
 
-
-            //todo now
             return if (equalDay) {
                 "${getDateString(enterDt, osUtilsProvider)}, ${
                     getTimeString(

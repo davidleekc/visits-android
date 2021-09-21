@@ -26,13 +26,9 @@ import androidx.core.graphics.drawable.toBitmap
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
-import com.hypertrack.android.decodeBase64Bitmap
-import com.hypertrack.android.models.Address
-import com.hypertrack.android.toBase64
 import com.hypertrack.android.ui.common.util.ClipboardUtil
 import com.hypertrack.android.ui.common.util.LocationUtils
 import com.hypertrack.android.ui.common.util.isEmail
-import com.hypertrack.android.ui.screens.visits_management.tabs.livemap.TrackingPresenter
 import com.hypertrack.logistics.android.github.R
 import retrofit2.HttpException
 import java.io.File
@@ -69,40 +65,6 @@ public class OsUtilsProvider(
 
         val now = Date()
         return "${df.format(now)}${postfixFmt.format(now).toLowerCase(Locale.ENGLISH)}"
-    }
-
-    fun getAddressFromCoordinates(latitude: Double?, longitude: Double?): Address {
-        if (latitude == null || longitude == null) {
-            return Address(
-                street = "",
-                postalCode = null,
-                city = null,
-                country = null
-            )
-        }
-        try {
-            val coder = Geocoder(context)
-            val address = coder.getFromLocation(latitude, longitude, 1)?.get(0)
-            address?.let {
-                return Address(
-                    street = address.thoroughfare ?: stubStreet(latitude, longitude),
-                    postalCode = address.postalCode,
-                    city = address.locality,
-                    country = address.countryName
-                )
-            }
-        } catch (t: Throwable) {
-            when (t) {
-                is java.io.IOException -> Log.w(TAG, "Can't get the address", t)
-                else -> crashReportsProvider.logException(t)
-            }
-        }
-        return Address(
-            street = stubStreet(latitude, longitude),
-            postalCode = null,
-            city = null,
-            country = null
-        )
     }
 
     fun getPlaceFromCoordinates(latitude: Double?, longitude: Double?): android.location.Address? {
@@ -238,7 +200,7 @@ public class OsUtilsProvider(
         sendIntent.action = Intent.ACTION_SEND
         sendIntent.putExtra(Intent.EXTRA_TEXT, text)
         sendIntent.type = "text/plain"
-        val intent = Intent(TrackingPresenter.SHARE_BROADCAST_ACTION)
+        val intent = Intent(SHARE_BROADCAST_ACTION)
         intent.setPackage(context.packageName)
         val pendingIntent =
             PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
@@ -322,6 +284,7 @@ public class OsUtilsProvider(
 
     companion object {
         const val TAG = "OsUtilsProvider"
+        const val SHARE_BROADCAST_ACTION = "com.hypertrack.logistics.SHARE_TRIP"
     }
 }
 

@@ -6,6 +6,7 @@ import com.google.android.libraries.places.api.model.Place
 import com.hypertrack.android.api.GeofenceVisit
 import com.hypertrack.android.api.asLocation
 import com.hypertrack.android.models.local.LocalGeofence
+import com.hypertrack.android.models.local.LocalGeofenceVisit
 import com.hypertrack.android.models.local.LocalOrder
 import com.hypertrack.android.ui.common.util.format
 import com.hypertrack.android.ui.common.util.formatDateTime
@@ -67,10 +68,10 @@ class GeofenceAddressDelegate(val osUtilsProvider: OsUtilsProvider) {
             ?: osUtilsProvider.stringFromResource(R.string.address_not_available)
     }
 
-    fun shortAddress(visit: GeofenceVisit): String {
+    fun shortAddress(visit: LocalGeofenceVisit): String {
         return visit.address
             ?: visit.metadata?.address
-            ?: visit.geometry?.asLocation()?.let {
+            ?: visit.location.let {
                 osUtilsProvider.getPlaceFromCoordinates(
                     it.latitude,
                     it.longitude
@@ -86,32 +87,8 @@ class GooglePlaceAddressDelegate(
 ) {
 
     fun displayAddress(place: Place): String {
-        with(place) {
-            val locality =
-                addressComponents?.asList()?.filter { "locality" in it.types }?.firstOrNull()?.name
-                    ?: addressComponents?.asList()
-                        ?.filter { "administrative_area_level_1" in it.types }
-                        ?.firstOrNull()?.name
-                    ?: addressComponents?.asList()
-                        ?.filter { "administrative_area_level_2" in it.types }
-                        ?.firstOrNull()?.name
-                    ?: addressComponents?.asList()?.filter { "political" in it.types }
-                        ?.firstOrNull()?.name
-            val thoroughfare =
-                addressComponents?.asList()?.filter { "route" in it.types }?.firstOrNull()?.name
-            val subThoroughfare =
-                addressComponents?.asList()?.filter { "street_number" in it.types }
-                    ?.firstOrNull()?.name
-
-            val localityString = (locality?.let { "$it, " } ?: "")
-            val address = if (thoroughfare == null) {
-//                latLng?.format() ?: ""
-                osUtilsProvider.stringFromResource(R.string.address_not_available)
-            } else {
-                " $thoroughfare${subThoroughfare?.let { ", $it" } ?: ""}"
-            }
-            return "$localityString$address"
-        }
+        return place.getAddressString(strictMode = false)
+            ?: osUtilsProvider.stringFromResource(R.string.address_not_available)
     }
 
     fun displayAddress(address: Address?): String {
@@ -121,6 +98,10 @@ class GooglePlaceAddressDelegate(
 
     fun strictAddress(address: Address): String? {
         return address.toAddressString(strictMode = true)
+    }
+
+    fun strictAddress(place: Place): String? {
+        return place.getAddressString(strictMode = true)
     }
 
 }
@@ -170,6 +151,32 @@ fun Address.toAddressString(
         .filter { !it.isNullOrBlank() }
         .joinToString(", ")
         .nullIfEmpty()
+}
+
+fun Place.getAddressString(
+    strictMode: Boolean = false
+): String? {
+    val locality =
+        addressComponents?.asList()?.firstOrNull { "locality" in it.types }?.name
+            ?: addressComponents?.asList()
+                ?.firstOrNull { "administrative_area_level_1" in it.types }?.name
+            ?: addressComponents?.asList()
+                ?.firstOrNull { "administrative_area_level_2" in it.types }?.name
+            ?: addressComponents?.asList()?.firstOrNull { "political" in it.types }?.name
+
+    val thoroughfare =
+        addressComponents?.asList()?.firstOrNull { "route" in it.types }?.name
+
+    val subThoroughfare =
+        addressComponents?.asList()?.firstOrNull { "street_number" in it.types }?.name
+
+    val parts = listOfNotNull(locality, thoroughfare, subThoroughfare)
+
+    return if (parts.isEmpty() || (strictMode && (thoroughfare == null || subThoroughfare == null))) {
+        null
+    } else {
+        parts.joinToString(", ")
+    }
 }
 
 

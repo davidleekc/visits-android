@@ -6,8 +6,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
 import com.hypertrack.android.ui.common.select_destination.DestinationData
 import com.hypertrack.android.ui.common.select_destination.SelectDestinationFragment
-import com.hypertrack.android.ui.common.util.SnackbarUtil
-import com.hypertrack.android.ui.common.util.setGoneState
 import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.android.utils.stringFromResource
 import com.hypertrack.logistics.android.github.R
@@ -24,16 +22,6 @@ open class AddPlaceFragment : SelectDestinationFragment() {
 
         toolbar.title = getString(R.string.add_place)
 
-        vm.loadingStateBase.observe(viewLifecycleOwner, {
-            progressbar.setGoneState(!it)
-        })
-
-        vm.errorBase.observe(viewLifecycleOwner, {
-            it.consume {
-                SnackbarUtil.showErrorSnackbar(view, it)
-            }
-        })
-
         vm.adjacentGeofenceDialog.observe(viewLifecycleOwner, {
             it.consume {
                 createConfirmationDialog(it).show()
@@ -47,9 +35,14 @@ open class AddPlaceFragment : SelectDestinationFragment() {
                 R.string.add_place_confirm_adjacent.stringFromResource()
             )
             .setPositiveButton(R.string.yes) { dialog, which ->
-                vm.proceedCreation(destinationData, true)
+                vm.onGeofenceDialogYes(destinationData)
             }
-            .setNegativeButton(R.string.no, null)
+            .setNegativeButton(R.string.no) { dialog, which ->
+                vm.onGeofenceDialogNo()
+            }
+            .setOnDismissListener {
+                vm.onGeofenceDialogNo()
+            }
             .create()
     }
 

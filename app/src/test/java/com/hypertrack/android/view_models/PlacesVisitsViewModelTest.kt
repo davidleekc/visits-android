@@ -1,8 +1,8 @@
 package com.hypertrack.android.view_models
 
+import com.hypertrack.android.models.local.LocalGeofenceVisit
 import com.hypertrack.android.ui.screens.visits_management.tabs.places.VisitItem
 import com.hypertrack.android.ui.screens.visits_management.tabs.places.VisitsData
-import com.hypertrack.android.ui.screens.visits_management.tabs.places.getDay
 import com.hypertrack.android.utils.MockData
 import junit.framework.TestCase.assertEquals
 import org.junit.Test
@@ -20,7 +20,7 @@ class PlacesVisitsViewModelTest {
             MockData.createGeofenceVisit(now.minusDays(1)),
             MockData.createGeofenceVisit(now.minusDays(40)),
             MockData.createGeofenceVisit(now.minusDays(41)),
-        )
+        ).map { LocalGeofenceVisit.fromVisit(it) }
         val data = VisitsData(visits, mutableMapOf<LocalDate, Int>().apply {
             visits.forEach { put(it.getDay(), 100) }
         })

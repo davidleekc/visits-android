@@ -98,8 +98,8 @@ class GeofenceDateFormattingTest {
         timeDistanceFormatter: TimeDistanceFormatter,
         checks: (res: String, dt1: String, dt2: String) -> Unit
     ) {
-        val dt1 = baseDt1.format(DateTimeFormatter.ISO_INSTANT)
-        val dt2 = baseDt2.withMinute(30).withSecond(1).format(DateTimeFormatter.ISO_INSTANT)
+        val dt1 = baseDt1
+        val dt2 = baseDt2.withMinute(30).withSecond(1)
 
         PlaceVisitsAdapter.formatDate(
             dt1, dt2,

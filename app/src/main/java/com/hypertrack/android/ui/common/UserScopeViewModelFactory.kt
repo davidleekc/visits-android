@@ -24,7 +24,7 @@ import com.hypertrack.android.ui.screens.visits_management.tabs.orders.OrdersLis
 import com.hypertrack.android.ui.screens.visits_management.tabs.places.PlacesViewModel
 import com.hypertrack.android.ui.screens.visits_management.tabs.places.PlacesVisitsViewModel
 import com.hypertrack.android.utils.*
-import com.hypertrack.android.view_models.HistoryViewModel
+import com.hypertrack.android.ui.screens.visits_management.tabs.history.HistoryViewModel
 import javax.inject.Provider
 
 @Suppress("UNCHECKED_CAST")
@@ -61,10 +61,11 @@ class UserScopeViewModelFactory(
                 integrationsRepository
             ) as T
             AddPlaceViewModel::class.java -> AddPlaceViewModel(
+                userScopeProvider.get().placesInteractor,
+                userScopeProvider.get().googlePlacesInteractor,
                 osUtilsProvider,
-                placesClient,
                 deviceLocationProvider,
-                placesInteractor
+                crashReportsProvider
             ) as T
             CurrentTripViewModel::class.java -> CurrentTripViewModel(
                 tripsInteractor,
@@ -75,10 +76,11 @@ class UserScopeViewModelFactory(
                 crashReportsProvider
             ) as T
             SelectDestinationViewModel::class.java -> SelectDestinationViewModel(
-                placesInteractor,
+                userScopeProvider.get().placesInteractor,
+                userScopeProvider.get().googlePlacesInteractor,
                 osUtilsProvider,
-                placesClient,
-                deviceLocationProvider
+                deviceLocationProvider,
+                crashReportsProvider
             ) as T
             PlacesViewModel::class.java -> PlacesViewModel(
                 userScopeProvider.get().placesInteractor,
@@ -101,9 +103,9 @@ class UserScopeViewModelFactory(
                 osUtilsProvider
             ) as T
             VisitsManagementViewModel::class.java -> VisitsManagementViewModel(
-                userScopeProvider.get().visitsRepository,
                 userScopeProvider.get().historyInteractor,
                 accountRepository,
+                hyperTrackService,
                 crashReportsProvider,
                 osUtilsProvider,
                 accessTokenRepository
@@ -116,10 +118,11 @@ class UserScopeViewModelFactory(
                 crashReportsProvider,
             ) as T
             SelectTripDestinationViewModel::class.java -> SelectTripDestinationViewModel(
-                placesInteractor,
-                placesClient,
+                userScopeProvider.get().placesInteractor,
+                userScopeProvider.get().googlePlacesInteractor,
                 deviceLocationProvider,
                 osUtilsProvider,
+                crashReportsProvider
             ) as T
             PlacesVisitsViewModel::class.java -> PlacesVisitsViewModel(
                 userScopeProvider.get().placesVisitsInteractor,
