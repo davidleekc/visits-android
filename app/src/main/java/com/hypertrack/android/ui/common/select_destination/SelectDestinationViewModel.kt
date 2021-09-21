@@ -49,18 +49,10 @@ open class SelectDestinationViewModel(
     val goBackEvent = SingleLiveEvent<DestinationData>()
     val removeSearchFocusEvent = SingleLiveEvent<Boolean>()
 
-    init {
-        deviceLocationProvider.getCurrentLocation {
-            it?.let {
-                sendAction(UserLocation(it.toLatLng()))
-            }
-        }
-    }
-
     protected fun sendAction(action: Action) {
         viewModelScope.launch {
             val actionLog = "action = $action"
-//            Log.v("hypertrack-verbose", actionLog)
+            Log.v("hypertrack-verbose", actionLog)
             crashReportsProvider.log(actionLog)
             try {
                 val res = reducer.reduceAction(state, action)
@@ -96,14 +88,14 @@ open class SelectDestinationViewModel(
         }.let { }
         this.state = state
         val stateLog = "new state = $state"
-//        Log.v("hypertrack-verbose", stateLog)
+        Log.v("hypertrack-verbose", stateLog)
         crashReportsProvider.log(stateLog)
     }
 
     private fun applyEffects(effects: Set<Effect>) {
         for (effect in effects) {
             val effectLog = "effect = $effect"
-//            Log.v("hypertrack-verbose", effectLog)
+            Log.v("hypertrack-verbose", effectLog)
             crashReportsProvider.log(effectLog)
             when (effect) {
                 is DisplayAddress -> {
@@ -127,6 +119,12 @@ open class SelectDestinationViewModel(
 
     fun onViewCreated() {
         state = SelectDestinationViewModelReducer.INITIAL_STATE
+
+        deviceLocationProvider.getCurrentLocation {
+            it?.let {
+                sendAction(UserLocation(it.toLatLng()))
+            }
+        }
     }
 
     @SuppressLint("MissingPermission")

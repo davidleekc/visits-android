@@ -4,6 +4,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.hypertrack.android.ui.common.util.isNearZero
 import com.hypertrack.android.utils.False
 import com.hypertrack.android.utils.IllegalActionException
+import com.hypertrack.android.utils.True
 
 class SelectDestinationViewModelReducer {
 
@@ -18,14 +19,20 @@ class SelectDestinationViewModelReducer {
                     action.cameraPosition,
                     action.address
                 )
-
                 when (state) {
-                    is Initial -> state.withMap(mapReady).withEffects(
-                        getMapMoveEffectIfNeeded(
-                            state.mapLocationState,
+                    is Initial -> MapIsActive(
+                        MapLocationState(
                             mapReady,
-                            state.mapLocationState.userLocation
-                        )
+                            state.userLocation,
+                            False
+                        ),
+                        LocationSelected(action.cameraPosition, action.address)
+                    ).withEffects(
+                        if (state.userLocation != null) {
+                            setOf(MoveMap(state.userLocation, mapReady.mapWrapper))
+                        } else {
+                            setOf()
+                        }
                     )
                     is MapIsActive -> state.withMap(mapReady).withEffects(
                         getMapMoveEffectIfNeeded(
@@ -47,13 +54,7 @@ class SelectDestinationViewModelReducer {
             is MapCameraMoved -> {
                 if (!action.latLng.isNearZero()) {
                     when (state) {
-                        is Initial -> MapIsActive(
-                            reduce(
-                                action,
-                                state.mapLocationState
-                            ),
-                            LocationSelected(action.latLng, action.address)
-                        )
+                        is Initial -> throw IllegalActionException(action, state)
                         is AutocompleteIsActive -> MapIsActive(
                             reduce(
                                 action,
@@ -95,7 +96,7 @@ class SelectDestinationViewModelReducer {
             is AutocompleteError -> {
                 when (state) {
                     is AutocompleteIsActive -> reduce(action, state, state.mapLocationState)
-                    is Initial -> reduce(action, state, state.mapLocationState)
+                    is Initial -> state.withQuery(action.query)
                     is MapIsActive -> reduce(action, state, state.mapLocationState)
                     is Confirmed -> throw IllegalActionException(action, state)
                 }.withEffects(CloseKeyboard)
@@ -137,7 +138,8 @@ class SelectDestinationViewModelReducer {
                             else -> throw IllegalActionException(action, state)
                         }
                     }
-                    is Initial, is MapIsActive, is Confirmed -> throw IllegalActionException(
+                    is Initial -> state.asReducerResult()
+                    is MapIsActive, is Confirmed -> throw IllegalActionException(
                         action,
                         state
                     )
@@ -171,7 +173,11 @@ class SelectDestinationViewModelReducer {
     private fun reduce(action: SearchQueryChanged, state: State): State {
         return when (state) {
             is Initial -> AutocompleteIsActive(
-                state.mapLocationState,
+                MapLocationState(
+                    MapNotReady,
+                    state.userLocation,
+                    False
+                ),
                 action.query,
                 action.results
             )
@@ -193,26 +199,22 @@ class SelectDestinationViewModelReducer {
         return when (state.map) {
             MapNotReady -> throw IllegalActionException(action, state)
             is MapReady -> {
-                state.withPosition(state.map, action.latLng)
+                MapLocationState(
+                    state.map,
+                    state.userLocation,
+                    True
+                )
             }
         }
     }
 
     private fun reduce(action: UserLocation, state: State): ReducerResult {
         return when (state) {
-            is Initial -> state.withUserLocation(action.latLng).withEffects(
-                if (state.mapLocationState.map is MapReady) {
-                    getMapMoveEffectIfNeeded(
-                        state.mapLocationState,
-                        state.mapLocationState.map,
-                        action.latLng
-                    )
-                } else setOf()
-            )
-            is MapIsActive -> state.withUserLocation(action.latLng).asReducerResult()
-            is AutocompleteIsActive -> state.withUserLocation(action.latLng).asReducerResult()
-            is Confirmed -> state.asReducerResult()
-        }
+            is Initial -> state.withUserLocation(action.latLng)
+            is MapIsActive -> state.withUserLocation(action.latLng)
+            is AutocompleteIsActive -> state.withUserLocation(action.latLng)
+            is Confirmed -> state.withUserLocation(action.latLng)
+        }.asReducerResult()
     }
 
     private fun getMapMoveEffectIfNeeded(
@@ -237,9 +239,7 @@ class SelectDestinationViewModelReducer {
 
     companion object {
         val INITIAL_STATE = Initial(
-            MapLocationState(
-                MapNotReady, null, initialMovePerformed = False
-            ),
+            null,
             null
         )
     }
@@ -261,7 +261,4 @@ fun State.withEffects(vararg effect: Effect): ReducerResult {
     return ReducerResult(this, effect.toMutableSet())
 }
 
-private fun MapLocationState.withPosition(mapReady: MapReady, latLng: LatLng): MapLocationState {
-    return copy(map = mapReady.copy(cameraPosition = latLng))
-}
 

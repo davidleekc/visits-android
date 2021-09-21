@@ -5,6 +5,7 @@ import com.hypertrack.android.ui.common.HypertrackMapWrapper
 import com.hypertrack.android.ui.common.select_destination.GooglePlaceModel
 import com.hypertrack.android.utils.AlgBoolean
 import com.hypertrack.android.utils.NonEmptyList
+import java.lang.IllegalArgumentException
 
 // @formatter:off
 
@@ -27,7 +28,7 @@ object MapNotReady : MapState() {
 }
 
 data class Initial(
-    val mapLocationState: MapLocationState,
+    val userLocation: LatLng?,
     val query: String?
 ) : State()
 
@@ -66,7 +67,7 @@ val State.userLocation: LatLng?
     get() {
         return when (this) {
             is AutocompleteIsActive -> this.mapLocationState.userLocation
-            is Initial -> this.mapLocationState.userLocation
+            is Initial -> this.userLocation
             is MapIsActive -> this.mapLocationState.userLocation
             is Confirmed -> null
         }
@@ -75,7 +76,11 @@ val State.userLocation: LatLng?
 // @formatter:on
 
 fun Initial.withUserLocation(userLocation: LatLng): Initial {
-    return copy(mapLocationState = mapLocationState.copy(userLocation = userLocation))
+    return copy(userLocation = userLocation)
+}
+
+fun Initial.withQuery(query: String): Initial {
+    return copy(query = query)
 }
 
 fun MapIsActive.withUserLocation(userLocation: LatLng): MapIsActive {
@@ -86,8 +91,13 @@ fun AutocompleteIsActive.withUserLocation(userLocation: LatLng): AutocompleteIsA
     return copy(mapLocationState = mapLocationState.copy(userLocation = userLocation))
 }
 
-fun Initial.withMap(mapReady: MapReady): Initial {
-    return copy(mapLocationState = mapLocationState.copy(map = mapReady))
+fun Confirmed.withUserLocation(userLocation: LatLng): Confirmed {
+    return when (lastState) {
+        is AutocompleteIsActive -> copy(lastState = lastState.withUserLocation(userLocation))
+        is Confirmed -> copy(lastState = lastState.withUserLocation(userLocation))
+        is MapIsActive -> copy(lastState = lastState.withUserLocation(userLocation))
+        is Initial -> throw IllegalArgumentException()
+    }
 }
 
 fun MapIsActive.withMap(mapReady: MapReady): MapIsActive {
