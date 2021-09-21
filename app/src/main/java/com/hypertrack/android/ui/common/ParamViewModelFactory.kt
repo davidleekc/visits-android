@@ -55,6 +55,7 @@ class ParamViewModelFactory<T>(
                     _name = destinationData.name,
                     userScopeProvider.get().placesInteractor,
                     userScopeProvider.get().integrationsRepository,
+                    MetersDistanceFormatter(osUtilsProvider),
                     osUtilsProvider,
                     moshi
                 ) as T

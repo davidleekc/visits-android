@@ -69,7 +69,7 @@ class AddPlaceInfoFragment : ProgressDialogFragment(R.layout.fragment_add_place_
         etRadius.addTextChangedListener(radiusListener)
 
         vm.radius.observe(viewLifecycleOwner, {
-            etRadius.silentUpdate(radiusListener, it.toString())
+            etRadius.silentUpdate(radiusListener, it.orEmpty().toString())
         })
 
         vm.name.observe(viewLifecycleOwner, {

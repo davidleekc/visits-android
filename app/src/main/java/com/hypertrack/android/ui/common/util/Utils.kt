@@ -70,3 +70,7 @@ fun LatLng.isNearZero(): Boolean {
             && abs(longitude) < 0.1
 }
 
+fun Int?.orEmpty(): String {
+    return this?.toString() ?: ""
+}
+

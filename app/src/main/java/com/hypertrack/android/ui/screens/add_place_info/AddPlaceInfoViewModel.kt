@@ -18,9 +18,7 @@ import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.common.Tab
 import com.hypertrack.android.ui.common.delegates.GooglePlaceAddressDelegate
 import com.hypertrack.android.ui.screens.add_place.AddPlaceFragmentDirections
-import com.hypertrack.android.utils.OsUtilsProvider
-import com.hypertrack.android.utils.ResultError
-import com.hypertrack.android.utils.ResultSuccess
+import com.hypertrack.android.utils.*
 import com.hypertrack.logistics.android.github.R
 import com.squareup.moshi.Moshi
 import kotlinx.coroutines.launch
@@ -32,6 +30,7 @@ class AddPlaceInfoViewModel(
     private val _name: String?,
     private val placesInteractor: PlacesInteractor,
     private val integrationsRepository: IntegrationsRepository,
+    private val distanceFormatter: DistanceFormatter,
     private val osUtilsProvider: OsUtilsProvider,
     private val moshi: Moshi,
 ) : BaseViewModel(osUtilsProvider) {
@@ -60,7 +59,7 @@ class AddPlaceInfoViewModel(
         }
     }
 
-    val radius = MutableLiveData<Int>(PlacesInteractor.DEFAULT_RADIUS_METERS)
+    val radius = MutableLiveData<Int?>(PlacesInteractor.DEFAULT_RADIUS_METERS)
     val integration = MutableLiveData<Integration?>(null)
 
     val enableConfirmButton = MediatorLiveData<Boolean>().apply {
@@ -88,8 +87,16 @@ class AddPlaceInfoViewModel(
     }
 
     private val validations = listOf(
-        Validation({ errorHandler.postText(R.string.add_place_geofence_radius_validation_error) }) {
-            radius.value?.let { radius -> radius > 50 && radius < 100000 } ?: false
+        Validation({
+            errorHandler.postText(
+                osUtilsProvider.stringFromResource(
+                    R.string.add_place_geofence_radius_validation_error,
+                    distanceFormatter.formatDistance(MIN_RADIUS),
+                    distanceFormatter.formatDistance(MAX_RADIUS)
+                )
+            )
+        }) {
+            radius.value?.let { radius -> radius > MIN_RADIUS && radius < MAX_RADIUS } ?: false
         },
         Validation({ errorHandler.postText(R.string.place_info_confirm_disabled) }) {
             if (hasIntegrations.value == true) {
@@ -180,8 +187,13 @@ class AddPlaceInfoViewModel(
 
     fun onRadiusChanged(text: String) {
         try {
-            radius.postValue(text.toInt())
+            if (text.isNotBlank()) {
+                radius.postValue(text.toInt())
+            } else {
+                radius.postValue(null)
+            }
         } catch (e: Exception) {
+            radius.postValue(null)
             errorHandler.postException(e)
         }
     }
@@ -192,6 +204,11 @@ class AddPlaceInfoViewModel(
         } else {
             true
         }
+    }
+
+    companion object {
+        const val MIN_RADIUS = 50
+        const val MAX_RADIUS = 10000
     }
 }
 
