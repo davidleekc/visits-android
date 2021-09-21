@@ -19,6 +19,10 @@ data class LocalGeofence(
     val geofence: Geofence,
     val name: String?,
     val address: String?,
+    val radius: Int,
+    val latLng: LatLng,
+    val isPolygon: Boolean,
+    val polygon: List<LatLng>?,
     val integration: Integration?,
     val metadata: Map<String, String>,
     val visits: List<LocalGeofenceVisit>
@@ -32,22 +36,11 @@ data class LocalGeofence(
     val longitude: Double
         get() = geofence.geometry.longitude
 
-    val latLng: LatLng
-        get() = LatLng(latitude, longitude)
-
     val location: Location
         get() = Location(
             latitude = latitude,
             longitude = longitude
         )
-
-    val isPolygon: Boolean = geofence.geometry is Polygon
-
-    val polygon: List<LatLng>? = if (geofence.geometry is Polygon) {
-        geofence.geometry.coordinates.first().map {
-            LatLng(it[1], it[0])
-        }
-    } else null
 
     val visitsCount: Int by lazy {
         visits.count()
@@ -56,8 +49,6 @@ data class LocalGeofence(
     val lastVisit: LocalGeofenceVisit? by lazy {
         visits.firstOrNull()
     }
-
-    val radius = geofence.radius
 
     val createdAt: ZonedDateTime = ZonedDateTime.parse(geofence.created_at)
 
@@ -86,11 +77,28 @@ data class LocalGeofence(
                 }
             }
 
+            val latLng = LatLng(geofence.latitude, geofence.longitude)
+            val isPolygon = geofence.geometry is Polygon
+            val polygon: List<LatLng>? = if (geofence.geometry is Polygon) {
+                geofence.geometry.coordinates.first().map {
+                    LatLng(it[1], it[0])
+                }
+            } else null
+
+
             return LocalGeofence(
                 currentDeviceId = currentDeviceId,
                 geofence = geofence,
                 name = metadata.remove(GeofenceMetadata.KEY_NAME) as String?,
                 address = address,
+                latLng = latLng,
+                isPolygon = isPolygon,
+                polygon = polygon,
+                radius = if (!isPolygon) {
+                    geofence.radius!!
+                } else {
+                    calcRadius(latLng, polygon!!, osUtilsProvider)
+                },
                 integration = integration,
                 metadata = metadata.filter { it.value is String } as Map<String, String>,
                 visits = (geofence.marker?.visits
@@ -102,6 +110,14 @@ data class LocalGeofence(
                     }
 
             )
+        }
+
+        private fun calcRadius(
+            latLng: LatLng,
+            polygon: List<LatLng>,
+            osUtilsProvider: OsUtilsProvider
+        ): Int {
+            return polygon.map { osUtilsProvider.distanceMeters(latLng, it) }.maxOrNull()!!
         }
     }
 }

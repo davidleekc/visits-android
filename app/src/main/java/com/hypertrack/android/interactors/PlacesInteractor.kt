@@ -108,12 +108,8 @@ class PlacesInteractorImpl(
     override suspend fun hasAdjacentGeofence(latLng: LatLng, radius: Int?): Boolean {
         return geofences.value!!.any { (_, geofence) ->
             val distance = osUtilsProvider.distanceMeters(geofence.latLng, latLng)
-            //todo check radius null
-
-            return@any geofence.radius?.let {
-                distance < geofence.radius + (radius
-                    ?: PlacesInteractor.DEFAULT_RADIUS_METERS)
-            } ?: false
+            return@any distance < geofence.radius +
+                    (radius ?: PlacesInteractor.DEFAULT_RADIUS_METERS)
         }
     }
 

@@ -37,8 +37,7 @@ open class AddPlaceFragment : SelectDestinationFragment() {
             .setPositiveButton(R.string.yes) { dialog, which ->
                 vm.onGeofenceDialogYes(destinationData)
             }
-            .setNegativeButton(R.string.no) { dialog, which ->
-                vm.onGeofenceDialogNo()
+            .setNegativeButton(R.string.no) { _, _ ->
             }
             .setOnDismissListener {
                 vm.onGeofenceDialogNo()
