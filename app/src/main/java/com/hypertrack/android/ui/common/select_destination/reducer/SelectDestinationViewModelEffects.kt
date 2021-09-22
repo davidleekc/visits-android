@@ -6,7 +6,11 @@ import com.hypertrack.android.ui.common.HypertrackMapWrapper
 // @formatter:off
 
 sealed class Effect
-data class DisplayAddress(val address: String) : Effect()
+data class DisplayLocationInfo(
+    val address: String,
+    val placeName: String?
+) : Effect()
+
 data class Proceed(val placeData: PlaceData) : Effect()
 data class MoveMap(val latLng: LatLng, val map: HypertrackMapWrapper) : Effect()
 object CloseKeyboard : Effect() {
@@ -14,6 +18,14 @@ object CloseKeyboard : Effect() {
 }
 
 object RemoveSearchFocus : Effect() {
+    override fun toString(): String = javaClass.simpleName
+}
+
+object HideProgressbar : Effect() {
+    override fun toString(): String = javaClass.simpleName
+}
+
+object ClearSearchQuery : Effect() {
     override fun toString(): String = javaClass.simpleName
 }
 

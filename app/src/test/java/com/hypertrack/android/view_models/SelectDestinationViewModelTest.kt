@@ -22,9 +22,9 @@ class SelectDestinationViewModelTest {
         val reducer = SelectDestinationViewModelReducer()
 
         runBlocking {
-            var state: State = Initial(MapLocationState(MapNotReady, null, False), null)
+            var state: State = Initial(UserLocationState(MapNotReady, null, False), null)
             println(state)
-            state = reducer.sendAction(state, UserLocation(LatLng(37.4, -122.0))).newState
+            state = reducer.sendAction(state, UserLocationReceived(LatLng(37.4, -122.0))).newState
             state = reducer.sendAction(
                 state,
                 MapReadyAction(mockk(relaxed = true), LatLng(0.0, 0.0), "address")

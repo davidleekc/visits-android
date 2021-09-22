@@ -3,12 +3,13 @@ package com.hypertrack.android.ui.common.select_destination.reducer
 import com.google.android.gms.maps.model.LatLng
 import com.hypertrack.android.ui.common.HypertrackMapWrapper
 import com.hypertrack.android.ui.common.select_destination.GooglePlaceModel
+import com.hypertrack.android.utils.False
 import com.hypertrack.android.utils.NonEmptyList
 
 // @formatter:off
 
 sealed class Action
-data class UserLocation(val latLng: LatLng) : Action()
+data class UserLocationReceived(val latLng: LatLng, val address: String) : Action()
 data class MapReadyAction(
     val map: HypertrackMapWrapper,
     val cameraPosition: LatLng,
@@ -18,7 +19,9 @@ data class MapReadyAction(
 data class MapCameraMoved(
     val latLng: LatLng,
     val address: String,
-    val isProgrammatic: Boolean
+    //on user location received or on place selected
+    val isProgrammatic: Boolean,
+    val isNearZero: Boolean,
 ) : Action()
 
 data class MapClicked(val latLng: LatLng, val address: String) : Action()
@@ -40,9 +43,5 @@ data class PlaceSelectedAction(
     val name: String?,
     val latLng: LatLng
 ) : Action()
-
-object Reset : Action() {
-    override fun toString(): String = javaClass.simpleName
-}
 
 // @formatter:on
