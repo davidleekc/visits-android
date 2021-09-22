@@ -189,8 +189,9 @@
     <string name="add_place_geofence_radius">Radius (meters)</string>
     <string name="add_place_geofence_radius_validation_error">Radius value should be between %s and %s</string>
 
-    <string name="place_info_add_integration">Add integration</string>
-    <string name="place_info_confirm_disabled">You have to provide company name</string>
+    <string name="add_place_info_adjacent_geofence_error">There is another geofence adjacent to this position. Creation of adjacent geofences is prohibited</string>
+    <string name="add_place_info_add_integration">Add integration</string>
+    <string name="add_place_info_confirm_disabled">You have to provide company name</string>
 
     <string name="place_integration_search_hint">Enter company name</string>
     <string name="place_integration_empty_placeholder">No entities found</string>

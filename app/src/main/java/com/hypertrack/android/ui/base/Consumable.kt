@@ -34,3 +34,7 @@ fun Exception.toConsumable(): Consumable<Exception> {
 fun String.toConsumable(): Consumable<String> {
     return Consumable(this)
 }
+
+fun Boolean.toConsumable(): Consumable<Boolean> {
+    return Consumable(this)
+}

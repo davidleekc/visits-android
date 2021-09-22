@@ -4,14 +4,17 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.MotionEvent
 import android.view.View
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.google.android.gms.maps.SupportMapFragment
 import com.hypertrack.android.models.Integration
 import com.hypertrack.android.ui.base.ProgressDialogFragment
+import com.hypertrack.android.ui.common.select_destination.DestinationData
 import com.hypertrack.android.ui.common.util.*
 import com.hypertrack.android.utils.MyApplication
+import com.hypertrack.android.utils.stringFromResource
 import com.hypertrack.logistics.android.github.R
 import kotlinx.android.synthetic.main.fragment_add_place_info.*
 import kotlinx.android.synthetic.main.fragment_add_place_info.confirm
@@ -112,16 +115,18 @@ class AddPlaceInfoFragment : ProgressDialogFragment(R.layout.fragment_add_place_
             findNavController().navigate(it)
         })
 
-//        vm.showAddIntegrationButton.observe(viewLifecycleOwner, {
-//            bAddIntegration.setGoneState(!it)
-//        })
-
         vm.showGeofenceNameField.observe(viewLifecycleOwner, { show ->
             listOf(etGeofenceName, tvGeofenceName).forEach { it.setGoneState(!show) }
         })
 
         vm.enableConfirmButton.observe(viewLifecycleOwner, { it ->
             confirm.isSelected = it
+        })
+
+        vm.adjacentGeofenceDialog.observe(viewLifecycleOwner, {
+            it.consume {
+                createConfirmationDialog(it).show()
+            }
         })
 
         etGeofenceName.setOnTouchListener { v, event ->
@@ -138,15 +143,30 @@ class AddPlaceInfoFragment : ProgressDialogFragment(R.layout.fragment_add_place_
 
         confirm.setOnClickListener {
             vm.onConfirmClicked(
-                name = etGeofenceName.textString(),
-                address = etAddress.textString(),
-                description = etGeofenceDescription.textString()
+                GeofenceCreationParams(
+                    name = etGeofenceName.textString(),
+                    address = etAddress.textString(),
+                    description = etGeofenceDescription.textString()
+                )
             )
         }
 
         bDeleteIntegration.setOnClickListener {
             vm.onDeleteIntegrationClicked()
         }
+    }
+
+    private fun createConfirmationDialog(params: GeofenceCreationParams): AlertDialog {
+        return AlertDialog.Builder(requireContext())
+            .setMessage(
+                R.string.add_place_confirm_adjacent.stringFromResource()
+            )
+            .setPositiveButton(R.string.yes) { dialog, which ->
+                vm.onGeofenceDialogYes(params)
+            }
+            .setNegativeButton(R.string.no) { _, _ ->
+            }
+            .create()
     }
 
     companion object {

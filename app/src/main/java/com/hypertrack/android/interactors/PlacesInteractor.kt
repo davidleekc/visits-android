@@ -15,6 +15,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import java.lang.RuntimeException
 
 interface PlacesInteractor {
     val errorFlow: MutableSharedFlow<Consumable<Exception>>
@@ -37,7 +38,9 @@ interface PlacesInteractor {
 
     suspend fun loadPage(pageToken: String?): GeofencesPage
 
+    val adjacentGeofencesAllowed: Boolean
     suspend fun hasAdjacentGeofence(latLng: LatLng, radius: Int? = null): Boolean
+    suspend fun blockingHasAdjacentGeofence(latLng: LatLng, radius: Int? = null): Boolean
 
     companion object {
         const val DEFAULT_RADIUS_METERS = 100
@@ -74,6 +77,8 @@ class PlacesInteractorImpl(
     override val isLoadingForLocation = MutableLiveData<Boolean>(false)
     private var firstPageJob: Deferred<GeofencesPage>? = null
 
+    override val adjacentGeofencesAllowed: Boolean = true
+
     init {
         firstPageJob = globalScope.async {
             loadPlacesPage(null, true)
@@ -85,7 +90,7 @@ class PlacesInteractorImpl(
     }
 
     override fun loadGeofencesForMap(center: LatLng) {
-        val gh = GeoHash(center.latitude, center.longitude, 4)
+        val gh = center.getGeohash()
         globalScope.launch(Dispatchers.Main) {
             loadRegion(gh)
             gh.adjacent.forEach { loadRegion(it) }
@@ -106,10 +111,25 @@ class PlacesInteractorImpl(
     }
 
     override suspend fun hasAdjacentGeofence(latLng: LatLng, radius: Int?): Boolean {
-        return geofences.value!!.any { (_, geofence) ->
-            val distance = osUtilsProvider.distanceMeters(geofence.latLng, latLng)
-            return@any distance < geofence.radius +
-                    (radius ?: PlacesInteractor.DEFAULT_RADIUS_METERS)
+        return withContext(Dispatchers.Default) {
+            geofences.value!!.any { (_, geofence) ->
+                val distance = osUtilsProvider.distanceMeters(geofence.latLng, latLng)
+                return@any distance < geofence.radius +
+                        (radius ?: PlacesInteractor.DEFAULT_RADIUS_METERS)
+            }
+        }
+    }
+
+    override suspend fun blockingHasAdjacentGeofence(latLng: LatLng, radius: Int?): Boolean {
+        return withContext(Dispatchers.IO) {
+            val gh = latLng.getGeohash()
+            loadRegion(gh)
+            //wait for all ghs to load
+            gh.adjacent.forEach { agh ->
+                geoCache.getLoadedItem(agh)
+            }
+
+            return@withContext hasAdjacentGeofence(latLng, radius)
         }
     }
 
@@ -255,6 +275,24 @@ class PlacesInteractorImpl(
             return items.values.any { it.status == Status.LOADING }
         }
 
+        //throws
+        suspend fun getLoadedItem(gh: GeoHash): GeoCacheItem {
+            check(contains(gh))
+            val item = items[gh]!!
+            when (item.status) {
+                Status.COMPLETED -> {
+                    return item
+                }
+                Status.LOADING -> {
+                    item.job.join()
+                    return item
+                }
+                Status.ERROR -> {
+                    throw RuntimeException("Error loading geofences in region $gh")
+                }
+            }
+        }
+
     }
 
     inner class GeoCacheItem(
@@ -302,6 +340,10 @@ class PlacesInteractorImpl(
         COMPLETED, LOADING, ERROR
     }
 
+}
+
+private fun LatLng.getGeohash(charsCount: Int = 4): GeoHash {
+    return GeoHash(latitude, longitude, charsCount)
 }
 
 
