@@ -166,6 +166,7 @@ object Injector {
             placesRepository,
             integrationsRepository,
             osUtilsProvider,
+            Intersect(),
             GlobalScope
         )
         val hyperTrackService = serviceLocator.getHyperTrackService(publishableKey)

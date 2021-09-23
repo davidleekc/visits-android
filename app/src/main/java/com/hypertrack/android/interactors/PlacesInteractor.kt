@@ -1,5 +1,6 @@
 package com.hypertrack.android.interactors
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.fonfon.kgeohash.GeoHash
@@ -9,6 +10,7 @@ import com.hypertrack.android.models.Integration
 import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.repository.*
 import com.hypertrack.android.ui.base.Consumable
+import com.hypertrack.android.utils.Intersect
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.logistics.android.github.R
 import kotlinx.coroutines.*
@@ -39,11 +41,14 @@ interface PlacesInteractor {
     suspend fun loadPage(pageToken: String?): GeofencesPage
 
     val adjacentGeofencesAllowed: Boolean
-    suspend fun hasAdjacentGeofence(latLng: LatLng, radius: Int? = null): Boolean
-    suspend fun blockingHasAdjacentGeofence(latLng: LatLng, radius: Int? = null): Boolean
+    suspend fun hasAdjacentGeofence(latLng: LatLng, radius: Int): Boolean
+    suspend fun blockingHasAdjacentGeofence(latLng: LatLng, radius: Int): Boolean
 
     companion object {
-        const val DEFAULT_RADIUS_METERS = 100
+        //meters
+        const val MIN_RADIUS = 50
+        const val MAX_RADIUS = 10000
+        const val DEFAULT_RADIUS = MIN_RADIUS
     }
 }
 
@@ -51,6 +56,7 @@ class PlacesInteractorImpl(
     private val placesRepository: PlacesRepository,
     private val integrationsRepository: IntegrationsRepository,
     private val osUtilsProvider: OsUtilsProvider,
+    private val intersect: Intersect,
     private val globalScope: CoroutineScope
 ) : PlacesInteractor {
 
@@ -63,6 +69,7 @@ class PlacesInteractorImpl(
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
 
+    //key - geofence id
     private val _geofences = mutableMapOf<String, LocalGeofence>()
     override val geofences = MutableLiveData<Map<String, LocalGeofence>>(mapOf())
     override val geofencesDiff = MutableSharedFlow<List<LocalGeofence>>(
@@ -110,17 +117,13 @@ class PlacesInteractorImpl(
         }
     }
 
-    override suspend fun hasAdjacentGeofence(latLng: LatLng, radius: Int?): Boolean {
+    override suspend fun hasAdjacentGeofence(latLng: LatLng, radius: Int): Boolean {
         return withContext(Dispatchers.Default) {
-            geofences.value!!.any { (_, geofence) ->
-                val distance = osUtilsProvider.distanceMeters(geofence.latLng, latLng)
-                return@any distance < geofence.radius +
-                        (radius ?: PlacesInteractor.DEFAULT_RADIUS_METERS)
-            }
+            checkIntersection(latLng, radius, geofences.value!!.values.toList())
         }
     }
 
-    override suspend fun blockingHasAdjacentGeofence(latLng: LatLng, radius: Int?): Boolean {
+    override suspend fun blockingHasAdjacentGeofence(latLng: LatLng, radius: Int): Boolean {
         return withContext(Dispatchers.IO) {
             val gh = latLng.getGeohash()
             loadRegion(gh)
@@ -141,13 +144,6 @@ class PlacesInteractorImpl(
         geoCache.clear()
     }
 
-    private fun invalidatePageCache() {
-        pendingCreatedGeofences.clear()
-        firstPageJob?.cancel()
-        firstPageJob = null
-        pageCache.clear()
-    }
-
     override suspend fun createGeofence(
         latitude: Double,
         longitude: Double,
@@ -163,7 +159,7 @@ class PlacesInteractorImpl(
                 longitude = longitude,
                 name = name,
                 address = address,
-                radius = radius ?: PlacesInteractor.DEFAULT_RADIUS_METERS,
+                radius = radius ?: PlacesInteractor.DEFAULT_RADIUS,
                 description = description,
                 integration = integration
             ).apply {
@@ -173,6 +169,13 @@ class PlacesInteractorImpl(
                 }
             }
         }
+    }
+
+    private fun invalidatePageCache() {
+        pendingCreatedGeofences.clear()
+        firstPageJob?.cancel()
+        firstPageJob = null
+        pageCache.clear()
     }
 
     private suspend fun loadPlacesPage(pageToken: String?, initial: Boolean): GeofencesPage {
@@ -250,6 +253,27 @@ class PlacesInteractorImpl(
 
     private fun updateDebugCacheState() {
         debugCacheState.postValue(geoCache.getItems().values.toList())
+    }
+
+    private fun checkIntersection(
+        center: LatLng,
+        radius: Int,
+        allGeofences: List<LocalGeofence>
+    ): Boolean {
+        val gh = center.getGeohash(5)
+        allGeofences.filter {
+            val checkGh = it.latLng.getGeohash(5)
+            gh == checkGh || checkGh in gh.adjacent
+        }.forEach {
+            Log.v("hypertrack-verbose", it.id)
+            val intersects = if (it.isPolygon) {
+                intersect.areCircleAndPolygonIntersects(center, radius, it.polygon!!)
+            } else {
+                intersect.areTwoCirclesIntersects(center, radius, it.latLng, it.radius)
+            }
+            if (intersects) return true
+        }
+        return false
     }
 
     inner class GeoCache {

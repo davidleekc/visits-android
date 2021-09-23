@@ -1,23 +1,27 @@
 package com.hypertrack.android.ui.common
 
 import android.graphics.Color
+import android.util.Log
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.*
 import com.hypertrack.android.models.local.LocalGeofence
+import com.hypertrack.android.utils.Intersect
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.logistics.android.github.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class HypertrackMapWrapper(
     val googleMap: GoogleMap,
     private val osUtilsProvider: OsUtilsProvider
 ) {
 
-    val geofenceMarkerIcon by lazy {
+    val cameraPosition: LatLng
+        get() = googleMap.viewportPosition
+
+    val geofenceMarkerIcon: BitmapDescriptor by lazy {
         BitmapDescriptorFactory.fromBitmap(
             osUtilsProvider.bitmapFormResource(
                 R.drawable.ic_ht_departure_active
@@ -25,7 +29,7 @@ class HypertrackMapWrapper(
         )
     }
 
-    fun addGeofenceCircle(geofence: LocalGeofence) {
+    fun addGeofenceShape(geofence: LocalGeofence) {
         if (geofence.isPolygon) {
             googleMap.addPolygon(
                 PolygonOptions()
@@ -94,9 +98,24 @@ class HypertrackMapWrapper(
         )
     }
 
-    fun moveCamera(latLng: LatLng) {
+    fun addNewGeofenceRadius(latLng: LatLng, radius: Int): Circle {
+        return googleMap.addCircle(
+            CircleOptions()
+                .radius(radius.toDouble())
+                .center(latLng)
+                .strokePattern(listOf(Dash(30f), Gap(20f)))
+                .fillColor(osUtilsProvider.colorFromResource(R.color.colorGeofenceFill))
+                .strokeColor(
+                    osUtilsProvider.colorFromResource(
+                        R.color.colorHyperTrackGreenSemitransparent
+                    )
+                )
+        )
+    }
+
+    fun moveCamera(latLng: LatLng, zoom: Float? = null) {
         GlobalScope.launch(Dispatchers.Main) {
-            googleMap.moveCamera(latLng)
+            googleMap.moveCamera(latLng, zoom)
         }
     }
 
@@ -110,8 +129,8 @@ class HypertrackMapWrapper(
 
 }
 
-fun GoogleMap.moveCamera(latLng: LatLng) {
-    moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, HypertrackMapWrapper.DEFAULT_ZOOM))
+fun GoogleMap.moveCamera(latLng: LatLng, zoom: Float?) {
+    moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom ?: HypertrackMapWrapper.DEFAULT_ZOOM))
 }
 
 val GoogleMap.viewportPosition: LatLng

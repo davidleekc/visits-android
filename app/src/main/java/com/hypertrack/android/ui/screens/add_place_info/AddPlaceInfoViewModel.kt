@@ -60,7 +60,7 @@ class AddPlaceInfoViewModel(
         }
     }
 
-    val radius = MutableLiveData<Int?>(PlacesInteractor.DEFAULT_RADIUS_METERS)
+    val radius = MutableLiveData<Int?>(PlacesInteractor.DEFAULT_RADIUS)
     val integration = MutableLiveData<Integration?>(null)
 
     val enableConfirmButton = MediatorLiveData<Boolean>().apply {
@@ -92,12 +92,14 @@ class AddPlaceInfoViewModel(
             errorHandler.postText(
                 osUtilsProvider.stringFromResource(
                     R.string.add_place_geofence_radius_validation_error,
-                    distanceFormatter.formatDistance(MIN_RADIUS),
-                    distanceFormatter.formatDistance(MAX_RADIUS)
+                    distanceFormatter.formatDistance(PlacesInteractor.MIN_RADIUS),
+                    distanceFormatter.formatDistance(PlacesInteractor.MAX_RADIUS)
                 )
             )
         }) {
-            radius.value?.let { radius -> radius > MIN_RADIUS && radius < MAX_RADIUS } ?: false
+            radius.value?.let { radius ->
+                radius > PlacesInteractor.MIN_RADIUS && radius < PlacesInteractor.MAX_RADIUS
+            } ?: false
         },
         Validation({ errorHandler.postText(R.string.add_place_info_confirm_disabled) }) {
             if (hasIntegrations.value == true) {
@@ -139,7 +141,7 @@ class AddPlaceInfoViewModel(
 
                 //todo test
                 if (placesInteractor.adjacentGeofencesAllowed) {
-                    placesInteractor.hasAdjacentGeofence(latLng, radius.value).let { has ->
+                    placesInteractor.hasAdjacentGeofence(latLng, radius.value!!).let { has ->
                         if (!has) {
                             proceedCreatingGeofence(params)
                         } else {
@@ -148,14 +150,15 @@ class AddPlaceInfoViewModel(
                         }
                     }
                 } else {
-                    placesInteractor.blockingHasAdjacentGeofence(latLng, radius.value).let { has ->
-                        if (!has) {
-                            proceedCreatingGeofence(params)
-                        } else {
-                            loadingState.postValue(false)
-                            errorHandler.postText(R.string.add_place_info_adjacent_geofence_error)
+                    placesInteractor.blockingHasAdjacentGeofence(latLng, radius.value!!)
+                        .let { has ->
+                            if (!has) {
+                                proceedCreatingGeofence(params)
+                            } else {
+                                loadingState.postValue(false)
+                                errorHandler.postText(R.string.add_place_info_adjacent_geofence_error)
+                            }
                         }
-                    }
                 }
 
 
@@ -239,10 +242,6 @@ class AddPlaceInfoViewModel(
         }
     }
 
-    companion object {
-        const val MIN_RADIUS = 50
-        const val MAX_RADIUS = 10000
-    }
 }
 
 class GeofenceCreationParams(

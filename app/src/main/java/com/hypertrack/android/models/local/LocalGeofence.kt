@@ -117,6 +117,7 @@ data class LocalGeofence(
             polygon: List<LatLng>,
             osUtilsProvider: OsUtilsProvider
         ): Int {
+            //todo merge with Intersect
             return polygon.map { osUtilsProvider.distanceMeters(latLng, it) }.maxOrNull()!!
         }
     }

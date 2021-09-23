@@ -12,6 +12,7 @@ import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.SingleLiveEvent
 import com.hypertrack.android.ui.common.*
+import com.hypertrack.android.ui.common.delegates.GeofenceClusterItem
 import com.hypertrack.android.ui.common.delegates.GeofencesMapDelegate
 import com.hypertrack.android.ui.common.delegates.GooglePlaceAddressDelegate
 import com.hypertrack.android.ui.common.select_destination.reducer.*
@@ -34,14 +35,17 @@ open class SelectDestinationViewModel(
     private val crashReportsProvider: CrashReportsProvider
 ) : BaseViewModel(osUtilsProvider) {
 
-    private val enableLogging = MyApplication.DEBUG_MODE
+//    private val enableLogging = MyApplication.DEBUG_MODE
+private val enableLogging = false
+
+    protected open val defaultZoom = 13f
 
     private val reducer = SelectDestinationViewModelReducer()
-    private lateinit var state: State
+    protected lateinit var state: State
 
     private val addressDelegate = GooglePlaceAddressDelegate(osUtilsProvider)
     private val placesDelegate = GooglePlacesSearchDelegate(googlePlacesInteractor)
-    private lateinit var geofencesMapDelegate: GeofencesMapDelegate
+    protected lateinit var geofencesMapDelegate: GeofencesMapDelegate
 
     private var programmaticCameraMove: Boolean = false
 
@@ -181,12 +185,7 @@ open class SelectDestinationViewModel(
             )
         }
 
-        geofencesMapDelegate = GeofencesMapDelegate(
-            context,
-            wrapper,
-            placesInteractor,
-            osUtilsProvider
-        ) {
+        geofencesMapDelegate = createGeofencesMapDelegate(context, wrapper) {
             it.snippet.nullIfEmpty()?.let { snippet ->
                 destination.postValue(
                     AddPlaceFragmentDirections.actionGlobalPlaceDetailsFragment(
@@ -210,7 +209,6 @@ open class SelectDestinationViewModel(
             if (state is MapReady) {
                 try {
                     val res = viewModelScope.async {
-                        Log.v("hypertrack-verbose", state.userLocation?.latLng.toString())
                         placesDelegate.search(query, state.userLocation?.latLng)
                     }.await()
                     if (res.isNotEmpty()) {
@@ -250,19 +248,33 @@ open class SelectDestinationViewModel(
         goBackEvent.postValue(destinationData)
     }
 
+    protected open fun handleEffect(proceed: Proceed) {
+        proceed(proceed.placeData.toDestinationData())
+    }
+
     protected open fun onCameraMoved(map: GoogleMap) {
         val region = map.projection.visibleRegion
         placesInteractor.loadGeofencesForMap(map.cameraPosition.target)
         geofencesMapDelegate.onCameraIdle()
     }
 
-    protected open fun handleEffect(proceed: Proceed) {
-        proceed(proceed.placeData.toDestinationData())
-    }
-
     private fun moveMapCamera(map: HypertrackMapWrapper, latLng: LatLng) {
         programmaticCameraMove = true
-        map.moveCamera(latLng)
+        map.moveCamera(latLng, defaultZoom)
+    }
+
+    protected open fun createGeofencesMapDelegate(
+        context: Context,
+        wrapper: HypertrackMapWrapper,
+        markerClickListener: (GeofenceClusterItem) -> Unit
+    ): GeofencesMapDelegate {
+        return GeofencesMapDelegate(
+            context,
+            wrapper,
+            placesInteractor,
+            osUtilsProvider,
+            markerClickListener
+        )
     }
 
 }

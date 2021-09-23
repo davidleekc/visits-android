@@ -120,7 +120,7 @@ class PlaceDetailsViewModel(
     }
 
     private fun displayGeofenceLocation(geofence: LocalGeofence, mapWrapper: HypertrackMapWrapper) {
-        mapWrapper.addGeofenceCircle(geofence)
+        mapWrapper.addGeofenceShape(geofence)
         mapWrapper.googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(geofence.latLng, 14.0f))
     }
 
