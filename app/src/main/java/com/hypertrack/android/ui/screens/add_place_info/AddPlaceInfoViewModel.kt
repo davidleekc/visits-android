@@ -2,6 +2,7 @@ package com.hypertrack.android.ui.screens.add_place_info
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
@@ -10,9 +11,12 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.Circle
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.maps.android.SphericalUtil
 import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.models.Integration
+import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.repository.CreateGeofenceError
 import com.hypertrack.android.repository.CreateGeofenceSuccess
 import com.hypertrack.android.repository.IntegrationsRepository
@@ -152,16 +156,24 @@ class AddPlaceInfoViewModel(
                 enableMyLocationIndicator = false
             )
         )
-        geofencesMapDelegate = GeofencesMapDelegate(
+        geofencesMapDelegate = object : GeofencesMapDelegate(
             context,
             map!!,
             placesInteractor,
-            osUtilsProvider
-        ) {}
+            osUtilsProvider,
+            {}
+        ) {
+            override fun updateGeofencesOnMap(
+                mapWrapper: HypertrackMapWrapper,
+                geofences: List<LocalGeofence>
+            ) {
+                super.updateGeofencesOnMap(mapWrapper, geofences)
+                displayRadius()
+            }
+        }
         googleMap.setOnCameraIdleListener {
             geofencesMapDelegate.onCameraIdle()
         }
-        map!!.moveCamera(latLng, 16f)
         displayRadius()
     }
 
@@ -242,6 +254,46 @@ class AddPlaceInfoViewModel(
     private fun displayRadius() {
         radiusShapes?.forEach { it.remove() }
         radiusShapes = map?.addGeofenceShape(latLng, radius.value ?: 1)
+        try {
+            map?.googleMap?.moveCamera(
+                CameraUpdateFactory.newLatLngBounds(
+                    LatLngBounds.builder().apply {
+                        include(
+                            SphericalUtil.computeOffset(
+                                latLng,
+                                (radius.value ?: 50).toDouble(),
+                                0.0
+                            )
+                        )
+                        include(
+                            SphericalUtil.computeOffset(
+                                latLng,
+                                (radius.value ?: 50).toDouble(),
+                                90.0
+                            )
+                        )
+                        include(
+                            SphericalUtil.computeOffset(
+                                latLng,
+                                (radius.value ?: 50).toDouble(),
+                                180.0
+                            )
+                        )
+                        include(
+                            SphericalUtil.computeOffset(
+                                latLng,
+                                (radius.value ?: 50).toDouble(),
+                                270.0
+                            )
+                        )
+                    }.build(),
+                    50
+                )
+            )
+        } catch (e: Exception) {
+            map?.moveCamera(latLng, 15f)
+            Log.v("hypertrack-verbose", e.message.toString())
+        }
     }
 
     private suspend fun proceedCreatingGeofence(params: GeofenceCreationParams) {

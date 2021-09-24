@@ -265,7 +265,6 @@ class PlacesInteractorImpl(
             val checkGh = it.latLng.getGeohash(5)
             gh == checkGh || checkGh in gh.adjacent
         }.forEach {
-            Log.v("hypertrack-verbose", it.id)
             val intersects = if (it.isPolygon) {
                 intersect.areCircleAndPolygonIntersects(center, radius, it.polygon!!)
             } else {
