@@ -1,12 +1,14 @@
 package com.hypertrack.android.ui.screens.add_place_info
 
 import android.annotation.SuppressLint
+import android.content.Context
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.model.Circle
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.hypertrack.android.interactors.PlacesInteractor
@@ -16,8 +18,12 @@ import com.hypertrack.android.repository.CreateGeofenceSuccess
 import com.hypertrack.android.repository.IntegrationsRepository
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.Consumable
+import com.hypertrack.android.ui.common.HypertrackMapWrapper
+import com.hypertrack.android.ui.common.MapParams
 import com.hypertrack.android.ui.common.Tab
+import com.hypertrack.android.ui.common.delegates.GeofencesMapDelegate
 import com.hypertrack.android.ui.common.delegates.GooglePlaceAddressDelegate
+import com.hypertrack.android.ui.common.util.requireValue
 import com.hypertrack.android.ui.screens.add_place.AddPlaceFragmentDirections
 import com.hypertrack.android.utils.*
 import com.hypertrack.logistics.android.github.R
@@ -37,10 +43,14 @@ class AddPlaceInfoViewModel(
 ) : BaseViewModel(osUtilsProvider) {
 
     private val addressDelegate = GooglePlaceAddressDelegate(osUtilsProvider)
+    private lateinit var geofencesMapDelegate: GeofencesMapDelegate
 
     val hasIntegrations = MutableLiveData<Boolean?>(false)
     val loadingState = MutableLiveData<Boolean>(true)
     val adjacentGeofenceDialog = MutableLiveData<Consumable<GeofenceCreationParams>>()
+
+    private var map: HypertrackMapWrapper? = null
+    private var radiusShapes: List<Circle>? = null
 
     //todo persist state in create geofence scope
     val address = MutableLiveData<String?>().apply {
@@ -60,7 +70,7 @@ class AddPlaceInfoViewModel(
         }
     }
 
-    val radius = MutableLiveData<Int?>(PlacesInteractor.DEFAULT_RADIUS)
+    val radius = MutableLiveData<Int>(PlacesInteractor.DEFAULT_RADIUS)
     val integration = MutableLiveData<Integration?>(null)
 
     val enableConfirmButton = MediatorLiveData<Boolean>().apply {
@@ -98,7 +108,7 @@ class AddPlaceInfoViewModel(
             )
         }) {
             radius.value?.let { radius ->
-                radius > PlacesInteractor.MIN_RADIUS && radius < PlacesInteractor.MAX_RADIUS
+                radius >= PlacesInteractor.MIN_RADIUS && radius <= PlacesInteractor.MAX_RADIUS
             } ?: false
         },
         Validation({ errorHandler.postText(R.string.add_place_info_confirm_disabled) }) {
@@ -126,12 +136,33 @@ class AddPlaceInfoViewModel(
                 }
             }
         }
+
+        radius.observeManaged {
+            displayRadius()
+        }
     }
 
     @SuppressLint("MissingPermission")
-    fun onMapReady(googleMap: GoogleMap) {
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 13f))
-        googleMap.addMarker(MarkerOptions().position(latLng))
+    fun onMapReady(context: Context, googleMap: GoogleMap) {
+        map = HypertrackMapWrapper(
+            googleMap, osUtilsProvider, MapParams(
+                enableScroll = false,
+                enableZoomKeys = true,
+                enableMyLocationButton = false,
+                enableMyLocationIndicator = false
+            )
+        )
+        geofencesMapDelegate = GeofencesMapDelegate(
+            context,
+            map!!,
+            placesInteractor,
+            osUtilsProvider
+        ) {}
+        googleMap.setOnCameraIdleListener {
+            geofencesMapDelegate.onCameraIdle()
+        }
+        map!!.moveCamera(latLng, 16f)
+        displayRadius()
     }
 
     fun onConfirmClicked(params: GeofenceCreationParams) {
@@ -141,7 +172,7 @@ class AddPlaceInfoViewModel(
 
                 //todo test
                 if (placesInteractor.adjacentGeofencesAllowed) {
-                    placesInteractor.hasAdjacentGeofence(latLng, radius.value!!).let { has ->
+                    placesInteractor.hasAdjacentGeofence(latLng, radius.requireValue()).let { has ->
                         if (!has) {
                             proceedCreatingGeofence(params)
                         } else {
@@ -150,7 +181,7 @@ class AddPlaceInfoViewModel(
                         }
                     }
                 } else {
-                    placesInteractor.blockingHasAdjacentGeofence(latLng, radius.value!!)
+                    placesInteractor.blockingHasAdjacentGeofence(latLng, radius.requireValue())
                         .let { has ->
                             if (!has) {
                                 proceedCreatingGeofence(params)
@@ -202,6 +233,17 @@ class AddPlaceInfoViewModel(
         }
     }
 
+    fun onGeofenceDialogYes(params: GeofenceCreationParams) {
+        viewModelScope.launch {
+            proceedCreatingGeofence(params)
+        }
+    }
+
+    private fun displayRadius() {
+        radiusShapes?.forEach { it.remove() }
+        radiusShapes = map?.addGeofenceShape(latLng, radius.value ?: 1)
+    }
+
     private suspend fun proceedCreatingGeofence(params: GeofenceCreationParams) {
         val res = placesInteractor.createGeofence(
             latitude = latLng.latitude,
@@ -236,12 +278,12 @@ class AddPlaceInfoViewModel(
         }
     }
 
-    fun onGeofenceDialogYes(params: GeofenceCreationParams) {
-        viewModelScope.launch {
-            proceedCreatingGeofence(params)
+    override fun onCleared() {
+        super.onCleared()
+        if (this::geofencesMapDelegate.isInitialized) {
+            geofencesMapDelegate.onCleared()
         }
     }
-
 }
 
 class GeofenceCreationParams(

@@ -50,7 +50,7 @@ class AddPlaceInfoFragment : ProgressDialogFragment(R.layout.fragment_add_place_
         mainActivity().supportActionBar!!.setHomeButtonEnabled(true)
 
         (childFragmentManager.findFragmentById(R.id.mapView) as SupportMapFragment?)?.getMapAsync {
-            vm.onMapReady(it)
+            vm.onMapReady(requireContext(), it)
         }
 
         val addressListener = object : SimpleTextWatcher() {

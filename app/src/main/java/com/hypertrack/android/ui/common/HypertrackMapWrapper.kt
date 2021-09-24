@@ -1,5 +1,6 @@
 package com.hypertrack.android.ui.common
 
+import android.annotation.SuppressLint
 import android.graphics.Color
 import android.util.Log
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -15,8 +16,24 @@ import kotlinx.coroutines.launch
 
 class HypertrackMapWrapper(
     val googleMap: GoogleMap,
-    private val osUtilsProvider: OsUtilsProvider
+    private val osUtilsProvider: OsUtilsProvider,
+    private val params: MapParams
 ) {
+
+
+    init {
+        googleMap.uiSettings.apply {
+            isScrollGesturesEnabled = params.enableScroll
+            isZoomControlsEnabled = params.enableZoomKeys
+            isMyLocationButtonEnabled = params.enableMyLocationButton
+        }
+
+        try {
+            @SuppressLint("MissingPermission")
+            googleMap.isMyLocationEnabled = params.enableMyLocationIndicator
+        } catch (_: Exception) {
+        }
+    }
 
     val cameraPosition: LatLng
         get() = googleMap.viewportPosition
@@ -27,6 +44,10 @@ class HypertrackMapWrapper(
                 R.drawable.ic_ht_departure_active
             )
         )
+    }
+
+    fun setOnCameraMovedListener(listener: (LatLng) -> Unit) {
+        googleMap.setOnCameraIdleListener { listener.invoke(googleMap.viewportPosition) }
     }
 
     fun addGeofenceShape(geofence: LocalGeofence) {
@@ -60,6 +81,32 @@ class HypertrackMapWrapper(
                     .visible(true)
             )
         }
+    }
+
+    fun addGeofenceShape(latLng: LatLng, radius: Int): List<Circle> {
+        val res = mutableListOf<Circle>()
+        googleMap.addCircle(
+            CircleOptions()
+                .center(latLng)
+                .fillColor(osUtilsProvider.colorFromResource(R.color.colorGeofenceFill))
+                .strokeColor(osUtilsProvider.colorFromResource(R.color.colorGeofence))
+                .strokeWidth(3f)
+                .radius(radius.toDouble())
+                .visible(true)
+        ).also {
+            res.add(it)
+        }
+        googleMap.addCircle(
+            CircleOptions()
+                .center(latLng)
+                .fillColor(osUtilsProvider.colorFromResource(R.color.colorGeofence))
+                .strokeColor(Color.TRANSPARENT)
+                .radius(15.0)
+                .visible(true)
+        ).also {
+            res.add(it)
+        }
+        return res
     }
 
     fun addGeofenceMarker(geofence: LocalGeofence) {
@@ -119,6 +166,10 @@ class HypertrackMapWrapper(
         }
     }
 
+    fun setOnMapClickListener(listener: () -> Unit) {
+        googleMap.setOnMapClickListener { listener.invoke() }
+    }
+
     override fun toString(): String {
         return javaClass.simpleName
     }
@@ -128,6 +179,13 @@ class HypertrackMapWrapper(
     }
 
 }
+
+class MapParams(
+    val enableScroll: Boolean,
+    val enableZoomKeys: Boolean,
+    val enableMyLocationButton: Boolean,
+    val enableMyLocationIndicator: Boolean
+)
 
 fun GoogleMap.moveCamera(latLng: LatLng, zoom: Float?) {
     moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom ?: HypertrackMapWrapper.DEFAULT_ZOOM))

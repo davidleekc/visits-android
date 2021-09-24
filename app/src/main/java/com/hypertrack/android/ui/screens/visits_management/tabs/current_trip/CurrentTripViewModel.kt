@@ -16,6 +16,7 @@ import com.hypertrack.android.repository.TripCreationError
 import com.hypertrack.android.repository.TripCreationSuccess
 import com.hypertrack.android.ui.base.*
 import com.hypertrack.android.ui.common.HypertrackMapWrapper
+import com.hypertrack.android.ui.common.MapParams
 import com.hypertrack.android.ui.common.delegates.GeofencesMapDelegate
 import com.hypertrack.android.ui.common.util.nullIfEmpty
 import com.hypertrack.android.ui.common.util.requireValue
@@ -152,26 +153,23 @@ class CurrentTripViewModel(
         }
     }
 
-    @SuppressLint("MissingPermission")
     fun onMapReady(context: Context, googleMap: GoogleMap) {
-        googleMap.uiSettings.apply {
-            isZoomControlsEnabled = false
-            isMyLocationButtonEnabled = false
-        }
-
-        try {
-            googleMap.isMyLocationEnabled = true
-        } catch (e: Exception) {
-            throw e
-        }
-
-        googleMap.setOnCameraIdleListener {
-            geofencesMapDelegate.onCameraIdle()
+        val mapWrapper = HypertrackMapWrapper(
+            googleMap, osUtilsProvider, MapParams(
+                enableScroll = true,
+                enableZoomKeys = false,
+                enableMyLocationButton = false,
+                enableMyLocationIndicator = true
+            )
+        ).apply {
+            setOnCameraMovedListener {
+                geofencesMapDelegate.onCameraIdle()
+            }
         }
 
         geofencesMapDelegate = object : GeofencesMapDelegate(
             context,
-            HypertrackMapWrapper(googleMap, osUtilsProvider),
+            mapWrapper,
             placesInteractor,
             osUtilsProvider,
             {
@@ -202,7 +200,7 @@ class CurrentTripViewModel(
 
         this.userLocation.observeManaged {
             if (trip.value == null && it != null) {
-                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(it, DEFAULT_ZOOM))
+                mapWrapper.moveCamera(it)
             }
         }
 

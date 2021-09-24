@@ -143,20 +143,20 @@ private val enableLogging = false
 
     @SuppressLint("MissingPermission")
     open fun onMapReady(context: Context, googleMap: GoogleMap) {
-        val wrapper = HypertrackMapWrapper(googleMap, osUtilsProvider)
-
-        //todo settings to wrapper
-        try {
-            googleMap.isMyLocationEnabled = true
-        } catch (_: Exception) {
-        }
-
-        googleMap.setOnCameraIdleListener {
+        val wrapper = HypertrackMapWrapper(
+            googleMap, osUtilsProvider, MapParams(
+                enableScroll = true,
+                enableZoomKeys = true,
+                enableMyLocationButton = true,
+                enableMyLocationIndicator = true,
+            )
+        )
+        wrapper.setOnCameraMovedListener { position ->
             onCameraMoved(googleMap)
             sendAction(
                 MapCameraMoved(
-                    googleMap.viewportPosition,
-                    googleMap.viewportPosition.let {
+                    position,
+                    position.let {
                         addressDelegate.displayAddress(
                             osUtilsProvider.getPlaceFromCoordinates(
                                 it
@@ -164,18 +164,13 @@ private val enableLogging = false
                         )
                     },
                     isProgrammatic = programmaticCameraMove,
-                    isNearZero = googleMap.viewportPosition.isNearZero()
+                    isNearZero = position.isNearZero()
                 )
             )
             programmaticCameraMove = false
         }
 
-        googleMap.uiSettings.apply {
-            isMyLocationButtonEnabled = true
-            isZoomControlsEnabled = true
-        }
-
-        googleMap.setOnMapClickListener {
+        wrapper.setOnMapClickListener {
             sendAction(
                 MapClicked(
                     googleMap.viewportPosition,
