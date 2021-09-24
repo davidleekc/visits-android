@@ -12,9 +12,11 @@ import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.SingleLiveEvent
 import com.hypertrack.android.ui.common.*
+import com.hypertrack.android.ui.common.delegates.GeofenceClusterItem
 import com.hypertrack.android.ui.common.delegates.GeofencesMapDelegate
 import com.hypertrack.android.ui.common.delegates.GooglePlaceAddressDelegate
 import com.hypertrack.android.ui.common.select_destination.reducer.*
+import com.hypertrack.android.ui.common.util.isNearZero
 import com.hypertrack.android.ui.common.util.nullIfEmpty
 import com.hypertrack.android.ui.screens.add_place.AddPlaceFragmentDirections
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
@@ -33,34 +35,32 @@ open class SelectDestinationViewModel(
     private val crashReportsProvider: CrashReportsProvider
 ) : BaseViewModel(osUtilsProvider) {
 
+//    private val enableLogging = MyApplication.DEBUG_MODE
+private val enableLogging = false
+
+    protected open val defaultZoom = 13f
+
     private val reducer = SelectDestinationViewModelReducer()
-    private lateinit var state: State
+    protected lateinit var state: State
 
     private val addressDelegate = GooglePlaceAddressDelegate(osUtilsProvider)
     private val placesDelegate = GooglePlacesSearchDelegate(googlePlacesInteractor)
-    private lateinit var geofencesMapDelegate: GeofencesMapDelegate
+    protected lateinit var geofencesMapDelegate: GeofencesMapDelegate
 
     private var programmaticCameraMove: Boolean = false
 
-    val address = MutableLiveData<String>()
+    val searchQuery = MutableLiveData<String>()
+    val locationInfo = MutableLiveData<DisplayLocationInfo>()
     val showConfirmButton = MutableLiveData<Boolean>()
     val placesResults = MutableLiveData<List<GooglePlaceModel>>()
     val closeKeyboard = SingleLiveEvent<Boolean>()
     val goBackEvent = SingleLiveEvent<DestinationData>()
     val removeSearchFocusEvent = SingleLiveEvent<Boolean>()
 
-    init {
-        deviceLocationProvider.getCurrentLocation {
-            it?.let {
-                sendAction(UserLocation(it.toLatLng()))
-            }
-        }
-    }
-
     protected fun sendAction(action: Action) {
         viewModelScope.launch {
             val actionLog = "action = $action"
-//            Log.v("hypertrack-verbose", actionLog)
+            if (enableLogging) Log.v("hypertrack-verbose", actionLog)
             crashReportsProvider.log(actionLog)
             try {
                 val res = reducer.reduceAction(state, action)
@@ -79,35 +79,33 @@ open class SelectDestinationViewModel(
 
     private fun applyState(state: State) {
         when (state) {
-            is Initial -> {
-                showConfirmButton.postValue(true)
-            }
-            is AutocompleteIsActive -> {
-                placesResults.postValue(state.places.elements)
+            is MapNotReady -> {
+                loadingStateBase.postValue(true)
                 showConfirmButton.postValue(false)
             }
-            is MapIsActive -> {
-                placesResults.postValue(listOf())
+            is MapReady -> {
                 showConfirmButton.postValue(true)
-            }
-            is Confirmed -> {
-                showConfirmButton.postValue(false)
+
+                when (state.flow) {
+                    is AutocompleteFlow -> placesResults.postValue(state.flow.places.elements)
+                    MapFlow -> placesResults.postValue(listOf())
+                }
             }
         }.let { }
         this.state = state
         val stateLog = "new state = $state"
-//        Log.v("hypertrack-verbose", stateLog)
+        if (enableLogging) Log.v("hypertrack-verbose", stateLog)
         crashReportsProvider.log(stateLog)
     }
 
     private fun applyEffects(effects: Set<Effect>) {
         for (effect in effects) {
             val effectLog = "effect = $effect"
-//            Log.v("hypertrack-verbose", effectLog)
+            if (enableLogging) Log.v("hypertrack-verbose", effectLog)
             crashReportsProvider.log(effectLog)
             when (effect) {
-                is DisplayAddress -> {
-                    address.postValue(effect.address)
+                is DisplayLocationInfo -> {
+                    locationInfo.postValue(effect)
                 }
                 CloseKeyboard -> {
                     closeKeyboard.postValue(true)
@@ -121,48 +119,58 @@ open class SelectDestinationViewModel(
                 RemoveSearchFocus -> {
                     removeSearchFocusEvent.postValue(true)
                 }
+                HideProgressbar -> {
+                    loadingStateBase.postValue(false)
+                }
+                ClearSearchQuery -> {
+                    searchQuery.postValue("")
+                }
             }.let {}
         }
     }
 
     fun onViewCreated() {
         state = SelectDestinationViewModelReducer.INITIAL_STATE
+
+        deviceLocationProvider.getCurrentLocation {
+            it?.let {
+                sendAction(UserLocationReceived(it.toLatLng(), it.toLatLng().let {
+                    addressDelegate.displayAddress(osUtilsProvider.getPlaceFromCoordinates(it))
+                }))
+            }
+        }
     }
 
     @SuppressLint("MissingPermission")
     open fun onMapReady(context: Context, googleMap: GoogleMap) {
-        val wrapper = HypertrackMapWrapper(googleMap, osUtilsProvider)
-
-        //todo settings to wrapper
-        try {
-            googleMap.isMyLocationEnabled = true
-        } catch (_: Exception) {
-        }
-
-        googleMap.setOnCameraIdleListener {
+        val wrapper = HypertrackMapWrapper(
+            googleMap, osUtilsProvider, MapParams(
+                enableScroll = true,
+                enableZoomKeys = true,
+                enableMyLocationButton = true,
+                enableMyLocationIndicator = true,
+            )
+        )
+        wrapper.setOnCameraMovedListener { position ->
             onCameraMoved(googleMap)
             sendAction(
                 MapCameraMoved(
-                    googleMap.viewportPosition,
-                    googleMap.viewportPosition.let {
+                    position,
+                    position.let {
                         addressDelegate.displayAddress(
                             osUtilsProvider.getPlaceFromCoordinates(
                                 it
                             )
                         )
                     },
-                    programmaticCameraMove
+                    isProgrammatic = programmaticCameraMove,
+                    isNearZero = position.isNearZero()
                 )
             )
             programmaticCameraMove = false
         }
 
-        googleMap.uiSettings.apply {
-            isMyLocationButtonEnabled = true
-            isZoomControlsEnabled = true
-        }
-
-        googleMap.setOnMapClickListener {
+        wrapper.setOnMapClickListener {
             sendAction(
                 MapClicked(
                     googleMap.viewportPosition,
@@ -172,12 +180,7 @@ open class SelectDestinationViewModel(
             )
         }
 
-        geofencesMapDelegate = GeofencesMapDelegate(
-            context,
-            wrapper,
-            placesInteractor,
-            osUtilsProvider
-        ) {
+        geofencesMapDelegate = createGeofencesMapDelegate(context, wrapper) {
             it.snippet.nullIfEmpty()?.let { snippet ->
                 destination.postValue(
                     AddPlaceFragmentDirections.actionGlobalPlaceDetailsFragment(
@@ -197,18 +200,22 @@ open class SelectDestinationViewModel(
 
     fun onSearchQueryChanged(query: String) {
         viewModelScope.launch {
-            try {
-                val res = viewModelScope.async {
-                    placesDelegate.search(query, state.userLocation)
-                }.await()
-                if (res.isNotEmpty()) {
-                    sendAction(SearchQueryChanged(query, res.asNonEmpty()))
+            val state = state
+            if (state is MapReady) {
+                try {
+                    val res = viewModelScope.async {
+                        placesDelegate.search(query, state.userLocation?.latLng)
+                    }.await()
+                    if (res.isNotEmpty()) {
+                        sendAction(SearchQueryChanged(query, res.asNonEmpty()))
+                    }
+                } catch (e: Exception) {
+                    errorHandler.postException(e)
+                    sendAction(AutocompleteError(query))
                 }
-            } catch (e: Exception) {
-                errorHandler.postException(e)
-                sendAction(AutocompleteError(query))
             }
         }
+
     }
 
     fun onConfirmClicked() {
@@ -236,19 +243,33 @@ open class SelectDestinationViewModel(
         goBackEvent.postValue(destinationData)
     }
 
+    protected open fun handleEffect(proceed: Proceed) {
+        proceed(proceed.placeData.toDestinationData())
+    }
+
     protected open fun onCameraMoved(map: GoogleMap) {
         val region = map.projection.visibleRegion
         placesInteractor.loadGeofencesForMap(map.cameraPosition.target)
         geofencesMapDelegate.onCameraIdle()
     }
 
-    protected open fun handleEffect(proceed: Proceed) {
-        proceed(proceed.placeData.toDestinationData())
-    }
-
     private fun moveMapCamera(map: HypertrackMapWrapper, latLng: LatLng) {
         programmaticCameraMove = true
-        map.moveCamera(latLng)
+        map.moveCamera(latLng, defaultZoom)
+    }
+
+    protected open fun createGeofencesMapDelegate(
+        context: Context,
+        wrapper: HypertrackMapWrapper,
+        markerClickListener: (GeofenceClusterItem) -> Unit
+    ): GeofencesMapDelegate {
+        return GeofencesMapDelegate(
+            context,
+            wrapper,
+            placesInteractor,
+            osUtilsProvider,
+            markerClickListener
+        )
     }
 
 }
@@ -270,14 +291,5 @@ fun PlaceData.toDestinationData(): DestinationData {
                 name = null
             )
         }
-        is LocationSelectedWithUnsuccesfulQuery -> {
-            DestinationData(
-                placeData.mapState.cameraPosition,
-                address = placeData.mapState.cameraPositionAddress,
-                name = null
-            )
-        }
     }
 }
-
-

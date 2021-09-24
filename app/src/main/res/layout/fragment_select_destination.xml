@@ -15,7 +15,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/set_on_map"
+        app:layout_constraintTop_toBottomOf="@+id/search_layout"
         tools:context=".MapsActivity" />
 
     <androidx.appcompat.widget.Toolbar
@@ -25,7 +25,7 @@
         android:background="@color/colorWhite"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/search_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -42,13 +42,32 @@
             android:drawableEnd="@drawable/ic_search"
             android:drawablePadding="8dp"
             android:ellipsize="end"
+            android:hint="@string/select_destination_hint"
             android:inputType="text"
             android:maxLines="1"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
-            android:textSize="14dp" />
+            android:textSize="14dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-    </LinearLayout>
+        <ImageView
+            android:id="@+id/bClear"
+            android:layout_width="48dp"
+            android:layout_height="0dp"
+            android:layout_marginEnd="36dp"
+            android:scaleType="center"
+            app:tint="#44000000"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@+id/search"
+            app:layout_constraintEnd_toEndOf="@+id/search"
+            app:layout_constraintTop_toTopOf="@+id/search"
+            app:srcCompat="@drawable/ic_cross" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 
     <View
@@ -71,40 +90,55 @@
         app:srcCompat="@drawable/ic_places"
         tools:visibility="visible" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/locations"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/lLocationInfo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/colorWhite"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        app:layout_constraintTop_toBottomOf="@+id/set_on_map" />
-
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/set_on_map"
-        android:layout_width="match_parent"
-        android:layout_height="64dp"
-        android:padding="@dimen/content_padding"
-        app:layout_constraintTop_toBottomOf="@+id/search_layout">
-
-        <ImageView
-            android:id="@+id/imageView"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            app:srcCompat="@drawable/ic_map_tab"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+        android:orientation="vertical"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:paddingBottom="16dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@+id/search_layout"
+        tools:visibility="visible">
 
         <TextView
-            android:layout_width="wrap_content"
+            android:id="@+id/tvLocationAddress"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:text="@string/add_place_set_on_map"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/imageView"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintEnd_toStartOf="@+id/spinner"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Long text Long text Long text Long text Long text Long text Long text Long text Long text Long text Long text Long text Long text " />
 
+        <TextView
+            android:id="@+id/tvPlaceName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="@+id/tvLocationAddress"
+            app:layout_constraintStart_toStartOf="@+id/tvLocationAddress"
+            app:layout_constraintTop_toBottomOf="@+id/tvLocationAddress"
+            tools:text="Long text Long text Long text Long text Long text Long text Long text Long text Long text Long text Long text Long text Long text Long text Long text Long text Long text " />
+
+        <Spinner
+            android:id="@+id/spinner"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/locations"
+        android:layout_width="match_parent"
+        tools:visibility="gone"
+        android:layout_height="wrap_content"
+        android:background="@color/colorWhite"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        app:layout_constraintTop_toBottomOf="@+id/search_layout" />
 
     <Button
         android:id="@+id/confirm"

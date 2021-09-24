@@ -9,13 +9,17 @@ import java.util.*
 import kotlin.math.round
 
 //todo separate and merge with DateTimeFormatter
-interface TimeDistanceFormatter {
-    /** 2020-02-02T20:02:02.000Z -> 20:02 or 8:02pm adjusted to device's timezone */
-    fun formatTime(isoTimestamp: String): String
 
-    /** 2400 meters -> 2.4 km or 1.5 mi */
+interface TimeFormatter {
+    fun formatTime(isoTimestamp: String): String
+}
+
+interface DistanceFormatter {
     fun formatDistance(meters: Int): String
 }
+
+//todo split usage
+interface TimeDistanceFormatter : TimeFormatter, DistanceFormatter
 
 open class SimpleTimeDistanceFormatter(
     private val zoneId: ZoneId = ZoneId.systemDefault()
@@ -23,7 +27,7 @@ open class SimpleTimeDistanceFormatter(
 
     private val format = DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)
 
-    protected val shouldUseImperial = Locale.getDefault().country in listOf("US", "LR", "MM")
+    protected open val shouldUseImperial = Locale.getDefault().country in listOf("US", "LR", "MM")
 
     override fun formatTime(isoTimestamp: String): String {
         return try {
@@ -95,5 +99,14 @@ class LocalizedTimeDistanceFormatter(
 
     companion object {
         const val TAG = "TimeDistanceFormatter"
+    }
+}
+
+class MetersDistanceFormatter(val osUtilsProvider: OsUtilsProvider) : DistanceFormatter {
+    override fun formatDistance(meters: Int): String {
+        return osUtilsProvider.stringFromResource(
+            R.string.meters,
+            meters
+        )
     }
 }

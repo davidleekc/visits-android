@@ -45,6 +45,7 @@ class PlacesInteractorTest {
             ),
             mockk(relaxed = true),
             mockk(relaxed = true),
+            mockk(relaxed = true),
             TestCoroutineScope(),
         )
         runBlocking {

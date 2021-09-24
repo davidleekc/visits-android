@@ -1,247 +1,174 @@
 package com.hypertrack.android.ui.common.select_destination.reducer
 
+import android.graphics.Insets.add
 import com.google.android.gms.maps.model.LatLng
-import com.hypertrack.android.ui.common.util.isNearZero
-import com.hypertrack.android.utils.False
+import com.hypertrack.android.ui.common.HypertrackMapWrapper
 import com.hypertrack.android.utils.IllegalActionException
 
 class SelectDestinationViewModelReducer {
 
     fun reduceAction(state: State, action: Action): ReducerResult {
         return when (action) {
-            is UserLocation -> {
+            is UserLocationReceived -> {
                 reduce(action, state)
             }
             is MapReadyAction -> {
-                val mapReady = MapReady(
-                    action.map,
-                    action.cameraPosition,
-                    action.address
-                )
-
                 when (state) {
-                    is Initial -> state.withMap(mapReady).withEffects(
-                        getMapMoveEffectIfNeeded(
-                            state.mapLocationState,
-                            mapReady,
-                            state.mapLocationState.userLocation
+                    is MapNotReady -> {
+                        val userLocationEffects = getMapMoveEffectsIfNeeded(
+                            true,
+                            state.userLocation,
+                            action.map
                         )
-                    )
-                    is MapIsActive -> state.withMap(mapReady).withEffects(
-                        getMapMoveEffectIfNeeded(
-                            state.mapLocationState,
-                            mapReady,
-                            state.mapLocationState.userLocation
-                        )
-                    )
-                    is AutocompleteIsActive -> state.withMap(mapReady).withEffects(
-                        getMapMoveEffectIfNeeded(
-                            state.mapLocationState,
-                            mapReady,
-                            state.mapLocationState.userLocation
-                        )
-                    )
-                    is Confirmed -> state.asReducerResult()
+
+                        MapReady(
+                            action.map,
+                            state.userLocation,
+                            LocationSelected(
+                                action.cameraPosition,
+                                action.address
+                            ),
+                            MapFlow,
+                            waitingForUserLocationMove = userLocationEffects.isEmpty()
+                        ).withEffects(userLocationEffects + setOf(HideProgressbar))
+                    }
+                    is MapReady -> throw IllegalActionException(action, state)
                 }
             }
             is MapCameraMoved -> {
-                if (!action.latLng.isNearZero()) {
-                    when (state) {
-                        is Initial -> MapIsActive(
-                            reduce(
-                                action,
-                                state.mapLocationState
-                            ),
-                            LocationSelected(action.latLng, action.address)
-                        )
-                        is AutocompleteIsActive -> MapIsActive(
-                            reduce(
-                                action,
-                                state.mapLocationState
-                            ),
-                            LocationSelected(action.latLng, action.address)
-                        )
-                        is MapIsActive -> MapIsActive(
-                            reduce(
-                                action,
-                                state.mapLocationState
-                            ),
-                            LocationSelected(action.latLng, action.address)
-                        )
-                        is Confirmed -> state
-                    }.withEffects(DisplayAddress(action.address))
-                } else {
-                    state.asReducerResult()
-                }
-            }
-            is MapClicked -> {
                 when (state) {
-                    is Initial -> state
-                    is AutocompleteIsActive -> MapIsActive(
-                        state.mapLocationState,
-                        LocationSelected(action.latLng, action.address)
-                    )
-                    is MapIsActive -> state
-                    is Confirmed -> state
-                }.withEffects(
-                    CloseKeyboard,
-                    RemoveSearchFocus,
-                    DisplayAddress(action.address)
-                )
-            }
-            is SearchQueryChanged -> {
-                reduce(action, state).asReducerResult()
-            }
-            is AutocompleteError -> {
-                when (state) {
-                    is AutocompleteIsActive -> reduce(action, state, state.mapLocationState)
-                    is Initial -> reduce(action, state, state.mapLocationState)
-                    is MapIsActive -> reduce(action, state, state.mapLocationState)
-                    is Confirmed -> throw IllegalActionException(action, state)
-                }.withEffects(CloseKeyboard)
-            }
-            ConfirmClicked -> {
-                when (state) {
-                    is AutocompleteIsActive -> state.asReducerResult()
-                    is Initial -> state.asReducerResult()
-                    is MapIsActive -> state.mapLocationState.map.let {
-                        if (it is MapReady) {
-                            Confirmed(state.placeData, state)
-                                .withEffects(
-                                    Proceed(state.placeData),
-                                    CloseKeyboard
-                                )
-                        } else state.asReducerResult()
+                    is MapReady -> {
+                        when (state.flow) {
+                            is AutocompleteFlow -> state.asReducerResult()
+                            MapFlow -> MapReady(
+                                state.map,
+                                state.userLocation,
+                                LocationSelected(
+                                    action.latLng,
+                                    action.address
+                                ),
+                                MapFlow,
+                                //if user performed map move or clicked a place (which leads to programmatic move)
+                                //we don't need to move map to his location anymore
+                                //unless it was first map movement near zero coordinates on map init
+                                waitingForUserLocationMove = !action.isNearZero
+                            ).withEffects(
+                                if (!action.isProgrammatic) {
+                                    setOf(DisplayLocationInfo(action.address, null))
+                                } else {
+                                    //if map moved programmatically then state should have display info effect sent
+                                    setOf()
+                                }
+                            )
+                        }
                     }
-                    is Confirmed -> state.asReducerResult()
+                    is MapNotReady -> throw IllegalActionException(action, state)
                 }
             }
             is PlaceSelectedAction -> {
                 when (state) {
-                    is AutocompleteIsActive -> {
-                        when (val map = state.mapLocationState.map) {
-                            is MapReady -> {
-                                MapIsActive(
-                                    state.mapLocationState, PlaceSelected(
-                                        displayAddress = action.displayAddress,
-                                        strictAddress = action.strictAddress,
-                                        name = action.name,
-                                        latLng = action.latLng
-                                    )
-                                ).withEffects(
-                                    CloseKeyboard,
-                                    RemoveSearchFocus,
-                                    MoveMap(action.latLng, map.mapWrapper)
-                                )
-                            }
-                            else -> throw IllegalActionException(action, state)
-                        }
+                    is MapNotReady -> throw IllegalActionException(action, state)
+                    is MapReady -> {
+                        val place = PlaceSelected(
+                            latLng = action.latLng,
+                            displayAddress = action.displayAddress,
+                            strictAddress = action.strictAddress,
+                            name = action.name,
+                        )
+
+                        state.withPlaceSelected(place, MapFlow)
+                            .withEffects(
+                                CloseKeyboard,
+                                ClearSearchQuery,
+                                RemoveSearchFocus,
+                                MoveMap(action.latLng, state.map),
+                                DisplayLocationInfo(
+                                    address = place.displayAddress,
+                                    placeName = place.name
+                                ),
+                            )
                     }
-                    is Initial, is MapIsActive, is Confirmed -> throw IllegalActionException(
-                        action,
-                        state
+                }
+            }
+            is MapClicked -> {
+                when (state) {
+                    is MapNotReady -> throw IllegalActionException(action, state)
+                    is MapReady -> when (state.flow) {
+                        MapFlow -> state.asReducerResult()
+                        is AutocompleteFlow -> state.withMapFlow(MapFlow)
+                            .withEffects(
+                                CloseKeyboard,
+                                ClearSearchQuery,
+                                RemoveSearchFocus,
+                                DisplayLocationInfo(action.address, null)
+                            )
+                    }
+                }
+            }
+            is SearchQueryChanged -> {
+                when (state) {
+                    is MapNotReady -> throw IllegalActionException(action, state)
+                    is MapReady -> state.withAutocompleteFlow(AutocompleteFlow(action.results))
+                        .asReducerResult()
+                }
+            }
+            is AutocompleteError -> {
+                when (state) {
+                    is MapNotReady -> throw IllegalActionException(action, state)
+                    is MapReady -> state.withMapFlow(MapFlow)
+                        .withEffects(CloseKeyboard)
+                }
+            }
+            ConfirmClicked -> {
+                when (state) {
+                    is MapNotReady -> throw IllegalActionException(action, state)
+                    is MapReady -> state.withEffects(
+                        CloseKeyboard,
+                        Proceed(state.placeData)
                     )
                 }
             }
-            Reset -> {
-                when (state) {
-                    is Confirmed -> state.lastState
-                    else -> throw IllegalActionException(action, state)
-                }.asReducerResult()
-            }
         }
     }
 
-    private fun reduce(
-        action: AutocompleteError,
-        state: State,
-        mapLocationState: MapLocationState
-    ): State {
-        return when (val map = mapLocationState.map) {
-            is MapReady -> {
-                MapIsActive(
-                    mapLocationState,
-                    LocationSelectedWithUnsuccesfulQuery(map, action.query)
+    private fun reduce(action: UserLocationReceived, state: State): ReducerResult {
+        val userLocation = UserLocation(action.latLng, action.address)
+        return when (state) {
+            is MapNotReady -> state.withUserLocation(userLocation).asReducerResult()
+            is MapReady -> state.withUserLocation(userLocation).withEffects(
+                getMapMoveEffectsIfNeeded(
+                    state.waitingForUserLocationMove,
+                    userLocation,
+                    state.map
                 )
-            }
-            MapNotReady -> state
+            )
         }
     }
 
-    private fun reduce(action: SearchQueryChanged, state: State): State {
-        return when (state) {
-            is Initial -> AutocompleteIsActive(
-                state.mapLocationState,
-                action.query,
-                action.results
-            )
-            is AutocompleteIsActive -> AutocompleteIsActive(
-                state.mapLocationState,
-                action.query,
-                action.results
-            )
-            is MapIsActive -> AutocompleteIsActive(
-                state.mapLocationState,
-                action.query,
-                action.results
-            )
-            is Confirmed -> state
-        }
-    }
-
-    private fun reduce(action: MapCameraMoved, state: MapLocationState): MapLocationState {
-        return when (state.map) {
-            MapNotReady -> throw IllegalActionException(action, state)
-            is MapReady -> {
-                state.withPosition(state.map, action.latLng)
-            }
-        }
-    }
-
-    private fun reduce(action: UserLocation, state: State): ReducerResult {
-        return when (state) {
-            is Initial -> state.withUserLocation(action.latLng).withEffects(
-                if (state.mapLocationState.map is MapReady) {
-                    getMapMoveEffectIfNeeded(
-                        state.mapLocationState,
-                        state.mapLocationState.map,
-                        action.latLng
-                    )
-                } else setOf()
-            )
-            is MapIsActive -> state.withUserLocation(action.latLng).asReducerResult()
-            is AutocompleteIsActive -> state.withUserLocation(action.latLng).asReducerResult()
-            is Confirmed -> state.asReducerResult()
-        }
-    }
-
-    private fun getMapMoveEffectIfNeeded(
-        it: MapLocationState,
-        map: MapReady,
-        userLocation: LatLng?
+    private fun getMapMoveEffectsIfNeeded(
+        waitingForUserLocationMove: Boolean,
+        userLocation: UserLocation?,
+        map: HypertrackMapWrapper
     ): Set<Effect> {
-        return if (it.initialMovePerformed is False && userLocation != null) {
-            setOf(createMapMoveEffect(map, userLocation, it.initialMovePerformed))
+        return if (waitingForUserLocationMove && userLocation != null) {
+            setOf(
+                createMapMoveEffect(map, userLocation.latLng),
+                DisplayLocationInfo(userLocation.address, null)
+            )
         } else {
             setOf()
         }
     }
 
     private fun createMapMoveEffect(
-        map: MapReady,
+        map: HypertrackMapWrapper,
         userLocation: LatLng,
-        _initialMovePerformed: False
     ): MoveMap {
-        return MoveMap(userLocation, map.mapWrapper)
+        return MoveMap(userLocation, map)
     }
 
     companion object {
-        val INITIAL_STATE = Initial(
-            MapLocationState(
-                MapNotReady, null, initialMovePerformed = False
-            ),
-            null
-        )
+        val INITIAL_STATE = MapNotReady(null)
     }
 }
 
@@ -261,7 +188,4 @@ fun State.withEffects(vararg effect: Effect): ReducerResult {
     return ReducerResult(this, effect.toMutableSet())
 }
 
-private fun MapLocationState.withPosition(mapReady: MapReady, latLng: LatLng): MapLocationState {
-    return copy(map = mapReady.copy(cameraPosition = latLng))
-}
 

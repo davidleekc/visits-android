@@ -1,26 +1,35 @@
 package com.hypertrack.android.ui.screens.add_place_info
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.util.Log
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.model.Circle
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.maps.android.SphericalUtil
 import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.models.Integration
+import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.repository.CreateGeofenceError
 import com.hypertrack.android.repository.CreateGeofenceSuccess
 import com.hypertrack.android.repository.IntegrationsRepository
 import com.hypertrack.android.ui.base.BaseViewModel
+import com.hypertrack.android.ui.base.Consumable
+import com.hypertrack.android.ui.common.HypertrackMapWrapper
+import com.hypertrack.android.ui.common.MapParams
 import com.hypertrack.android.ui.common.Tab
+import com.hypertrack.android.ui.common.delegates.GeofencesMapDelegate
 import com.hypertrack.android.ui.common.delegates.GooglePlaceAddressDelegate
+import com.hypertrack.android.ui.common.util.requireValue
 import com.hypertrack.android.ui.screens.add_place.AddPlaceFragmentDirections
-import com.hypertrack.android.utils.OsUtilsProvider
-import com.hypertrack.android.utils.ResultError
-import com.hypertrack.android.utils.ResultSuccess
+import com.hypertrack.android.utils.*
 import com.hypertrack.logistics.android.github.R
 import com.squareup.moshi.Moshi
 import kotlinx.coroutines.launch
@@ -32,15 +41,20 @@ class AddPlaceInfoViewModel(
     private val _name: String?,
     private val placesInteractor: PlacesInteractor,
     private val integrationsRepository: IntegrationsRepository,
+    private val distanceFormatter: DistanceFormatter,
     private val osUtilsProvider: OsUtilsProvider,
     private val moshi: Moshi,
 ) : BaseViewModel(osUtilsProvider) {
 
     private val addressDelegate = GooglePlaceAddressDelegate(osUtilsProvider)
+    private lateinit var geofencesMapDelegate: GeofencesMapDelegate
 
     val hasIntegrations = MutableLiveData<Boolean?>(false)
-
     val loadingState = MutableLiveData<Boolean>(true)
+    val adjacentGeofenceDialog = MutableLiveData<Consumable<GeofenceCreationParams>>()
+
+    private var map: HypertrackMapWrapper? = null
+    private var radiusShapes: List<Circle>? = null
 
     //todo persist state in create geofence scope
     val address = MutableLiveData<String?>().apply {
@@ -60,7 +74,7 @@ class AddPlaceInfoViewModel(
         }
     }
 
-    val radius = MutableLiveData<Int>(PlacesInteractor.DEFAULT_RADIUS_METERS)
+    val radius = MutableLiveData<Int>(PlacesInteractor.DEFAULT_RADIUS)
     val integration = MutableLiveData<Integration?>(null)
 
     val enableConfirmButton = MediatorLiveData<Boolean>().apply {
@@ -88,10 +102,20 @@ class AddPlaceInfoViewModel(
     }
 
     private val validations = listOf(
-        Validation({ errorHandler.postText(R.string.add_place_geofence_radius_validation_error) }) {
-            radius.value?.let { radius -> radius > 50 && radius < 100000 } ?: false
+        Validation({
+            errorHandler.postText(
+                osUtilsProvider.stringFromResource(
+                    R.string.add_place_geofence_radius_validation_error,
+                    distanceFormatter.formatDistance(PlacesInteractor.MIN_RADIUS),
+                    distanceFormatter.formatDistance(PlacesInteractor.MAX_RADIUS)
+                )
+            )
+        }) {
+            radius.value?.let { radius ->
+                radius >= PlacesInteractor.MIN_RADIUS && radius <= PlacesInteractor.MAX_RADIUS
+            } ?: false
         },
-        Validation({ errorHandler.postText(R.string.place_info_confirm_disabled) }) {
+        Validation({ errorHandler.postText(R.string.add_place_info_confirm_disabled) }) {
             if (hasIntegrations.value == true) {
                 integration.value != null
             } else {
@@ -116,41 +140,71 @@ class AddPlaceInfoViewModel(
                 }
             }
         }
+
+        radius.observeManaged {
+            displayRadius()
+        }
     }
 
     @SuppressLint("MissingPermission")
-    fun onMapReady(googleMap: GoogleMap) {
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 13f))
-        googleMap.addMarker(MarkerOptions().position(latLng))
+    fun onMapReady(context: Context, googleMap: GoogleMap) {
+        map = HypertrackMapWrapper(
+            googleMap, osUtilsProvider, MapParams(
+                enableScroll = false,
+                enableZoomKeys = true,
+                enableMyLocationButton = false,
+                enableMyLocationIndicator = false
+            )
+        )
+        geofencesMapDelegate = object : GeofencesMapDelegate(
+            context,
+            map!!,
+            placesInteractor,
+            osUtilsProvider,
+            {}
+        ) {
+            override fun updateGeofencesOnMap(
+                mapWrapper: HypertrackMapWrapper,
+                geofences: List<LocalGeofence>
+            ) {
+                super.updateGeofencesOnMap(mapWrapper, geofences)
+                displayRadius()
+            }
+        }
+        googleMap.setOnCameraIdleListener {
+            geofencesMapDelegate.onCameraIdle()
+        }
+        displayRadius()
     }
 
-    fun onConfirmClicked(name: String, address: String, description: String) {
+    fun onConfirmClicked(params: GeofenceCreationParams) {
         validations.ifValid {
             viewModelScope.launch {
                 loadingState.postValue(true)
 
-                val res = placesInteractor.createGeofence(
-                    latitude = latLng.latitude,
-                    longitude = latLng.longitude,
-                    radius = radius.value,
-                    name = name,
-                    address = address,
-                    description = description,
-                    integration = integration.value
-                )
-                loadingState.postValue(false)
-                when (res) {
-                    is CreateGeofenceSuccess -> {
-                        destination.postValue(
-                            AddPlaceFragmentDirections.actionGlobalVisitManagementFragment(
-                                Tab.PLACES
-                            )
-                        )
+                if (placesInteractor.adjacentGeofencesAllowed) {
+                    //check adjascent geofences without waiting for them to fully load (only in current cache)
+                    placesInteractor.hasAdjacentGeofence(latLng, radius.requireValue()).let { has ->
+                        if (!has) {
+                            proceedCreatingGeofence(params)
+                        } else {
+                            loadingState.postValue(false)
+                            adjacentGeofenceDialog.postValue(Consumable(params))
+                        }
                     }
-                    is CreateGeofenceError -> {
-                        errorHandler.postException(res.e)
-                    }
+                } else {
+                    placesInteractor.blockingHasAdjacentGeofence(latLng, radius.requireValue())
+                        .let { has ->
+                            if (!has) {
+                                proceedCreatingGeofence(params)
+                            } else {
+                                loadingState.postValue(false)
+                                errorHandler.postText(R.string.add_place_info_adjacent_geofence_error)
+                            }
+                        }
                 }
+
+
             }
         }
     }
@@ -180,9 +234,91 @@ class AddPlaceInfoViewModel(
 
     fun onRadiusChanged(text: String) {
         try {
-            radius.postValue(text.toInt())
+            if (text.isNotBlank()) {
+                radius.postValue(text.toInt())
+            } else {
+                radius.postValue(null)
+            }
         } catch (e: Exception) {
+            radius.postValue(null)
             errorHandler.postException(e)
+        }
+    }
+
+    fun onGeofenceDialogYes(params: GeofenceCreationParams) {
+        viewModelScope.launch {
+            proceedCreatingGeofence(params)
+        }
+    }
+
+    private fun displayRadius() {
+        radiusShapes?.forEach { it.remove() }
+        radiusShapes = map?.addGeofenceShape(latLng, radius.value ?: 1)
+        try {
+            map?.googleMap?.moveCamera(
+                CameraUpdateFactory.newLatLngBounds(
+                    LatLngBounds.builder().apply {
+                        include(
+                            SphericalUtil.computeOffset(
+                                latLng,
+                                (radius.value ?: 50).toDouble(),
+                                0.0
+                            )
+                        )
+                        include(
+                            SphericalUtil.computeOffset(
+                                latLng,
+                                (radius.value ?: 50).toDouble(),
+                                90.0
+                            )
+                        )
+                        include(
+                            SphericalUtil.computeOffset(
+                                latLng,
+                                (radius.value ?: 50).toDouble(),
+                                180.0
+                            )
+                        )
+                        include(
+                            SphericalUtil.computeOffset(
+                                latLng,
+                                (radius.value ?: 50).toDouble(),
+                                270.0
+                            )
+                        )
+                    }.build(),
+                    50
+                )
+            )
+        } catch (e: Exception) {
+            map?.moveCamera(latLng, 15f)
+            Log.v("hypertrack-verbose", e.message.toString())
+        }
+    }
+
+    private suspend fun proceedCreatingGeofence(params: GeofenceCreationParams) {
+        val res = placesInteractor.createGeofence(
+            latitude = latLng.latitude,
+            longitude = latLng.longitude,
+            radius = radius.value,
+            name = params.name,
+            address = params.address,
+            description = params.description,
+            integration = integration.value
+        )
+        loadingState.postValue(false)
+        when (res) {
+            is CreateGeofenceSuccess -> {
+                destination.postValue(
+                    AddPlaceFragmentDirections.actionGlobalVisitManagementFragment(
+                        Tab.PLACES
+                    )
+                )
+            }
+            is CreateGeofenceError -> {
+                loadingState.postValue(false)
+                errorHandler.postException(res.e)
+            }
         }
     }
 
@@ -193,7 +329,20 @@ class AddPlaceInfoViewModel(
             true
         }
     }
+
+    override fun onCleared() {
+        super.onCleared()
+        if (this::geofencesMapDelegate.isInitialized) {
+            geofencesMapDelegate.onCleared()
+        }
+    }
 }
+
+class GeofenceCreationParams(
+    val name: String,
+    val address: String,
+    val description: String
+)
 
 class Validation(val error: () -> Unit, val check: () -> Boolean) {
     fun checkIfValid(): Boolean {

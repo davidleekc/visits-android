@@ -19,6 +19,7 @@ import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.base.ZipNotNullableLiveData
 import com.hypertrack.android.ui.common.HypertrackMapWrapper
 import com.hypertrack.android.ui.common.KeyValueItem
+import com.hypertrack.android.ui.common.MapParams
 import com.hypertrack.android.ui.common.delegates.GeofenceAddressDelegate
 import com.hypertrack.android.ui.common.util.format
 import com.hypertrack.android.ui.common.util.formatDateTime
@@ -107,20 +108,20 @@ class PlaceDetailsViewModel(
 
     @SuppressLint("MissingPermission")
     fun onMapReady(googleMap: GoogleMap) {
-        googleMap.uiSettings.apply {
-            isScrollGesturesEnabled = false
-            isMyLocationButtonEnabled = false
-            isZoomControlsEnabled = true
-        }
-        try {
-            googleMap.isMyLocationEnabled = true
-        } catch (_: Exception) {
-        }
-        mapWrapper.postValue(HypertrackMapWrapper(googleMap, osUtilsProvider))
+        mapWrapper.postValue(
+            HypertrackMapWrapper(
+                googleMap, osUtilsProvider, MapParams(
+                    enableScroll = false,
+                    enableMyLocationButton = false,
+                    enableMyLocationIndicator = true,
+                    enableZoomKeys = true
+                )
+            )
+        )
     }
 
     private fun displayGeofenceLocation(geofence: LocalGeofence, mapWrapper: HypertrackMapWrapper) {
-        mapWrapper.addGeofenceCircle(geofence)
+        mapWrapper.addGeofenceShape(geofence)
         mapWrapper.googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(geofence.latLng, 14.0f))
     }
 

@@ -2,7 +2,6 @@ package com.hypertrack.android.ui.common.select_destination
 
 import android.os.Bundle
 import android.os.Parcelable
-import android.util.Log
 import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -50,6 +49,7 @@ open class SelectDestinationFragment :
                 if (search.hasFocus()) {
                     vm.onSearchQueryChanged(text)
                 }
+                updateClearQueryView()
             }
         }
         search.addTextChangedListener(watcher)
@@ -77,10 +77,19 @@ open class SelectDestinationFragment :
             SnackbarUtil.showErrorSnackbar(view, it)
         })
 
-        vm.address.observe(viewLifecycleOwner, {
-            Utils.hideKeyboard(mainActivity())
+        vm.searchQuery.observe(viewLifecycleOwner, {
             search.silentUpdate(watcher, it)
             search.setSelection(search.textString().length)
+            updateClearQueryView()
+        })
+
+        vm.locationInfo.observe(viewLifecycleOwner, {
+            lLocationInfo.setGoneState(it == null)
+            it?.let {
+                tvLocationAddress.text = it.address
+                tvPlaceName.text = it.placeName
+                tvPlaceName.setGoneState(it.placeName == null)
+            }
         })
 
         vm.showConfirmButton.observe(viewLifecycleOwner, {
@@ -108,7 +117,6 @@ open class SelectDestinationFragment :
             search.clearFocus()
         })
 
-        set_on_map.hide()
         destination_on_map.show()
         confirm.show()
 
@@ -116,9 +124,17 @@ open class SelectDestinationFragment :
             vm.onConfirmClicked()
         }
 
+        bClear.setOnClickListener {
+            search.setText("")
+            updateClearQueryView()
+        }
+
         vm.onViewCreated()
     }
 
+    private fun updateClearQueryView() {
+        bClear.setGoneState(search.textString().isBlank())
+    }
 }
 
 @Parcelize
