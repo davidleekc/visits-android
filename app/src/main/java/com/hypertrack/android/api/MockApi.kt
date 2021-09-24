@@ -1,5 +1,6 @@
 package com.hypertrack.android.api
 
+import android.util.Log
 import com.fonfon.kgeohash.GeoHash
 import com.hypertrack.android.utils.Injector
 import com.hypertrack.android.utils.MockData
@@ -46,9 +47,11 @@ private val fences = Injector.getMoshi().adapter(GeofenceResponse::class.java)
         includeMarkers: Boolean,
         sortNearest: Boolean
     ): Response<GeofenceResponse> {
-        return Response.success(
-            GeofenceResponse(fences, null)
-        )
+        if (geohash == null) {
+            //ordinal page
+            return Response.success(
+                GeofenceResponse(fences, null)
+            )
 
 //        return Response.success(
 //            GeofenceResponse(listOf(MockData.createGeofence(polygon = true)), null)
@@ -59,8 +62,10 @@ private val fences = Injector.getMoshi().adapter(GeofenceResponse::class.java)
 //                .fromJson(MockData.MOCK_GEOFENCES_JSON)
 //        )
 
-        if (geohash != null) {
-//            Log.v("hypertrack-verbose", "getDeviceGeofences ${geohash}")
+
+        } else {
+            //map page
+            //Log.v("hypertrack-verbose", "getDeviceGeofences ${geohash}")
             val res = withContext(Dispatchers.IO) {
 //                delay((Math.random() * 1000).toLong())
 
@@ -94,10 +99,6 @@ private val fences = Injector.getMoshi().adapter(GeofenceResponse::class.java)
                 res
             }
             return Response.success(res)
-        } else {
-            return Response.success(
-                GeofenceResponse(fences, null)
-            )
         }
     }
 
