@@ -47,7 +47,7 @@ interface PlacesInteractor {
     companion object {
         //meters
         const val MIN_RADIUS = 50
-        const val MAX_RADIUS = 10000
+        const val MAX_RADIUS = 200
         const val DEFAULT_RADIUS = MIN_RADIUS
     }
 }
