@@ -24,25 +24,9 @@ open class AddPlaceFragment : SelectDestinationFragment() {
 
         vm.adjacentGeofenceDialog.observe(viewLifecycleOwner, {
             it.consume {
-                createConfirmationDialog(it).show()
+                vm.createConfirmationDialog(requireContext(), it).show()
             }
         })
-    }
-
-    private fun createConfirmationDialog(destinationData: DestinationData): AlertDialog {
-        return AlertDialog.Builder(requireContext())
-            .setMessage(
-                R.string.add_place_confirm_adjacent.stringFromResource()
-            )
-            .setPositiveButton(R.string.yes) { dialog, which ->
-                vm.onGeofenceDialogYes(destinationData)
-            }
-            .setNegativeButton(R.string.no) { _, _ ->
-            }
-            .setOnDismissListener {
-                vm.onGeofenceDialogNo()
-            }
-            .create()
     }
 
 }

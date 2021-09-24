@@ -84,7 +84,7 @@ class PlacesInteractorImpl(
     override val isLoadingForLocation = MutableLiveData<Boolean>(false)
     private var firstPageJob: Deferred<GeofencesPage>? = null
 
-    override val adjacentGeofencesAllowed: Boolean = true
+    override val adjacentGeofencesAllowed: Boolean = false
 
     init {
         firstPageJob = globalScope.async {

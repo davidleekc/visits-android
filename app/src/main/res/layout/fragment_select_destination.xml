@@ -42,6 +42,7 @@
             android:drawableEnd="@drawable/ic_search"
             android:drawablePadding="8dp"
             android:ellipsize="end"
+            android:hint="@string/select_destination_hint"
             android:inputType="text"
             android:maxLines="1"
             android:paddingStart="16dp"

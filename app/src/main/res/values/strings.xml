@@ -180,6 +180,7 @@
     <string name="add_place_confirm">Confirm</string>
     <string name="add_place_create">Create geofence</string>
     <string name="add_place_confirm_adjacent">There is existing geofence near location where you want to create a new one. Are you sure you want to continue?</string>
+    <string name="add_place_adjacent_not_allowed">@string/add_place_info_adjacent_geofence_error</string>
     <string name="add_place_set_on_map">Set on map</string>
     <string name="add_place">Add place</string>
     <string name="add_place_address">Address</string>
@@ -202,6 +203,7 @@
     <string name="profile_report_sent">App state is successfully reported</string>
 
     <string name="select_destination">Select destination</string>
+    <string name="select_destination_hint">Enter place name or address</string>
     <string name="select_destination_button">Select</string>
 
     <string name="feedback_text">Enter description of your issue\n\nPlease include steps that is needed to perform to reproduce it (if it possible)</string>

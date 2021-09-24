@@ -1,6 +1,7 @@
 package com.hypertrack.android.ui.screens.add_place
 
 import android.content.Context
+import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
@@ -19,11 +20,11 @@ import com.hypertrack.android.ui.common.select_destination.SelectDestinationView
 import com.hypertrack.android.ui.common.select_destination.reducer.MapReady
 import com.hypertrack.android.ui.common.select_destination.reducer.Proceed
 import com.hypertrack.android.ui.common.select_destination.toDestinationData
-import com.hypertrack.android.ui.screens.add_integration.AddIntegrationViewModel
-import com.hypertrack.android.ui.screens.add_place_info.AddPlaceInfoViewModel
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
 import com.hypertrack.android.utils.CrashReportsProvider
 import com.hypertrack.android.utils.OsUtilsProvider
+import com.hypertrack.android.utils.stringFromResource
+import com.hypertrack.logistics.android.github.R
 import kotlinx.coroutines.launch
 
 
@@ -69,11 +70,37 @@ class AddPlaceViewModel(
         }
     }
 
-    fun onGeofenceDialogYes(destinationData: DestinationData) {
+    private fun onGeofenceDialogYes(destinationData: DestinationData) {
         proceed(destinationData)
     }
 
-    fun onGeofenceDialogNo() {
+    private fun onGeofenceDialogNo() {
+    }
+
+    fun createConfirmationDialog(context: Context, destinationData: DestinationData): AlertDialog {
+        return if (placesInteractor.adjacentGeofencesAllowed) {
+            AlertDialog.Builder(context)
+                .setMessage(
+                    R.string.add_place_confirm_adjacent.stringFromResource()
+                )
+                .setPositiveButton(R.string.yes) { dialog, which ->
+                    onGeofenceDialogYes(destinationData)
+                }
+                .setNegativeButton(R.string.no) { _, _ ->
+                }
+                .setOnDismissListener {
+                    onGeofenceDialogNo()
+                }
+                .create()
+        } else {
+            AlertDialog.Builder(context)
+                .setMessage(
+                    R.string.add_place_adjacent_not_allowed.stringFromResource()
+                )
+                .setNegativeButton(R.string.close) { _, _ ->
+                }
+                .create()
+        }
     }
 
     override fun createGeofencesMapDelegate(

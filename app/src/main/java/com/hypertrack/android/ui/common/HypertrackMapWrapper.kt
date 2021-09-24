@@ -101,7 +101,7 @@ class HypertrackMapWrapper(
                 .center(latLng)
                 .fillColor(osUtilsProvider.colorFromResource(R.color.colorGeofence))
                 .strokeColor(Color.TRANSPARENT)
-                .radius(15.0)
+                .radius((radius / 10).toDouble())
                 .visible(true)
         ).also {
             res.add(it)

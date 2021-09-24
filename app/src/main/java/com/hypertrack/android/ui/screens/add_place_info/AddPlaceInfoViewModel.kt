@@ -182,8 +182,8 @@ class AddPlaceInfoViewModel(
             viewModelScope.launch {
                 loadingState.postValue(true)
 
-                //todo test
                 if (placesInteractor.adjacentGeofencesAllowed) {
+                    //check adjascent geofences without waiting for them to fully load (only in current cache)
                     placesInteractor.hasAdjacentGeofence(latLng, radius.requireValue()).let { has ->
                         if (!has) {
                             proceedCreatingGeofence(params)
