@@ -11,6 +11,7 @@ sealed class State
 
 data class MapNotReady(
     val userLocation: UserLocation?,
+    val waitingForUserLocationMove: Boolean
 ) : State()
 
 data class UserLocation(
