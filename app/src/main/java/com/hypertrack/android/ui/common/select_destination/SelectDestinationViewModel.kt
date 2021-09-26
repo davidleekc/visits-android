@@ -35,8 +35,8 @@ open class SelectDestinationViewModel(
     private val crashReportsProvider: CrashReportsProvider
 ) : BaseViewModel(osUtilsProvider) {
 
-//    private val enableLogging = MyApplication.DEBUG_MODE
-private val enableLogging = false
+    private val enableLogging = MyApplication.DEBUG_MODE
+//private val enableLogging = false
 
     protected open val defaultZoom = 13f
 
@@ -130,7 +130,20 @@ private val enableLogging = false
     }
 
     fun onViewCreated() {
-        state = SelectDestinationViewModelReducer.INITIAL_STATE
+        if (enableLogging) Log.w("hypertrack-verbose", "onViewCreated")
+        if (!this::state.isInitialized) {
+            state = SelectDestinationViewModelReducer.INITIAL_STATE
+            if (enableLogging) Log.v("hypertrack-verbose", "INITIAL_STATE $state")
+        } else {
+            state = when (val state = state) {
+                is MapNotReady -> state
+                is MapReady -> MapNotReady(
+                    state.userLocation,
+                    state.waitingForUserLocationMove
+                )
+            }
+            if (enableLogging) Log.v("hypertrack-verbose", "new state = $state")
+        }
 
         deviceLocationProvider.getCurrentLocation {
             it?.let {

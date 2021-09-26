@@ -23,11 +23,12 @@ class SelectDestinationViewModelTest {
         val reducer = SelectDestinationViewModelReducer()
 
         runBlocking {
-            var state: State = MapNotReady(null)
+            var state: State = SelectDestinationViewModelReducer.INITIAL_STATE
             println(state)
+            val userLocation = LatLng(37.4, -122.0)
             state = reducer.sendAction(
                 state,
-                UserLocationReceived(LatLng(37.4, -122.0), "address")
+                UserLocationReceived(userLocation, "address")
             ).newState
             state = reducer.sendAction(
                 state,
@@ -37,8 +38,21 @@ class SelectDestinationViewModelTest {
                 state,
                 MapCameraMoved(LatLng(0.01, 0.0), "address", false, false)
             ).newState
-        }
+            state = reducer.sendAction(
+                state,
+                MapCameraMoved(
+                    LatLng(
+                        userLocation.latitude + 0.1,
+                        userLocation.longitude + 0.1
+                    ), "address", false, false
+                )
+            ).newState
 
+            state = reducer.sendAction(
+                state,
+                ConfirmClicked
+            ).newState
+        }
     }
 
     private fun SelectDestinationViewModelReducer.sendAction(

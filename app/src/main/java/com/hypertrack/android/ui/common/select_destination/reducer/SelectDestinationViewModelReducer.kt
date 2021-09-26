@@ -16,7 +16,7 @@ class SelectDestinationViewModelReducer {
                 when (state) {
                     is MapNotReady -> {
                         val userLocationEffects = getMapMoveEffectsIfNeeded(
-                            true,
+                            state.waitingForUserLocationMove,
                             state.userLocation,
                             action.map
                         )
@@ -29,7 +29,11 @@ class SelectDestinationViewModelReducer {
                                 action.address
                             ),
                             MapFlow,
-                            waitingForUserLocationMove = userLocationEffects.isEmpty()
+                            waitingForUserLocationMove = if (state.waitingForUserLocationMove) {
+                                userLocationEffects.isEmpty()
+                            } else {
+                                false
+                            }
                         ).withEffects(userLocationEffects + setOf(HideProgressbar))
                     }
                     is MapReady -> throw IllegalActionException(action, state)
@@ -38,6 +42,7 @@ class SelectDestinationViewModelReducer {
             is MapCameraMoved -> {
                 when (state) {
                     is MapReady -> {
+                        @Suppress("RedundantIf")
                         when (state.flow) {
                             is AutocompleteFlow -> state.asReducerResult()
                             MapFlow -> MapReady(
@@ -51,7 +56,11 @@ class SelectDestinationViewModelReducer {
                                 //if user performed map move or clicked a place (which leads to programmatic move)
                                 //we don't need to move map to his location anymore
                                 //unless it was first map movement near zero coordinates on map init
-                                waitingForUserLocationMove = !action.isNearZero
+                                waitingForUserLocationMove = if (!action.isNearZero) {
+                                    false
+                                } else {
+                                    true
+                                }
                             ).withEffects(
                                 if (!action.isProgrammatic) {
                                     setOf(DisplayLocationInfo(action.address, null))
@@ -168,7 +177,7 @@ class SelectDestinationViewModelReducer {
     }
 
     companion object {
-        val INITIAL_STATE = MapNotReady(null)
+        val INITIAL_STATE = MapNotReady(null, true)
     }
 }
 
