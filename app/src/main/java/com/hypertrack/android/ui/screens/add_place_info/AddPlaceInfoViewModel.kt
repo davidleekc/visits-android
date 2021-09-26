@@ -89,7 +89,7 @@ class AddPlaceInfoViewModel(
 
     private val validations = listOf(
         Validation({ errorHandler.postText(R.string.add_place_geofence_radius_validation_error) }) {
-            radius.value?.let { radius -> radius > 50 && radius < 100000 } ?: false
+            radius.value?.let { radius -> radius > 50 && radius < 200 } ?: false
         },
         Validation({ errorHandler.postText(R.string.place_info_confirm_disabled) }) {
             if (hasIntegrations.value == true) {

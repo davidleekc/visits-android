@@ -40,7 +40,7 @@ interface PlacesInteractor {
     suspend fun hasAdjacentGeofence(latLng: LatLng, radius: Int? = null): Boolean
 
     companion object {
-        const val DEFAULT_RADIUS_METERS = 100
+        const val DEFAULT_RADIUS_METERS = 50
     }
 }
 
