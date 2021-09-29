@@ -14,15 +14,18 @@ import java.time.format.DateTimeFormatter
 @Suppress("BlockingMethodInNonBlockingContext")
 class MockApi(val remoteApi: ApiInterface) : ApiInterface by remoteApi {
 
-//    private val fences = mutableListOf<Geofence>()
-private val fences = Injector.getMoshi().adapter(GeofenceResponse::class.java)
-    .fromJson(MockData.MOCK_GEOFENCES_JSON)!!.geofences.toMutableList()
+    private val fences = mutableListOf<Geofence>()
+        .apply {
+//            addAll(Injector.getMoshi().adapter(GeofenceResponse::class.java)
+//                .fromJson(MockData.MOCK_GEOFENCES_JSON)!!.geofences)
+        }
 
     override suspend fun createGeofences(
         deviceId: String,
         params: GeofenceParams
     ): Response<List<Geofence>> {
 //        return remoteApi.createGeofences(deviceId, params)
+
         val created = Geofence(
             "",
             "00000000-0000-0000-0000-000000000000",
@@ -49,18 +52,22 @@ private val fences = Injector.getMoshi().adapter(GeofenceResponse::class.java)
     ): Response<GeofenceResponse> {
         if (geohash == null) {
             //ordinal page
+//            return remoteApi.getDeviceGeofences(
+//                deviceId, geohash, paginationToken, includeArchived, includeMarkers, sortNearest
+//            )
+//
             return Response.success(
                 GeofenceResponse(fences, null)
             )
-
-//        return Response.success(
-//            GeofenceResponse(listOf(MockData.createGeofence(polygon = true)), null)
-//        )
-
-//        return Response.success(
-//            Injector.getMoshi().adapter(GeofenceResponse::class.java)
-//                .fromJson(MockData.MOCK_GEOFENCES_JSON)
-//        )
+//
+//            return Response.success(
+//                GeofenceResponse(listOf(MockData.createGeofence(polygon = true)), null)
+//            )
+//
+//            return Response.success(
+//                Injector.getMoshi().adapter(GeofenceResponse::class.java)
+//                    .fromJson(MockData.MOCK_GEOFENCES_JSON)
+//            )
 
 
         } else {
@@ -106,6 +113,8 @@ private val fences = Injector.getMoshi().adapter(GeofenceResponse::class.java)
         deviceId: String,
         paginationToken: String?
     ): Response<VisitsResponse> {
+//        return remoteApi.getAllGeofencesVisits(deviceId, paginationToken)
+//
         return Response.success(
             VisitsResponse(
                 listOf(
@@ -120,6 +129,8 @@ private val fences = Injector.getMoshi().adapter(GeofenceResponse::class.java)
         day: String,
         timezone: String
     ): Response<HistoryResponse> {
+//        return remoteApi.getHistory(deviceId, day, timezone)
+//
         delay((Math.random() * 1000 + 500).toLong())
         return Response.success(MockData.MOCK_HISTORY_RESPONSE)
     }
@@ -129,6 +140,8 @@ private val fences = Injector.getMoshi().adapter(GeofenceResponse::class.java)
         from: String,
         to: String
     ): Response<HistoryResponse> {
+//        return remoteApi.getHistoryForPeriod(deviceId, from, to)
+
         delay((Math.random() * 1000 + 500).toLong())
         return Response.success(MockData.MOCK_HISTORY_RESPONSE)
     }

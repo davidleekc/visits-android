@@ -8,7 +8,6 @@ import com.hypertrack.android.createBaseOrder
 import com.hypertrack.android.createBaseTrip
 import com.hypertrack.android.models.Metadata
 import com.hypertrack.android.models.Order
-import com.hypertrack.android.models.TripCompletionSuccess
 import com.hypertrack.android.models.local.LocalTrip
 import com.hypertrack.android.models.local.OrderStatus
 import com.hypertrack.android.models.local.TripStatus

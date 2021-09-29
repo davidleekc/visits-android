@@ -1,6 +1,7 @@
 package com.hypertrack.android.ui.screens.add_place
 
 import android.content.Context
+import android.util.Log
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asLiveData
@@ -120,14 +121,14 @@ class AddPlaceViewModel(
                 geofences: List<LocalGeofence>
             ) {
                 super.updateGeofencesOnMap(mapWrapper, geofences)
-                displayRadius()
+                displayRadius(mapWrapper)
             }
         }
     }
 
-    override fun onCameraMoved(map: GoogleMap) {
+    override fun onCameraMoved(map: HypertrackMapWrapper) {
         super.onCameraMoved(map)
-        displayRadius()
+        displayRadius(map)
     }
 
     override fun proceed(destinationData: DestinationData) {
@@ -138,15 +139,12 @@ class AddPlaceViewModel(
         )
     }
 
-    private fun displayRadius() {
-        val state = state
-        if (state is MapReady) {
-            radiusCircle?.remove()
-            radiusCircle = state.map.addNewGeofenceRadius(
-                state.map.cameraPosition,
-                PlacesInteractor.DEFAULT_RADIUS
-            )
-        }
+    private fun displayRadius(map: HypertrackMapWrapper) {
+        radiusCircle?.remove()
+        radiusCircle = map.addNewGeofenceRadius(
+            map.cameraPosition,
+            PlacesInteractor.DEFAULT_RADIUS
+        )
     }
 
 }

@@ -6,10 +6,10 @@ import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.MutableLiveData
 import com.hypertrack.android.api.ApiClient
 import com.hypertrack.android.api.MainCoroutineScopeRule
+import com.hypertrack.android.api.TripCompletionSuccess
 import com.hypertrack.android.createBaseOrder
 import com.hypertrack.android.createBaseTrip
 import com.hypertrack.android.interactors.*
-import com.hypertrack.android.models.TripCompletionSuccess
 import com.hypertrack.android.models.local.LocalOrder
 import com.hypertrack.android.models.local.LocalTrip
 import com.hypertrack.android.models.local.OrderStatus

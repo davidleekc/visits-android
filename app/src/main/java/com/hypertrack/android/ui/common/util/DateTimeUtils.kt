@@ -1,6 +1,7 @@
 package com.hypertrack.android.ui.common.util
 
 import com.hypertrack.android.utils.MyApplication
+import com.hypertrack.android.utils.datetimeFromString
 import com.hypertrack.logistics.android.github.R
 import java.lang.Math.abs
 import java.time.LocalDate
@@ -26,7 +27,7 @@ object DateTimeUtils {
 }
 
 fun String.formatDateTime(): String {
-    return ZonedDateTime.parse(this)
+    return datetimeFromString(this)
         .formatDateTime()
 }
 

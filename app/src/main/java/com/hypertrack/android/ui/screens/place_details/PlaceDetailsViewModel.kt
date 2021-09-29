@@ -110,7 +110,7 @@ class PlaceDetailsViewModel(
     fun onMapReady(googleMap: GoogleMap) {
         mapWrapper.postValue(
             HypertrackMapWrapper(
-                googleMap, osUtilsProvider, MapParams(
+                googleMap, osUtilsProvider, crashReportsProvider, MapParams(
                     enableScroll = false,
                     enableMyLocationButton = false,
                     enableMyLocationIndicator = true,

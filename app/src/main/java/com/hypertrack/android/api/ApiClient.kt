@@ -34,7 +34,7 @@ class ApiClient(
     private val deviceId: String,
     private val moshi: Moshi,
     private val crashReportsProvider: CrashReportsProvider,
-) : AbstractBackendProvider {
+) {
 
     @Suppress("unused")
     private val loggingInterceptor by lazy {
@@ -249,24 +249,6 @@ class ApiClient(
         }
     }
 
-    override suspend fun createTrip(tripParams: TripParams): ShareableTripResult {
-        return try {
-            with(api.createTrip(tripParams)) {
-                if (isSuccessful) {
-                    val trip = body()!!
-                    ShareableTripSuccess(
-                        trip.views.shareUrl,
-                        trip.views.embedUrl,
-                        trip.id,
-                        trip.estimate?.route?.remainingDuration
-                    )
-                } else CreateTripError(HttpException(this))
-            }
-        } catch (t: Throwable) {
-            CreateTripError(t)
-        }
-    }
-
     suspend fun createTrip(latLng: LatLng, address: String?): Trip {
         try {
             val res = api.createTrip(
@@ -323,7 +305,7 @@ class ApiClient(
         }
     }
 
-    override suspend fun completeTrip(tripId: String): TripCompletionResult {
+    suspend fun completeTrip(tripId: String): TripCompletionResult {
         return try {
             with(api.completeTrip(tripId)) {
                 if (isSuccessful) TripCompletionSuccess

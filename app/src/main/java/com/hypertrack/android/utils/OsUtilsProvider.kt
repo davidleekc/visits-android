@@ -173,6 +173,8 @@ public class OsUtilsProvider(
     }
 
     fun getErrorMessage(e: Exception): String {
+        //todo move to error handler
+        //todo NonReportableException
         crashReportsProvider.logException(e)
         return when (e) {
             is HttpException -> {

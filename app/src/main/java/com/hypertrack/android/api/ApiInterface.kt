@@ -12,6 +12,7 @@ import com.squareup.moshi.JsonClass
 import retrofit2.Response
 import retrofit2.http.*
 
+//todo move api entities elsewhere
 interface ApiInterface {
 
     @POST("client/devices/{device_id}/start")
@@ -232,8 +233,8 @@ data class ImageResponse(
 
 @JsonClass(generateAdapter = true)
 data class Trip(
-    @field:Json(name = "views") val views: Views,
     @field:Json(name = "trip_id") val id: String,
+    @field:Json(name = "views") val views: Views,
     @field:Json(name = "status") val status: String,
     @field:Json(name = "started_at") val createdAt: String,
     @field:Json(name = "metadata") val metadata: Map<String, Any>?,
@@ -508,3 +509,7 @@ class OrderParams(
     @field:Json(name = "destination") val destination: TripDestination?,
 ) {
 }
+
+sealed class TripCompletionResult
+class TripCompletionError(val error: Throwable?) : TripCompletionResult()
+object TripCompletionSuccess : TripCompletionResult()

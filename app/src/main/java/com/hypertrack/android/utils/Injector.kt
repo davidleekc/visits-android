@@ -8,7 +8,6 @@ import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.hypertrack.android.api.*
 import com.hypertrack.android.interactors.*
-import com.hypertrack.android.models.AbstractBackendProvider
 import com.hypertrack.android.repository.*
 import com.hypertrack.android.ui.common.ParamViewModelFactory
 import com.hypertrack.android.ui.common.Tab
@@ -381,13 +380,8 @@ object Injector {
     fun getHistoryRendererFactory(): Factory<SupportMapFragment, HistoryMapRenderer> =
         Factory { a -> getHistoryMapRenderer(a) }
 
-    fun getBackendProvider(ctx: Context): Provider<AbstractBackendProvider> =
-        Provider { getUserScope().apiClient }
-
     fun getRealTimeUpdatesService(ctx: Context): Provider<HyperTrackViews> =
         Provider { HyperTrackViews.getInstance(ctx, getAccountRepo(ctx).publishableKey) }
-
-    val hyperTrackServiceProvider = Provider { getUserScope().hyperTrackService }
 
     fun getTimeDistanceFormatter() =
         LocalizedTimeDistanceFormatter(getOsUtilsProvider(MyApplication.context))

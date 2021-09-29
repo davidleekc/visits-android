@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.util.Log
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.*
 import com.hypertrack.android.interactors.PlacesInteractor
@@ -54,7 +55,7 @@ open class GeofencesMapDelegate(
         mapWrapper: HypertrackMapWrapper,
         geofences: List<LocalGeofence>
     ) {
-        //todo filter by viewport
+        //todo filter regarding to viewport
         mapWrapper.googleMap.clear()
         geofences.forEach {
             mapWrapper.addGeofenceMarker(it)

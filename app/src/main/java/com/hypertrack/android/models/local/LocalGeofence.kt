@@ -8,6 +8,7 @@ import com.hypertrack.android.models.*
 import com.hypertrack.android.ui.common.util.nullIfBlank
 import com.hypertrack.android.utils.CrashReportsProvider
 import com.hypertrack.android.utils.OsUtilsProvider
+import com.hypertrack.android.utils.datetimeFromString
 import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
 import kotlinx.android.parcel.Parcelize
@@ -50,7 +51,7 @@ data class LocalGeofence(
         visits.firstOrNull()
     }
 
-    val createdAt: ZonedDateTime = ZonedDateTime.parse(geofence.created_at)
+    val createdAt: ZonedDateTime = datetimeFromString(geofence.created_at)
 
     companion object {
         fun fromGeofence(
