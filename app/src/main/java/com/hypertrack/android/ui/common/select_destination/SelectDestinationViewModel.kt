@@ -157,7 +157,7 @@ private val enableLogging = false
     @SuppressLint("MissingPermission")
     open fun onMapReady(context: Context, googleMap: GoogleMap) {
         val wrapper = HypertrackMapWrapper(
-            googleMap, osUtilsProvider, MapParams(
+            googleMap, osUtilsProvider, crashReportsProvider, MapParams(
                 enableScroll = true,
                 enableZoomKeys = true,
                 enableMyLocationButton = true,

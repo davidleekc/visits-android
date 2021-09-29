@@ -43,6 +43,7 @@ class AddPlaceInfoViewModel(
     private val integrationsRepository: IntegrationsRepository,
     private val distanceFormatter: DistanceFormatter,
     private val osUtilsProvider: OsUtilsProvider,
+    private val crashReportsProvider: CrashReportsProvider,
     private val moshi: Moshi,
 ) : BaseViewModel(osUtilsProvider) {
 
@@ -149,7 +150,7 @@ class AddPlaceInfoViewModel(
     @SuppressLint("MissingPermission")
     fun onMapReady(context: Context, googleMap: GoogleMap) {
         map = HypertrackMapWrapper(
-            googleMap, osUtilsProvider, MapParams(
+            googleMap, osUtilsProvider, crashReportsProvider, MapParams(
                 enableScroll = false,
                 enableZoomKeys = true,
                 enableMyLocationButton = false,

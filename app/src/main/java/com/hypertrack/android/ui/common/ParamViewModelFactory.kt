@@ -57,6 +57,7 @@ class ParamViewModelFactory<T>(
                     userScopeProvider.get().integrationsRepository,
                     MetersDistanceFormatter(osUtilsProvider),
                     osUtilsProvider,
+                    crashReportsProvider,
                     moshi
                 ) as T
             }
