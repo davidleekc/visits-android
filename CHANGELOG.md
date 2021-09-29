@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.5] - 2021-09-27
+- Adding place flow refactoring
+- Creating places adjacent to existing ones is now prohibited
+
+## [0.10.4] - 2021-09-26
+- Changed max and default geofence radius
+
 ## [0.10.3] - 2021-09-03
 - HyperTrack SDK 5.4.3
 - Bugfixes
