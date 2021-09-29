@@ -1,5 +1,7 @@
 package com.hypertrack.android.utils
 
+import java.time.ZonedDateTime
+
 sealed class ResultValue<T>
 class ResultSuccess<T>(val value: T) : ResultValue<T>()
 class ResultError<T>(val exception: Exception) : ResultValue<T>()
@@ -26,4 +28,10 @@ object False : AlgBoolean() {
     override fun toString(): String {
         return javaClass.simpleName
     }
+}
+
+// todo change all datetimeFromString(str) to this because it crashes if str is null, but not
+// enforce compile time non-nullability
+fun datetimeFromString(str: String): ZonedDateTime {
+    return ZonedDateTime.parse(str)
 }

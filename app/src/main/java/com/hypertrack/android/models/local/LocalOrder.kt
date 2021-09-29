@@ -7,6 +7,7 @@ import com.hypertrack.android.models.Estimate
 import com.hypertrack.android.models.Metadata
 import com.hypertrack.android.models.Order
 import com.hypertrack.android.ui.common.util.nullIfBlank
+import com.hypertrack.android.utils.datetimeFromString
 import com.squareup.moshi.JsonClass
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
@@ -64,7 +65,7 @@ data class LocalOrder(
     val eta: ZonedDateTime?
         get() = estimate?.let {
             it.arriveAt?.let { arriveAt ->
-                ZonedDateTime.parse(arriveAt)
+                datetimeFromString(arriveAt)
             }
         }
 
@@ -73,7 +74,7 @@ data class LocalOrder(
             it.arriveAt?.let { arriveAt ->
                 ChronoUnit.SECONDS.between(
                     ZonedDateTime.now(),
-                    ZonedDateTime.parse(arriveAt)
+                    datetimeFromString(arriveAt)
                 ).let {
                     if (it < 0) null else it
                 }
