@@ -35,8 +35,8 @@ open class SelectDestinationViewModel(
     private val crashReportsProvider: CrashReportsProvider
 ) : BaseViewModel(osUtilsProvider) {
 
-    private val enableLogging = MyApplication.DEBUG_MODE
-//private val enableLogging = false
+//    private val enableLogging = MyApplication.DEBUG_MODE
+private val enableLogging = false
 
     protected open val defaultZoom = 13f
 
@@ -165,7 +165,7 @@ open class SelectDestinationViewModel(
             )
         )
         wrapper.setOnCameraMovedListener { position ->
-            onCameraMoved(googleMap)
+            onCameraMoved(wrapper)
             sendAction(
                 MapCameraMoved(
                     position,
@@ -260,9 +260,8 @@ open class SelectDestinationViewModel(
         proceed(proceed.placeData.toDestinationData())
     }
 
-    protected open fun onCameraMoved(map: GoogleMap) {
-        val region = map.projection.visibleRegion
-        placesInteractor.loadGeofencesForMap(map.cameraPosition.target)
+    protected open fun onCameraMoved(map: HypertrackMapWrapper) {
+        placesInteractor.loadGeofencesForMap(map.cameraPosition)
         geofencesMapDelegate.onCameraIdle()
     }
 
