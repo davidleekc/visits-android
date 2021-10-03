@@ -43,6 +43,12 @@ object MockData {
             .fromJson(MOCK_HISTORY_JSON)
     }
 
+    val EMPTY_HISTORY = History(
+        MOCK_SUMMARY,
+        listOf(),
+        listOf()
+    )
+
     val MOCK_HISTORY: HistoryResult by lazy {
         Injector.getMoshi().adapter(HistoryResponse::class.java)
             .fromJson(MOCK_HISTORY_JSON)!!.let { h: HistoryResponse ->

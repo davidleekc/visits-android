@@ -219,7 +219,8 @@ object Injector {
 
         val historyInteractor = HistoryInteractorImpl(
             historyRepository,
-            osUtilsProvider
+            osUtilsProvider,
+            GlobalScope
         )
 
         val googlePlacesInteractor = GooglePlacesInteractorImpl(

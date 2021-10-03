@@ -1,0 +1,67 @@
+package com.hypertrack.android.interactors
+
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.test.platform.app.InstrumentationRegistry
+import com.hypertrack.android.api.MainCoroutineScopeRule
+import com.hypertrack.android.repository.HistoryRepositoryImpl
+import com.hypertrack.android.ui.common.util.requireValue
+import com.hypertrack.android.utils.MockData
+import com.hypertrack.android.utils.MyApplication
+import io.mockk.coEvery
+import io.mockk.mockk
+import junit.framework.Assert.assertEquals
+import kotlinx.coroutines.*
+import kotlinx.coroutines.test.TestCoroutineScope
+import kotlinx.coroutines.test.runBlockingTest
+import org.junit.Rule
+import org.junit.Test
+import java.lang.Thread.sleep
+import java.security.AccessController.getContext
+import java.time.LocalDate
+
+@Suppress("EXPERIMENTAL_API_USAGE")
+class HistoryInteractorImplTest {
+
+    @get:Rule
+    val coroutineScope = MainCoroutineScopeRule()
+
+    @get:Rule
+    val rule = InstantTaskExecutorRule()
+
+    @Test
+    fun `it should load history days concurrently`() {
+        val scope = CoroutineScope(Dispatchers.IO)
+        val interactor = HistoryInteractorImpl(
+            HistoryRepositoryImpl(
+                mockk() {
+                    coEvery { getHistory(any<LocalDate>(), any()) } returns MockData.EMPTY_HISTORY
+                },
+                mockk(relaxed = true),
+                mockk(relaxed = true),
+            ),
+            mockk(relaxed = true),
+            scope
+        )
+
+        interactor.history.observeForever {
+            println(it.size)
+        }
+
+        val dayCount = 100
+
+        runBlocking {
+            for (i in 1..dayCount) {
+                interactor.loadHistory(LocalDate.now().plusDays(i.toLong()))
+            }
+        }
+
+        while (true) {
+            sleep(500)
+            if (!scope.isActive || interactor.history.requireValue().size == dayCount) {
+                break
+            }
+        }
+        assertEquals(dayCount, interactor.history.requireValue().size)
+    }
+
+}

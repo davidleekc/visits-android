@@ -10,6 +10,8 @@ import com.hypertrack.android.models.HistoryResult
 import com.hypertrack.android.models.Summary
 import com.hypertrack.android.utils.CrashReportsProvider
 import com.hypertrack.android.utils.OsUtilsProvider
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.time.LocalDate
 import java.time.ZonedDateTime
 
@@ -24,10 +26,10 @@ class HistoryRepositoryImpl(
     private val crashReportsProvider: CrashReportsProvider,
     private val osUtilsProvider: OsUtilsProvider
 ) : HistoryRepository {
-
     override val history = MutableLiveData<Map<LocalDate, History>>(mapOf())
 
     private val cache = mutableMapOf<LocalDate, History>()
+    private val mutex = Mutex()
 //    private val periodCache = mutableMapOf<String, History>()
 
     override suspend fun getHistory(date: LocalDate): HistoryResult {
@@ -40,7 +42,9 @@ class HistoryRepositoryImpl(
             )
             when (res) {
                 is History -> {
-                    addDayToCache(date, res)
+                    mutex.withLock {
+                        addDayToCache(date, res)
+                    }
                 }
                 is HistoryError -> {
                     crashReportsProvider.logException(res.error ?: Exception("History error null"))

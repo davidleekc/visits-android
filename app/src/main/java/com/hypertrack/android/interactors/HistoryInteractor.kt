@@ -9,6 +9,7 @@ import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.base.toConsumable
 import com.hypertrack.android.ui.common.util.toHotTransformation
 import com.hypertrack.android.utils.OsUtilsProvider
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -28,6 +29,7 @@ interface HistoryInteractor {
 class HistoryInteractorImpl(
     private val historyRepository: HistoryRepository,
     private val osUtilsProvider: OsUtilsProvider,
+    private val globalScope: CoroutineScope
 ) : HistoryInteractor {
 
     override val todayHistory = MutableLiveData<History>()
@@ -47,7 +49,7 @@ class HistoryInteractorImpl(
     )
 
     override fun loadTodayHistory() {
-        GlobalScope.launch {
+        globalScope.launch {
             val res = historyRepository.getHistory(LocalDate.now())
             when (res) {
                 is History -> {
@@ -61,14 +63,14 @@ class HistoryInteractorImpl(
     }
 
     override fun loadHistory(date: LocalDate) {
-        GlobalScope.launch {
+        globalScope.launch {
             historyRepository.getHistory(date)
         }
     }
 
 //    override fun loadMonthSummary(month: Month) {
 //        Log.v("hypertrack-verbose", "loadMonthSummary $month")
-//        GlobalScope.launch {
+//        globalScope.launch {
 //            try {
 //                val firstDay = LocalDate.of(
 //                    LocalDate.now().year,
