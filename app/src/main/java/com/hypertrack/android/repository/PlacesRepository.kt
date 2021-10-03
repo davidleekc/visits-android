@@ -20,11 +20,8 @@ import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 
 interface PlacesRepository {
-    //todo use DataPage
-    suspend fun loadGeofencesPage(
-        pageToken: String?,
-        gh: GeoHash? = null
-    ): GeofencesPage
+    suspend fun loadGeofencesPage(pageToken: String?): DataPage<LocalGeofence>
+    suspend fun loadGeofencesPageForMap(gh: GeoHash, pageToken: String?): DataPage<LocalGeofence>
 
     suspend fun loadAllGeofencesVisitsPage(pageToken: String?): DataPage<LocalGeofenceVisit>
     suspend fun createGeofence(
@@ -48,7 +45,18 @@ class PlacesRepositoryImpl(
     private val crashReportsProvider: CrashReportsProvider
 ) : PlacesRepository {
 
-    override suspend fun loadGeofencesPage(pageToken: String?, gh: GeoHash?): GeofencesPage {
+    override suspend fun loadGeofencesPage(pageToken: String?): DataPage<LocalGeofence> {
+        return loadGeofences(pageToken, null)
+    }
+
+    override suspend fun loadGeofencesPageForMap(
+        gh: GeoHash,
+        pageToken: String?
+    ): DataPage<LocalGeofence> {
+        return loadGeofences(pageToken, gh)
+    }
+
+    private suspend fun loadGeofences(pageToken: String?, gh: GeoHash?): DataPage<LocalGeofence> {
         return withContext(Dispatchers.IO) {
             val res = apiClient.getGeofences(pageToken, gh.string())
             val localGeofences =
@@ -61,7 +69,7 @@ class PlacesRepositoryImpl(
                         crashReportsProvider
                     )
                 }
-            GeofencesPage(
+            DataPage(
                 localGeofences,
                 res.paginationToken
             )
@@ -140,11 +148,6 @@ class PlacesRepositoryImpl(
 }
 
 fun GeoHash?.string() = this?.let { it.toString() }
-
-class GeofencesPage(
-    val geofences: List<LocalGeofence>,
-    val paginationToken: String?
-)
 
 sealed class CreateGeofenceResult
 class CreateGeofenceSuccess(val geofence: LocalGeofence) : CreateGeofenceResult()

@@ -89,7 +89,7 @@ class PlacesRepositoryTest {
 
         runBlocking {
             placesRepository.loadGeofencesPage(null).let {
-                assertEquals(listOf("device_id"), it.geofences[0].visits.map { it.deviceId })
+                assertEquals(listOf("device_id"), it.items[0].visits.map { it.deviceId })
             }
 
             placesRepository.loadAllGeofencesVisitsPage(null).let {

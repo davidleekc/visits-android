@@ -78,7 +78,7 @@ class PlacesViewModel(
                         val res = placesInteractor.loadPage(nextPageToken)
                         nextPageToken = res.paginationToken
 //                        Log.v("hypertrack-verbose", "nextPageToken = ${nextPageToken.hashCode()}")
-                        placesPage.postValue(Consumable(res.geofences.map { PlaceItem(it) }))
+                        placesPage.postValue(Consumable(res.items.map { PlaceItem(it) }))
                         loadingStateBase.postValue(false)
                     }
                 } catch (e: Exception) {

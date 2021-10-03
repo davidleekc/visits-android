@@ -10,6 +10,7 @@ import com.hypertrack.android.models.Integration
 import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.repository.*
 import com.hypertrack.android.ui.base.Consumable
+import com.hypertrack.android.ui.common.DataPage
 import com.hypertrack.android.utils.Intersect
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.android.utils.formatters.DatetimeFormatter
@@ -39,7 +40,7 @@ interface PlacesInteractor {
         integration: Integration?
     ): CreateGeofenceResult
 
-    suspend fun loadPage(pageToken: String?): GeofencesPage
+    suspend fun loadPage(pageToken: String?): DataPage<LocalGeofence>
 
     val adjacentGeofencesAllowed: Boolean
     suspend fun hasAdjacentGeofence(latLng: LatLng, radius: Int): Boolean
@@ -84,7 +85,7 @@ class PlacesInteractorImpl(
     val debugCacheState = MutableLiveData<List<GeoCacheItem>>()
 
     override val isLoadingForLocation = MutableLiveData<Boolean>(false)
-    private var firstPageJob: Deferred<GeofencesPage>? = null
+    private var firstPageJob: Deferred<DataPage<LocalGeofence>>? = null
 
     override val adjacentGeofencesAllowed: Boolean = false
 
@@ -94,7 +95,7 @@ class PlacesInteractorImpl(
         }
     }
 
-    override suspend fun loadPage(pageToken: String?): GeofencesPage {
+    override suspend fun loadPage(pageToken: String?): DataPage<LocalGeofence> {
         return loadPlacesPage(pageToken, false)
     }
 
@@ -180,10 +181,13 @@ class PlacesInteractorImpl(
         pageCache.clear()
     }
 
-    private suspend fun loadPlacesPage(pageToken: String?, initial: Boolean): GeofencesPage {
+    private suspend fun loadPlacesPage(
+        pageToken: String?,
+        initial: Boolean
+    ): DataPage<LocalGeofence> {
         if (pageCache.containsKey(pageToken)) {
 //            Log.v("hypertrack-verbose", "cached: ${pageToken.hashCode()}")
-            return GeofencesPage(
+            return DataPage(
                 pageCache.getValue(pageToken).let {
                     if (pageToken == null && pendingCreatedGeofences.isNotEmpty()) {
                         pendingCreatedGeofences.map {
@@ -206,9 +210,9 @@ class PlacesInteractorImpl(
                     firstPageJob!!.await()
                 } else {
 //                    Log.v("hypertrack-verbose", "loading: ${pageToken.hashCode()}")
-                    placesRepository.loadGeofencesPage(pageToken).apply {
-                        pageCache[pageToken] = this.geofences
-                        addGeofencesToCache(geofences)
+                    placesRepository.loadGeofencesPage(pageToken).also {
+                        pageCache[pageToken] = it.items
+                        addGeofencesToCache(it.items)
                     }.apply {
 //                    Log.v("hypertrack-verbose", "--loaded: ${pageToken.hashCode()}")
                     }
@@ -336,9 +340,9 @@ class PlacesInteractorImpl(
             job = globalScope.launch(Dispatchers.Main) {
                 try {
                     do {
-                        val res = placesRepository.loadGeofencesPage(pageToken, gh)
+                        val res = placesRepository.loadGeofencesPageForMap(gh, pageToken)
                         pageToken = res.paginationToken
-                        addGeofencesToCache(res.geofences)
+                        addGeofencesToCache(res.items)
                     } while (pageToken != null)
 
                     status = Status.COMPLETED
