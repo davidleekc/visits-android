@@ -25,10 +25,14 @@ import com.hypertrack.android.ui.screens.visits_management.tabs.places.PlacesVie
 import com.hypertrack.android.ui.screens.visits_management.tabs.places.PlacesVisitsViewModel
 import com.hypertrack.android.utils.*
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.HistoryViewModel
+import com.hypertrack.android.utils.formatters.DatetimeFormatter
+import com.hypertrack.android.utils.formatters.DistanceFormatter
+import com.hypertrack.android.utils.formatters.TimeFormatter
 import javax.inject.Provider
 
 @Suppress("UNCHECKED_CAST")
 class UserScopeViewModelFactory(
+    private val appScope: AppScope,
     private val userScopeProvider: Provider<UserScope>,
     private val tripsInteractor: TripsInteractor,
     private val placesInteractor: PlacesInteractor,
@@ -40,7 +44,6 @@ class UserScopeViewModelFactory(
     private val hyperTrackService: HyperTrackService,
     private val permissionsInteractor: PermissionsInteractor,
     private val accessTokenRepository: AccessTokenRepository,
-    private val timeDistanceFormatter: TimeDistanceFormatter,
     private val apiClient: ApiClient,
     private val osUtilsProvider: OsUtilsProvider,
     private val placesClient: PlacesClient,
@@ -55,6 +58,7 @@ class UserScopeViewModelFactory(
             ) as T
             OrdersListViewModel::class.java -> OrdersListViewModel(
                 tripsInteractor,
+                appScope.datetimeFormatter,
                 osUtilsProvider
             ) as T
             AddIntegrationViewModel::class.java -> AddIntegrationViewModel(
@@ -73,7 +77,9 @@ class UserScopeViewModelFactory(
                 hyperTrackService,
                 deviceLocationProvider,
                 osUtilsProvider,
-                crashReportsProvider
+                crashReportsProvider,
+                appScope.datetimeFormatter,
+                appScope.timeFormatter
             ) as T
             SelectDestinationViewModel::class.java -> SelectDestinationViewModel(
                 userScopeProvider.get().placesInteractor,
@@ -86,7 +92,8 @@ class UserScopeViewModelFactory(
                 userScopeProvider.get().placesInteractor,
                 osUtilsProvider,
                 deviceLocationProvider,
-                timeDistanceFormatter
+                appScope.distanceFormatter,
+                appScope.datetimeFormatter
             ) as T
             PermissionRequestViewModel::class.java -> PermissionRequestViewModel(
                 permissionsInteractor,
@@ -95,11 +102,13 @@ class UserScopeViewModelFactory(
             SummaryViewModel::class.java -> SummaryViewModel(
                 userScopeProvider.get().historyInteractor,
                 osUtilsProvider,
-                timeDistanceFormatter
+                appScope.distanceFormatter,
+                appScope.timeFormatter
             ) as T
             HistoryViewModel::class.java -> HistoryViewModel(
                 userScopeProvider.get().historyInteractor,
-                timeDistanceFormatter,
+                appScope.datetimeFormatter,
+                appScope.distanceFormatter,
                 osUtilsProvider
             ) as T
             VisitsManagementViewModel::class.java -> VisitsManagementViewModel(
@@ -128,7 +137,9 @@ class UserScopeViewModelFactory(
                 userScopeProvider.get().placesVisitsInteractor,
                 userScopeProvider.get().historyInteractor,
                 osUtilsProvider,
-                timeDistanceFormatter
+                appScope.datetimeFormatter,
+                appScope.distanceFormatter,
+                appScope.timeFormatter,
             ) as T
             else -> throw IllegalArgumentException("Can't instantiate class $modelClass")
         }

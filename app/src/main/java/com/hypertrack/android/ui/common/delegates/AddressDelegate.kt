@@ -9,13 +9,18 @@ import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.models.local.LocalGeofenceVisit
 import com.hypertrack.android.models.local.LocalOrder
 import com.hypertrack.android.ui.common.util.format
-import com.hypertrack.android.ui.common.util.formatDateTime
+
 import com.hypertrack.android.ui.common.util.nullIfBlank
 import com.hypertrack.android.ui.common.util.nullIfEmpty
 import com.hypertrack.android.utils.OsUtilsProvider
+import com.hypertrack.android.utils.datetimeFromString
+import com.hypertrack.android.utils.formatters.DatetimeFormatter
 import com.hypertrack.logistics.android.github.R
 
-class OrderAddressDelegate(val osUtilsProvider: OsUtilsProvider) {
+class OrderAddressDelegate(
+    val osUtilsProvider: OsUtilsProvider,
+    val datetimeFormatter: DatetimeFormatter
+) {
 
     //todo nominatim first two parts
     //used as order name in list
@@ -29,7 +34,10 @@ class OrderAddressDelegate(val osUtilsProvider: OsUtilsProvider) {
             order.destinationLatLng.longitude
         )?.toAddressString(short = true, disableCoordinatesFallback = true)
         ?: order.scheduledAt?.let {
-            osUtilsProvider.stringFromResource(R.string.order_scheduled_at, it.formatDateTime())
+            osUtilsProvider.stringFromResource(
+                R.string.order_scheduled_at,
+                datetimeFormatter.formatDatetime(it)
+            )
         }
         ?: osUtilsProvider.stringFromResource(R.string.order_address_not_available)
     }

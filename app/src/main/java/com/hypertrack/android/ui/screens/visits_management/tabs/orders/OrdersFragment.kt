@@ -24,15 +24,7 @@ class OrdersFragment : BaseFragment<MainActivity>(R.layout.fragment_orders) {
 
     private val keyValueAdapter = KeyValueAdapter(showCopyButton = true)
 
-    private val addressDelegate by lazy {
-        OrderAddressDelegate(MyApplication.injector.getOsUtilsProvider(requireContext()))
-    }
-    private val ordersAdapter by lazy {
-        OrdersAdapter(
-            Injector.getTimeDistanceFormatter(),
-            addressDelegate
-        )
-    }
+    private val ordersAdapter by lazy { vm.createAdapter() }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

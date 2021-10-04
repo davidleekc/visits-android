@@ -22,10 +22,13 @@ import com.hypertrack.android.ui.common.KeyValueItem
 import com.hypertrack.android.ui.common.MapParams
 import com.hypertrack.android.ui.common.delegates.GeofenceAddressDelegate
 import com.hypertrack.android.ui.common.util.format
-import com.hypertrack.android.ui.common.util.formatDateTime
+
 import com.hypertrack.android.utils.CrashReportsProvider
 import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.android.utils.OsUtilsProvider
+import com.hypertrack.android.utils.formatters.DatetimeFormatter
+import com.hypertrack.android.utils.formatters.DistanceFormatter
+import com.hypertrack.android.utils.formatters.TimeFormatter
 import com.hypertrack.logistics.android.github.R
 import com.squareup.moshi.Moshi
 import kotlinx.coroutines.launch
@@ -35,6 +38,9 @@ class PlaceDetailsViewModel(
     private val placesInteractor: PlacesInteractor,
     private val osUtilsProvider: OsUtilsProvider,
     private val crashReportsProvider: CrashReportsProvider,
+    private val datetimeFormatter: DatetimeFormatter,
+    private val distanceFormatter: DistanceFormatter,
+    private val timeFormatter: TimeFormatter,
     private val moshi: Moshi
 ) : BaseViewModel(osUtilsProvider) {
 
@@ -65,23 +71,21 @@ class PlaceDetailsViewModel(
 
     val metadata: LiveData<List<KeyValueItem>> = Transformations.map(geofence) { geofence ->
         geofence.metadata.toMutableMap().apply {
-            if (MyApplication.DEBUG_MODE) {
-                put(
-                    "Geofence ID (debug)",
-                    geofence.id
-                )
-            }
             put(
-                osUtilsProvider.stringFromResource(R.string.place_visits_count),
-                geofence.visitsCount.toString()
+                "Geofence ID",
+                geofence.id
             )
             put(
                 osUtilsProvider.stringFromResource(R.string.created_at),
-                geofence.createdAt.formatDateTime()
+                datetimeFormatter.formatDatetime(geofence.createdAt)
             )
             put(
                 osUtilsProvider.stringFromResource(R.string.coordinates),
                 geofence.latLng.format()
+            )
+            put(
+                osUtilsProvider.stringFromResource(R.string.place_visits_count),
+                geofence.visitsCount.toString()
             )
         }
             .map { KeyValueItem(it.key, it.value) }.toList()
@@ -151,6 +155,17 @@ class PlaceDetailsViewModel(
     fun onIntegrationCopy() {
         integration.value?.let {
             osUtilsProvider.copyToClipboard(it.id)
+        }
+    }
+
+    fun createVisitsAdapter(): PlaceVisitsAdapter {
+        return PlaceVisitsAdapter(
+            MyApplication.injector.getOsUtilsProvider(MyApplication.context),
+            datetimeFormatter,
+            distanceFormatter,
+            timeFormatter
+        ) {
+            onCopyVisitIdClick(it)
         }
     }
 }

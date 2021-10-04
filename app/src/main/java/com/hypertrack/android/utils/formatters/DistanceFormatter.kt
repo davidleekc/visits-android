@@ -1,61 +1,18 @@
-package com.hypertrack.android.utils
+package com.hypertrack.android.utils.formatters
 
+import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.logistics.android.github.R
-import java.time.Instant
 import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 import java.util.*
-import kotlin.math.round
-
-//todo separate and merge with DateTimeFormatter
-
-interface TimeFormatter {
-    fun formatTime(isoTimestamp: String): String
-}
 
 interface DistanceFormatter {
     fun formatDistance(meters: Int): String
 }
 
-//todo split usage
-interface TimeDistanceFormatter : TimeFormatter, DistanceFormatter
-
-open class SimpleTimeDistanceFormatter(
-    private val zoneId: ZoneId = ZoneId.systemDefault()
-) : TimeDistanceFormatter {
-
-    private val format = DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)
-
-    protected open val shouldUseImperial = Locale.getDefault().country in listOf("US", "LR", "MM")
-
-    override fun formatTime(isoTimestamp: String): String {
-        return try {
-            Instant.parse(isoTimestamp).atZone(zoneId).toLocalTime().format(format)
-                .replace(" PM", "pm").replace(" AM", "am")
-        } catch (ignored: Exception) {
-            isoTimestamp
-        }
-    }
-
-    override fun formatDistance(meters: Int): String {
-        if (shouldUseImperial) {
-            val miles = meters / 1609.0
-            return "${"%.1f".format(miles)} mi"
-        }
-        val kms = meters / 1000.0
-        return "${"%.1f".format(kms)} km"
-    }
-
-    companion object {
-        const val TAG = "TimeDistanceFormatter"
-    }
-}
-
-class LocalizedTimeDistanceFormatter(
+class LocalizedDistanceFormatter(
     private val osUtilsProvider: OsUtilsProvider,
-    private val zoneId: ZoneId = ZoneId.systemDefault()
-) : SimpleTimeDistanceFormatter(zoneId) {
+) : DistanceFormatter {
+    private val shouldUseImperial = Locale.getDefault().country in listOf("US", "LR", "MM")
 
     override fun formatDistance(meters: Int): String {
         return if (shouldUseImperial && false) {
@@ -95,10 +52,6 @@ class LocalizedTimeDistanceFormatter(
                 }
             }
         }
-    }
-
-    companion object {
-        const val TAG = "TimeDistanceFormatter"
     }
 }
 

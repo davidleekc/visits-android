@@ -565,6 +565,7 @@ class OrdersDetailsViewModelTest {
                     every { createImageFile() } returns File("nofile")
                 },
                 mockk() { coEvery { isPickUpAllowed } returns pickUpAllowed },
+                mockk(relaxed = true),
                 mockk() {},
                 scope
             )

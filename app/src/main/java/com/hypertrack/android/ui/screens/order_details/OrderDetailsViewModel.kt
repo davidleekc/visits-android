@@ -22,6 +22,7 @@ import com.hypertrack.android.ui.common.delegates.OrderAddressDelegate
 import com.hypertrack.android.ui.common.util.format
 import com.hypertrack.android.ui.common.util.requireValue
 import com.hypertrack.android.utils.OsUtilsProvider
+import com.hypertrack.android.utils.formatters.DatetimeFormatter
 import com.hypertrack.logistics.android.github.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -34,11 +35,12 @@ class OrderDetailsViewModel(
     private val photoUploadInteractor: PhotoUploadQueueInteractor,
     private val osUtilsProvider: OsUtilsProvider,
     private val accountRepository: AccountRepository,
+    private val datetimeFormatter: DatetimeFormatter,
     private val apiClient: ApiClient,
     private val globalScope: CoroutineScope
 ) : BaseViewModel(osUtilsProvider) {
 
-    private val addressDelegate = OrderAddressDelegate(osUtilsProvider)
+    private val addressDelegate = OrderAddressDelegate(osUtilsProvider, datetimeFormatter)
 
     override val errorHandler =
         ErrorHandler(osUtilsProvider, tripsInteractor.errorFlow.asLiveData())

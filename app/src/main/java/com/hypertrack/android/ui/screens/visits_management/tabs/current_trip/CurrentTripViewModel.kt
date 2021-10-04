@@ -1,36 +1,37 @@
 package com.hypertrack.android.ui.screens.visits_management.tabs.current_trip
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
-import android.util.TypedValue
 import androidx.lifecycle.*
-import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.*
 import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.interactors.TripsInteractor
 import com.hypertrack.android.models.local.LocalGeofence
+import com.hypertrack.android.models.local.LocalOrder
 import com.hypertrack.android.models.local.LocalTrip
-import com.hypertrack.android.models.local.OrderStatus
 import com.hypertrack.android.repository.TripCreationError
 import com.hypertrack.android.repository.TripCreationSuccess
 import com.hypertrack.android.ui.base.*
 import com.hypertrack.android.ui.common.HypertrackMapWrapper
 import com.hypertrack.android.ui.common.MapParams
 import com.hypertrack.android.ui.common.delegates.GeofencesMapDelegate
-import com.hypertrack.android.ui.common.util.nullIfEmpty
-import com.hypertrack.android.ui.common.util.requireValue
+import com.hypertrack.android.ui.common.delegates.OrderAddressDelegate
 import com.hypertrack.android.ui.common.select_destination.DestinationData
-import com.hypertrack.android.ui.common.util.updateValue
+import com.hypertrack.android.ui.common.util.*
 import com.hypertrack.android.ui.screens.visits_management.VisitsManagementFragmentDirections
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
+import com.hypertrack.android.ui.screens.visits_management.tabs.orders.OrdersAdapter
 import com.hypertrack.android.utils.CrashReportsProvider
 import com.hypertrack.android.utils.HyperTrackService
 import com.hypertrack.android.utils.OsUtilsProvider
+import com.hypertrack.android.utils.formatters.DatetimeFormatter
+import com.hypertrack.android.utils.formatters.TimeFormatter
 import com.hypertrack.logistics.android.github.R
+import kotlinx.android.synthetic.main.inflate_current_trip.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 class CurrentTripViewModel(
@@ -39,8 +40,12 @@ class CurrentTripViewModel(
     private val hyperTrackService: HyperTrackService,
     private val locationProvider: DeviceLocationProvider,
     private val osUtilsProvider: OsUtilsProvider,
-    private val crashReportsProvider: CrashReportsProvider
+    private val crashReportsProvider: CrashReportsProvider,
+    private val datetimeFormatter: DatetimeFormatter,
+    private val timeFormatter: TimeFormatter,
 ) : BaseViewModel(osUtilsProvider) {
+
+    private val addressDelegate = OrderAddressDelegate(osUtilsProvider, datetimeFormatter)
 
     private val isTracking = MediatorLiveData<Boolean>().apply {
         addSource(hyperTrackService.isTracking) {
@@ -64,10 +69,10 @@ class CurrentTripViewModel(
             }
         })
 
-    val trip = MediatorLiveData<LocalTrip?>()
+    val tripData = MediatorLiveData<TripData?>()
     val userLocation = MutableLiveData<LatLng?>()
     val showWhereAreYouGoing: LiveData<Boolean> =
-        ZipLiveData(hyperTrackService.isTracking, trip).let {
+        ZipLiveData(hyperTrackService.isTracking, tripData).let {
             Transformations.map(it) { (isTracking, trip) ->
                 return@map if (isTracking != null) {
                     trip == null && isTracking
@@ -83,27 +88,27 @@ class CurrentTripViewModel(
     }
 
     init {
-        trip.addSource(tripsInteractor.currentTrip) {
+        tripData.addSource(tripsInteractor.currentTrip) { trip ->
             if (isTracking.requireValue()) {
-                trip.postValue(it)
-                map.value?.let { map -> displayTripOnMap(map, it) }
+                tripData.postValue(trip?.let { TripData(it) })
+                map.value?.let { map -> displayTripOnMap(map, trip) }
             }
         }
-        trip.addSource(map) {
+        tripData.addSource(map) {
             if (isTracking.requireValue()) {
-                displayTripOnMap(it, trip.value)
+                displayTripOnMap(it, tripData.value?.trip)
             }
         }
-        trip.addSource(isTracking) {
+        tripData.addSource(isTracking) {
             if (it) {
                 map.value?.let {
                     tripsInteractor.currentTrip.value?.let { trip ->
-                        this.trip.postValue(trip)
+                        this.tripData.postValue(TripData(trip))
                         displayTripOnMap(map.requireValue(), trip)
                     }
                 }
             } else {
-                trip.postValue(null)
+                tripData.postValue(null)
             }
         }
 
@@ -184,21 +189,21 @@ class CurrentTripViewModel(
                 mapWrapper: HypertrackMapWrapper,
                 geofences: List<LocalGeofence>
             ) {
-                if (trip.value == null) {
+                if (tripData.value == null) {
                     Log.v("hypertrack-verbose", "update geofences on map")
                     super.updateGeofencesOnMap(mapWrapper, geofences)
                 }
             }
 
             override fun onCameraIdle() {
-                if (trip.value == null) {
+                if (tripData.value == null) {
                     super.onCameraIdle()
                 }
             }
         }
 
         this.userLocation.observeManaged {
-            if (trip.value == null && it != null) {
+            if (tripData.value == null && it != null) {
                 mapWrapper.moveCamera(it)
             }
         }
@@ -229,7 +234,7 @@ class CurrentTripViewModel(
     }
 
     fun onShareTripClick() {
-        trip.value!!.views?.shareUrl?.let {
+        tripData.value!!.trip.views?.shareUrl?.let {
             osUtilsProvider.shareText(
                 text = it,
                 title = osUtilsProvider.getString(R.string.share_trip_via)
@@ -248,7 +253,7 @@ class CurrentTripViewModel(
     fun onCompleteClick() {
         loadingStateBase.postValue(true)
         viewModelScope.launch {
-            tripsInteractor.completeTrip(trip.value!!.id)
+            tripsInteractor.completeTrip(tripData.value!!.trip.id)
             loadingStateBase.postValue(false)
         }
     }
@@ -256,7 +261,7 @@ class CurrentTripViewModel(
     fun onAddOrderClick() {
         destination.postValue(
             VisitsManagementFragmentDirections.actionVisitManagementFragmentToAddOrderFragment(
-                trip.value!!.id
+                tripData.value!!.trip.id
             )
         )
     }
@@ -274,8 +279,38 @@ class CurrentTripViewModel(
         }
     }
 
+    fun createOrdersAdapter(): OrdersAdapter {
+        return OrdersAdapter(
+            datetimeFormatter,
+            addressDelegate,
+            showStatus = false
+        )
+    }
+
+    inner class TripData(val trip: LocalTrip) {
+        val isLegacy = trip.isLegacy()
+        val nextOrder = trip.nextOrder?.let { OrderData(it) }
+        val ongoingOrders = trip.ongoingOrders
+        val ongoingOrderText = osUtilsProvider
+            .stringFromResource(R.string.you_have_ongoing_orders).let {
+                val size = trip.ongoingOrders.size
+                val plural = osUtilsProvider.getQuantityString(R.plurals.order, size)
+                String.format(it, size, plural)
+            }
+    }
+
+    inner class OrderData(val order: LocalOrder) {
+        val address = addressDelegate.shortAddress(order)
+        val etaString = order.eta?.let { datetimeFormatter.formatTime(it) }
+            ?: osUtilsProvider.stringFromResource(R.string.orders_list_eta_unavailable)
+        val awayText = order.awaySeconds?.let { seconds ->
+            timeFormatter.formatSeconds(seconds.toInt())
+        }
+    }
+
     companion object {
         const val DEFAULT_ZOOM = 15f
     }
 
 }
+

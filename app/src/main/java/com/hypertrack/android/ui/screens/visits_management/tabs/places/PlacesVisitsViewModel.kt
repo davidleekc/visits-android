@@ -12,9 +12,14 @@ import com.hypertrack.android.ui.base.SingleLiveEvent
 import com.hypertrack.android.ui.common.util.format
 import com.hypertrack.android.ui.common.util.requireValue
 import com.hypertrack.android.ui.screens.visits_management.VisitsManagementFragmentDirections
+import com.hypertrack.android.ui.screens.visits_management.tabs.history.TimeDistanceFormatter
 import com.hypertrack.android.utils.OsUtilsProvider
-import com.hypertrack.android.utils.TimeDistanceFormatter
+
 import com.hypertrack.android.utils.applyAddAll
+import com.hypertrack.android.utils.formatters.DatetimeFormatter
+import com.hypertrack.android.utils.formatters.DistanceFormatter
+import com.hypertrack.android.utils.formatters.TimeFormatter
+import com.hypertrack.android.utils.formatters.prettyFormat
 import kotlinx.coroutines.*
 import java.time.LocalDate
 import java.time.Month
@@ -24,7 +29,9 @@ class PlacesVisitsViewModel(
     private val placesVisitsInteractor: PlacesVisitsInteractor,
     private val historyInteractor: HistoryInteractor,
     private val osUtilsProvider: OsUtilsProvider,
-    private val timeDistanceFormatter: TimeDistanceFormatter,
+    private val datetimeFormatter: DatetimeFormatter,
+    private val distanceFormatter: DistanceFormatter,
+    private val timeFormatter: TimeFormatter,
 ) : BaseViewModel(osUtilsProvider) {
 
     val adapter = createVisitsAdapter()
@@ -116,7 +123,9 @@ class PlacesVisitsViewModel(
     private fun createVisitsAdapter(): AllPlacesVisitsAdapter {
         return AllPlacesVisitsAdapter(
             osUtilsProvider,
-            timeDistanceFormatter,
+            datetimeFormatter,
+            distanceFormatter,
+            timeFormatter
         ) {
             osUtilsProvider.copyToClipboard(it)
         }.apply {
@@ -200,13 +209,13 @@ data class VisitsData(
 sealed class VisitItem
 class Visit(val visit: LocalGeofenceVisit) : VisitItem() {
     override fun toString(): String {
-        return "visit ${visit.getDay().format()}"
+        return "visit ${visit.getDay().prettyFormat()}"
     }
 }
 
 class Day(val date: LocalDate) : VisitItem() {
     override fun toString(): String {
-        return date.format()
+        return date.prettyFormat()
     }
 }
 

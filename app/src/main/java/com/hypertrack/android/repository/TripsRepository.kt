@@ -288,7 +288,7 @@ class TripsRepositoryImpl(
                 metadata = Metadata.deserialize(order.metadata),
                 status = if (localOrder?.status == OrderStatus.COMPLETED) {
                     OrderStatus.COMPLETED
-                } else null
+                } else null,
             )
             return res
         }

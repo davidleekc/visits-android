@@ -14,6 +14,9 @@ import com.hypertrack.android.ui.common.select_destination.DestinationData
 import com.hypertrack.android.ui.screens.select_trip_destination.SelectTripDestinationViewModel
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
 import com.hypertrack.android.utils.*
+import com.hypertrack.android.utils.formatters.DatetimeFormatter
+import com.hypertrack.android.utils.formatters.DistanceFormatter
+import com.hypertrack.android.utils.formatters.MetersDistanceFormatter
 import com.squareup.moshi.Moshi
 import kotlinx.coroutines.GlobalScope
 import javax.inject.Provider
@@ -21,12 +24,12 @@ import javax.inject.Provider
 @Suppress("UNCHECKED_CAST")
 class ParamViewModelFactory<T>(
     private val param: T,
+    private val appScope: AppScope,
     private val userScopeProvider: Provider<UserScope>,
     private val osUtilsProvider: OsUtilsProvider,
     private val accountRepository: AccountRepository,
     private val moshi: Moshi,
     private val crashReportsProvider: CrashReportsProvider,
-    private val placesClient: PlacesClient,
     private val deviceLocationProvider: DeviceLocationProvider,
 ) : ViewModelProvider.Factory {
 
@@ -37,6 +40,9 @@ class ParamViewModelFactory<T>(
                 userScopeProvider.get().placesInteractor,
                 osUtilsProvider,
                 crashReportsProvider,
+                appScope.datetimeFormatter,
+                appScope.distanceFormatter,
+                appScope.timeFormatter,
                 moshi
             ) as T
             OrderDetailsViewModel::class.java -> OrderDetailsViewModel(
@@ -45,6 +51,7 @@ class ParamViewModelFactory<T>(
                 userScopeProvider.get().photoUploadQueueInteractor,
                 osUtilsProvider,
                 accountRepository,
+                appScope.datetimeFormatter,
                 userScopeProvider.get().apiClient,
                 GlobalScope
             ) as T

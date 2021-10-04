@@ -1,9 +1,13 @@
 package com.hypertrack.android.gui
 
-import com.hypertrack.android.ui.common.util.formatDate
+
 import com.hypertrack.android.ui.screens.place_details.PlaceVisitsAdapter
+import com.hypertrack.android.ui.screens.visits_management.tabs.history.TimeDistanceFormatter
 import com.hypertrack.android.utils.OsUtilsProvider
-import com.hypertrack.android.utils.TimeDistanceFormatter
+import com.hypertrack.android.utils.formatters.DateTimeFormatterImpl
+import com.hypertrack.android.utils.formatters.DatetimeFormatter
+import com.hypertrack.android.utils.formatters.prettyFormatDate
+
 import com.hypertrack.logistics.android.github.R
 import io.mockk.every
 import io.mockk.mockk
@@ -17,20 +21,16 @@ class GeofenceDateFormattingTest {
 
     @Test
     fun `it should properly format enter and exit range`() {
-        val formatter: TimeDistanceFormatter = object : TimeDistanceFormatter {
-            override fun formatTime(isoTimestamp: String): String {
-                return isoTimestamp
-            }
-
-            override fun formatDistance(meters: Int): String {
-                return meters.toString()
+        val formatter: DatetimeFormatter = object : DateTimeFormatterImpl(ZoneId.of("UTC")) {
+            override fun formatTime(dt: ZonedDateTime): String {
+                return dt.format(DateTimeFormatter.ISO_DATE_TIME).replace("[UTC]", "")
             }
         }
         val osUtilsProvider = mockk<OsUtilsProvider>() {
             every { stringFromResource(R.string.place_today) } returns "Today"
             every { stringFromResource(R.string.place_yesterday) } returns "Yesterday"
         }
-        val adapter = PlaceVisitsAdapter(osUtilsProvider, formatter) {}
+        val adapter = PlaceVisitsAdapter(osUtilsProvider, formatter, mockk(), mockk()) {}
         val today = ZonedDateTime.now().withZoneSameInstant(ZoneId.of("UTC"))
             .withHour(13).withMinute(1)
         val yesterday = today.minusDays(1)
@@ -38,7 +38,10 @@ class GeofenceDateFormattingTest {
         val longTimeAgo = today.minusDays(14)
 
         test(adapter, today, today, osUtilsProvider, formatter) { res, dt1, dt2 ->
-            assertEquals("Today, ${formatter.formatTime(dt1)} — ${formatter.formatTime(dt2)}", res)
+            println(res)
+            val expected = "Today, ${formatter.formatTime(dt1)} — ${formatter.formatTime(dt2)}"
+            println(expected)
+            assertEquals(expected, res)
         }
 
         test(adapter, yesterday, yesterday, osUtilsProvider, formatter) { res, dt1, dt2 ->
@@ -60,7 +63,7 @@ class GeofenceDateFormattingTest {
 
         test(adapter, weekAgo, yesterday, osUtilsProvider, formatter) { res, dt1, dt2 ->
             assertEquals(
-                "${weekAgo.formatDate()}, ${formatter.formatTime(dt1)} — Yesterday, ${
+                "${weekAgo.prettyFormatDate()}, ${formatter.formatTime(dt1)} — Yesterday, ${
                     formatter.formatTime(
                         dt2
                     )
@@ -70,7 +73,7 @@ class GeofenceDateFormattingTest {
 
         test(adapter, weekAgo, weekAgo, osUtilsProvider, formatter) { res, dt1, dt2 ->
             assertEquals(
-                "${weekAgo.formatDate()}, ${formatter.formatTime(dt1)} — ${
+                "${weekAgo.prettyFormatDate()}, ${formatter.formatTime(dt1)} — ${
                     formatter.formatTime(
                         dt2
                     )
@@ -80,7 +83,7 @@ class GeofenceDateFormattingTest {
 
         test(adapter, longTimeAgo, weekAgo, osUtilsProvider, formatter) { res, dt1, dt2 ->
             assertEquals(
-                "${longTimeAgo.formatDate()}, ${formatter.formatTime(dt1)} — ${weekAgo.formatDate()}, ${
+                "${longTimeAgo.prettyFormatDate()}, ${formatter.formatTime(dt1)} — ${weekAgo.prettyFormatDate()}, ${
                     formatter.formatTime(
                         dt2
                     )
@@ -95,8 +98,8 @@ class GeofenceDateFormattingTest {
         baseDt1: ZonedDateTime,
         baseDt2: ZonedDateTime,
         osUtilsProvider: OsUtilsProvider,
-        timeDistanceFormatter: TimeDistanceFormatter,
-        checks: (res: String, dt1: String, dt2: String) -> Unit
+        datetimeFormatter: DatetimeFormatter,
+        checks: (res: String, dt1: ZonedDateTime, dt2: ZonedDateTime) -> Unit
     ) {
         val dt1 = baseDt1
         val dt2 = baseDt2.withMinute(30).withSecond(1)
@@ -104,12 +107,12 @@ class GeofenceDateFormattingTest {
         PlaceVisitsAdapter.formatDate(
             dt1, dt2,
             osUtilsProvider,
-            timeDistanceFormatter,
+            TimeDistanceFormatter(datetimeFormatter, mockk(relaxed = true)),
         ).let {
             checks.invoke(
                 it,
-                dt1.format(DateTimeFormatter.ISO_INSTANT),
-                dt2.format(DateTimeFormatter.ISO_INSTANT)
+                dt1,
+                dt2
             )
         }
     }

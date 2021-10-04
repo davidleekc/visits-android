@@ -9,7 +9,10 @@ import com.hypertrack.android.ui.base.toConsumable
 import com.hypertrack.android.ui.screens.visits_management.VisitsManagementFragmentDirections
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
 import com.hypertrack.android.utils.OsUtilsProvider
-import com.hypertrack.android.utils.TimeDistanceFormatter
+import com.hypertrack.android.utils.formatters.DatetimeFormatter
+import com.hypertrack.android.utils.formatters.DistanceFormatter
+import com.hypertrack.android.utils.formatters.LocalizedDistanceFormatter
+
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
@@ -19,7 +22,8 @@ class PlacesViewModel(
     private val placesInteractor: PlacesInteractor,
     private val osUtilsProvider: OsUtilsProvider,
     private val locationProvider: DeviceLocationProvider,
-    private val timeDistanceFormatter: TimeDistanceFormatter,
+    private val distanceFormatter: DistanceFormatter,
+    private val datetimeFormatter: DatetimeFormatter,
 ) : BaseViewModel(osUtilsProvider) {
 
     private var nextPageToken: String? = null
@@ -46,7 +50,8 @@ class PlacesViewModel(
         return PlacesAdapter(
             osUtilsProvider,
             locationProvider,
-            timeDistanceFormatter
+            distanceFormatter,
+            datetimeFormatter
         )
     }
 

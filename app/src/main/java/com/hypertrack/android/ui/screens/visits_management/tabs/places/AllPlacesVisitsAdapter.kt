@@ -8,8 +8,12 @@ import com.hypertrack.android.ui.base.BaseAdapter
 import com.hypertrack.android.ui.common.delegates.GeofenceAddressDelegate
 import com.hypertrack.android.ui.common.util.format
 import com.hypertrack.android.ui.screens.place_details.PlaceVisitsAdapter
+import com.hypertrack.android.ui.screens.visits_management.tabs.history.TimeDistanceFormatter
 import com.hypertrack.android.utils.OsUtilsProvider
-import com.hypertrack.android.utils.TimeDistanceFormatter
+import com.hypertrack.android.utils.formatters.DatetimeFormatter
+import com.hypertrack.android.utils.formatters.DistanceFormatter
+import com.hypertrack.android.utils.formatters.TimeFormatter
+
 import com.hypertrack.logistics.android.github.R
 import kotlinx.android.synthetic.main.item_day.view.*
 import kotlinx.android.synthetic.main.item_place.view.tvTitle
@@ -18,11 +22,16 @@ import kotlinx.android.synthetic.main.item_place_visit_all_places.view.*
 
 class AllPlacesVisitsAdapter(
     private val osUtilsProvider: OsUtilsProvider,
-    private val timeDistanceFormatter: TimeDistanceFormatter,
+    private val datetimeFormatter: DatetimeFormatter,
+    private val distanceFormatter: DistanceFormatter,
+    private val timeFormatter: TimeFormatter,
     private val onCopyClickListener: ((String) -> Unit)
 ) : BaseAdapter<VisitItem, BaseAdapter.BaseVh<VisitItem>>() {
+    private val timeDistanceFormatter = TimeDistanceFormatter(
+        datetimeFormatter, distanceFormatter
+    )
 
-    private val nameDelegate = GeofenceNameDelegate(osUtilsProvider)
+    private val nameDelegate = GeofenceNameDelegate(osUtilsProvider, datetimeFormatter)
     private val addressDelegate = GeofenceAddressDelegate(osUtilsProvider)
 
     override val itemLayoutResource: Int = R.layout.item_place_visit_all_places
@@ -69,7 +78,7 @@ class AllPlacesVisitsAdapter(
             override fun bind(item: VisitItem) {
                 when (item) {
                     is Day -> {
-                        containerView.tvTitle.text = item.date.format()
+                        containerView.tvTitle.text = datetimeFormatter.formatDate(item.date)
                         containerView.tvTotal.text = visitsData.dayStats[item.date]?.let {
                             timeDistanceFormatter.formatDistance(it)
                         } ?: osUtilsProvider.stringFromResource(R.string.places_visits_loading)
@@ -78,6 +87,7 @@ class AllPlacesVisitsAdapter(
                         PlaceVisitsAdapter.bindVisit(
                             containerView,
                             item.visit,
+                            timeFormatter,
                             timeDistanceFormatter,
                             osUtilsProvider,
                             onCopyClickListener

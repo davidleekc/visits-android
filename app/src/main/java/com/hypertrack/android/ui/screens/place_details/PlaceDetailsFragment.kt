@@ -27,13 +27,7 @@ class PlaceDetailsFragment : ProgressDialogFragment(R.layout.fragment_place_deta
     private lateinit var map: GoogleMap
 
     private val metadataAdapter = KeyValueAdapter(true)
-    private val visitsAdapter =
-        PlaceVisitsAdapter(
-            MyApplication.injector.getOsUtilsProvider(MyApplication.context),
-            MyApplication.injector.getTimeDistanceFormatter(),
-        ) {
-            vm.onCopyVisitIdClick(it)
-        }
+    private val visitsAdapter by lazy { vm.createVisitsAdapter() }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

@@ -1,9 +1,7 @@
 package com.hypertrack.android.utils
 
 import android.content.Context
-import androidx.fragment.app.FragmentFactory
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.hypertrack.android.api.*
@@ -15,12 +13,14 @@ import com.hypertrack.android.ui.common.UserScopeViewModelFactory
 import com.hypertrack.android.ui.common.ViewModelFactory
 import com.hypertrack.android.ui.common.select_destination.DestinationData
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.*
+import com.hypertrack.android.utils.formatters.*
 import com.hypertrack.logistics.android.github.R
 import com.hypertrack.sdk.HyperTrack
 import com.hypertrack.sdk.ServiceNotificationConfig
 import com.hypertrack.sdk.views.HyperTrackViews
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.recipes.RuntimeJsonAdapterFactory
+import com.squareup.moshi.recipes.ZonedDateTimeJsonAdapter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -54,10 +54,11 @@ class ServiceLocator(val crashReportsProvider: CrashReportsProvider) {
 
 object Injector {
 
+    val crashReportsProvider: CrashReportsProvider by lazy { FirebaseCrashReportsProvider() }
+
+    private val appScope: AppScope by lazy { createAppScope() }
     private var userScope: UserScope? = null
     var tripCreationScope: TripCreationScope? = null
-
-    val crashReportsProvider: CrashReportsProvider by lazy { FirebaseCrashReportsProvider() }
 
     val deeplinkProcessor: DeeplinkProcessor = BranchIoDeepLinkProcessor(crashReportsProvider)
 
@@ -65,9 +66,23 @@ object Injector {
 
     val batteryLevelMonitor = BatteryLevelMonitor(crashReportsProvider)
 
+    private fun createAppScope(): AppScope {
+        val context = MyApplication.context
+        val crashReportsProvider = this.crashReportsProvider
+        val osUtilsProvider = OsUtilsProvider(context, crashReportsProvider)
+        return AppScope(
+            crashReportsProvider,
+            osUtilsProvider,
+            DateTimeFormatterImpl(),
+            LocalizedDistanceFormatter(osUtilsProvider),
+            TimeFormatterImpl(osUtilsProvider)
+        )
+    }
+
     fun getMoshi(): Moshi = Moshi.Builder()
         .add(HistoryCoordinateJsonAdapter())
         .add(GeometryJsonAdapter())
+        .add(ZonedDateTimeJsonAdapter())
         .add(
             RuntimeJsonAdapterFactory(HistoryMarker::class.java, "type")
                 .registerSubtype(HistoryStatusMarker::class.java, "device_status")
@@ -92,12 +107,12 @@ object Injector {
     fun <T> provideParamVmFactory(param: T): ParamViewModelFactory<T> {
         return ParamViewModelFactory(
             param,
+            appScope,
             { getUserScope() },
             getOsUtilsProvider(MyApplication.context),
             getAccountRepo(MyApplication.context),
             getMoshi(),
             crashReportsProvider,
-            placesClient,
             getDeviceLocationProvider()
         )
     }
@@ -136,7 +151,6 @@ object Injector {
         myPreferences: MyPreferences,
         fileRepository: FileRepository,
         imageDecoder: ImageDecoder,
-        timeDistanceFormatter: TimeDistanceFormatter
     ): UserScope {
         val deviceId = accessTokenRepository.deviceId
 
@@ -165,6 +179,7 @@ object Injector {
             placesRepository,
             integrationsRepository,
             osUtilsProvider,
+            appScope.datetimeFormatter,
             Intersect(),
             GlobalScope
         )
@@ -239,6 +254,7 @@ object Injector {
             photoUploadQueueInteractor,
             apiClient,
             UserScopeViewModelFactory(
+                appScope,
                 { getUserScope() },
                 tripsInteractor,
                 placesInteractor,
@@ -250,11 +266,10 @@ object Injector {
                 hyperTrackService,
                 permissionsInteractor,
                 accessTokenRepository,
-                timeDistanceFormatter,
                 apiClient,
                 osUtilsProvider,
                 placesClient,
-                deviceLocationProvider
+                deviceLocationProvider,
             )
         )
 
@@ -289,8 +304,7 @@ object Injector {
                 getMoshi(),
                 getMyPreferences(MyApplication.context),
                 getFileRepository(),
-                getImageDecoder(),
-                getTimeDistanceFormatter()
+                getImageDecoder()
             )
         }
         return userScope!!
@@ -314,7 +328,8 @@ object Injector {
         return FileRepositoryImpl()
     }
 
-    private fun getPermissionInteractor() = PermissionsInteractorImpl { getUserScope().hyperTrackService }
+    private fun getPermissionInteractor() =
+        PermissionsInteractorImpl { getUserScope().hyperTrackService }
 
     private val tokenForPublishableKeyExchangeService by lazy {
         val retrofit = Retrofit.Builder()
@@ -384,9 +399,6 @@ object Injector {
     fun getRealTimeUpdatesService(ctx: Context): Provider<HyperTrackViews> =
         Provider { HyperTrackViews.getInstance(ctx, getAccountRepo(ctx).publishableKey) }
 
-    fun getTimeDistanceFormatter() =
-        LocalizedTimeDistanceFormatter(getOsUtilsProvider(MyApplication.context))
-
 }
 
 class TripCreationScope(
@@ -405,6 +417,15 @@ class UserScope(
     val photoUploadQueueInteractor: PhotoUploadQueueInteractor,
     val apiClient: ApiClient,
     val userScopeViewModelFactory: UserScopeViewModelFactory
+)
+
+//todo move app scope dependencies here
+class AppScope(
+    val crashReportsProvider: CrashReportsProvider,
+    val osUtilsProvider: OsUtilsProvider,
+    val datetimeFormatter: DatetimeFormatter,
+    val distanceFormatter: DistanceFormatter,
+    val timeFormatter: TimeFormatter,
 )
 
 fun interface Factory<A, T> {

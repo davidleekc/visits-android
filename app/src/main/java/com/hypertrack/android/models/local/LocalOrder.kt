@@ -16,10 +16,9 @@ import java.time.temporal.ChronoUnit
 data class LocalOrder(
     val id: String,
     val destination: TripDestination,
-    val scheduledAt: String?,
+    val scheduledAt: ZonedDateTime?,
     val estimate: Estimate?,
     val _metadata: Metadata?,
-
     var status: OrderStatus,
     //local
     //todo remove
@@ -43,7 +42,7 @@ data class LocalOrder(
         id = order.id,
         destination = order.destination,
         status = status ?: OrderStatus.fromString(order._status),
-        scheduledAt = order.scheduledAt,
+        scheduledAt = order.scheduledAt?.let { datetimeFromString(it) },
         estimate = order.estimate,
         _metadata = metadata,
         note = note,

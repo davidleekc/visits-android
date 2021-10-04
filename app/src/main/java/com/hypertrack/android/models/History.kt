@@ -2,8 +2,6 @@ package com.hypertrack.android.models
 
 import android.util.Log
 import com.google.android.gms.maps.model.LatLng
-import com.hypertrack.android.utils.Constants
-import com.hypertrack.android.utils.TimeDistanceFormatter
 import com.squareup.moshi.JsonClass
 
 data class History(

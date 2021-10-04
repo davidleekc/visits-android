@@ -12,6 +12,7 @@ import com.hypertrack.android.repository.*
 import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.utils.Intersect
 import com.hypertrack.android.utils.OsUtilsProvider
+import com.hypertrack.android.utils.formatters.DatetimeFormatter
 import com.hypertrack.logistics.android.github.R
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BufferOverflow
@@ -56,11 +57,12 @@ class PlacesInteractorImpl(
     private val placesRepository: PlacesRepository,
     private val integrationsRepository: IntegrationsRepository,
     private val osUtilsProvider: OsUtilsProvider,
+    private val datetimeFormatter: DatetimeFormatter,
     private val intersect: Intersect,
     private val globalScope: CoroutineScope
 ) : PlacesInteractor {
 
-    private val geofenceNameDelegate = GeofenceNameDelegate(osUtilsProvider)
+    private val geofenceNameDelegate = GeofenceNameDelegate(osUtilsProvider, datetimeFormatter)
 
     private var pendingCreatedGeofences = mutableListOf<LocalGeofence>()
 

@@ -284,6 +284,10 @@ public class OsUtilsProvider(
         }
     }
 
+    fun getQuantityString(@StringRes res: Int, number: Int): String {
+        return context.resources.getQuantityString(res, number)
+    }
+
     companion object {
         const val TAG = "OsUtilsProvider"
         const val SHARE_BROADCAST_ACTION = "com.hypertrack.logistics.SHARE_TRIP"

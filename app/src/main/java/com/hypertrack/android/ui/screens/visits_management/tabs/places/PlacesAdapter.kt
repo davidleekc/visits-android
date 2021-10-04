@@ -7,13 +7,14 @@ import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.ui.base.BaseAdapter
 import com.hypertrack.android.ui.common.delegates.GeofenceAddressDelegate
 import com.hypertrack.android.ui.common.util.LocationUtils
-import com.hypertrack.android.ui.common.util.formatDateTime
 import com.hypertrack.android.ui.common.util.setGoneState
 import com.hypertrack.android.ui.common.util.toView
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
 import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.android.utils.OsUtilsProvider
-import com.hypertrack.android.utils.TimeDistanceFormatter
+import com.hypertrack.android.utils.formatters.DatetimeFormatter
+
+import com.hypertrack.android.utils.formatters.DistanceFormatter
 import com.hypertrack.logistics.android.github.R
 import kotlinx.android.synthetic.main.item_place.view.*
 
@@ -21,11 +22,12 @@ import kotlinx.android.synthetic.main.item_place.view.*
 class PlacesAdapter(
     private val osUtilsProvider: OsUtilsProvider,
     private val locationProvider: DeviceLocationProvider,
-    private val timeDistanceFormatter: TimeDistanceFormatter,
+    private val distanceFormatter: DistanceFormatter,
+    private val datetimeFormatter: DatetimeFormatter,
 ) : BaseAdapter<PlaceItem, BaseAdapter.BaseVh<PlaceItem>>() {
 
     private val addressDelegate = GeofenceAddressDelegate(osUtilsProvider)
-    private val geofenceNameDelegate = GeofenceNameDelegate(osUtilsProvider)
+    private val geofenceNameDelegate = GeofenceNameDelegate(osUtilsProvider, datetimeFormatter)
 
     override val itemLayoutResource: Int = R.layout.item_place
 
@@ -63,14 +65,12 @@ class PlacesAdapter(
                         } $timesString"
                             .toView(containerView.tvVisited)
 
-                        item.geofence.lastVisit?.arrival?.formatDateTime()
-                            ?.let {
-                                MyApplication.context.getString(
-                                    R.string.places_last_visit,
-                                    it
-                                )
-                            }
-                            ?.toView(containerView.tvLastVisit)
+                        item.geofence.lastVisit?.arrival?.let {
+                            MyApplication.context.getString(
+                                R.string.places_last_visit,
+                                datetimeFormatter.formatDatetime(it)
+                            )
+                        }?.toView(containerView.tvLastVisit)
 
                     } else {
                         containerView.tvVisited.setText(R.string.places_not_visited)
@@ -84,7 +84,7 @@ class PlacesAdapter(
                 address.toView(containerView.tvAddress)
 
                 containerView.tvDistance.setGoneState(location == null)
-                timeDistanceFormatter.formatDistance(
+                distanceFormatter.formatDistance(
                     LocationUtils.distanceMeters(
                         location,
                         item.geofence.location

@@ -10,11 +10,8 @@ import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.hypertrack.android.models.local.LocalTrip
 import com.hypertrack.android.ui.base.ProgressDialogFragment
-import com.hypertrack.android.ui.common.delegates.OrderAddressDelegate
 import com.hypertrack.android.ui.common.select_destination.DestinationData
 import com.hypertrack.android.ui.common.util.*
-import com.hypertrack.android.ui.screens.visits_management.tabs.orders.OrdersAdapter
-import com.hypertrack.android.utils.Injector
 import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.android.utils.stringFromResource
 import com.hypertrack.logistics.android.github.BuildConfig
@@ -31,22 +28,8 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
     private val vm: CurrentTripViewModel by viewModels {
         MyApplication.injector.provideUserScopeViewModelFactory()
     }
-    private val timeDistanceFormatter = Injector.getTimeDistanceFormatter()
 
-    private val addressDelegate by lazy {
-        OrderAddressDelegate(
-            Injector.getOsUtilsProvider(
-                requireContext()
-            )
-        )
-    }
-    private val ordersAdapter by lazy {
-        OrdersAdapter(
-            timeDistanceFormatter,
-            addressDelegate,
-            showStatus = false
-        )
-    }
+    private val ordersAdapter by lazy { vm.createOrdersAdapter() }
 
     private lateinit var map: GoogleMap
     private val mapStyleActive by lazy {
@@ -114,7 +97,7 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
             findNavController().navigate(it)
         })
 
-        vm.trip.observe(viewLifecycleOwner, {
+        vm.tripData.observe(viewLifecycleOwner, {
             lTrip.setGoneState(it == null)
             it?.let { displayTrip(it) }
         })
@@ -177,31 +160,21 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
     }
 
     //todo to vm
-    private fun displayTrip(trip: LocalTrip) {
-        bAddOrder.setGoneState(trip.isLegacy())
+    private fun displayTrip(trip: CurrentTripViewModel.TripData) {
+        bAddOrder.setGoneState(trip.isLegacy)
 
         trip.nextOrder?.let { order ->
-            addressDelegate.shortAddress(order).toView(destination_address)
-            (order.eta?.let {
-                timeDistanceFormatter.formatTime(it.format(DateTimeFormatter.ISO_INSTANT))
-            } ?: R.string.orders_list_eta_unavailable.stringFromResource()).toView(
-                destination_arrival
-            )
-            order.awaySeconds.let { seconds ->
-                listOf(destination_away, destination_away_title).forEach {
-                    it.setGoneState(seconds == null)
-                }
-                seconds?.let {
-                    DateTimeUtils.secondsToLocalizedString(seconds.toInt()).toView(destination_away)
-                }
+            order.address.toView(destination_address)
+            order.etaString.toView(destination_arrival)
+            listOf(destination_away, destination_away_title).forEach {
+                it.setGoneState(order.awayText == null)
             }
+            order.awayText.toView(destination_away)
         }
 
         trip.ongoingOrders.let { orders ->
             recycler_view.setGoneState(orders.isEmpty())
-            val text = getString(R.string.you_have_ongoing_orders)
-            val plural = resources.getQuantityString(R.plurals.order, orders.size)
-            trips_count!!.text = String.format(text, orders.size, plural)
+            trip.ongoingOrderText.toView(trips_count)
             ordersAdapter.updateItems(orders)
         }
     }

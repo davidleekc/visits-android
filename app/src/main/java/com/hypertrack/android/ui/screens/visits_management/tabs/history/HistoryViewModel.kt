@@ -8,14 +8,23 @@ import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.ErrorHandler
 import com.hypertrack.android.utils.Constants
 import com.hypertrack.android.utils.OsUtilsProvider
-import com.hypertrack.android.utils.TimeDistanceFormatter
+import com.hypertrack.android.utils.datetimeFromString
+import com.hypertrack.android.utils.formatters.DatetimeFormatter
+import com.hypertrack.android.utils.formatters.DistanceFormatter
+
 import com.hypertrack.logistics.android.github.R
 
 class HistoryViewModel(
     private val historyInteractor: HistoryInteractor,
-    private val timeDistanceFormatter: TimeDistanceFormatter,
+    private val datetimeFormatter: DatetimeFormatter,
+    private val distanceFormatter: DistanceFormatter,
     private val osUtilsProvider: OsUtilsProvider
 ) : BaseViewModel(osUtilsProvider) {
+    //todo remove legacy
+    private val timeDistanceFormatter = TimeDistanceFormatter(
+        datetimeFormatter,
+        distanceFormatter
+    )
 
     override val errorHandler =
         ErrorHandler(osUtilsProvider, historyInteractor.errorFlow.asLiveData())
@@ -244,5 +253,18 @@ class HistoryViewModel(
 
     companion object {
         const val TAG = "HistoryViewModel"
+    }
+}
+
+class TimeDistanceFormatter(
+    val datetimeFormatter: DatetimeFormatter,
+    val distanceFormatter: DistanceFormatter
+) {
+    fun formatTime(timestamp: String): String {
+        return datetimeFormatter.formatTime(datetimeFromString(timestamp))
+    }
+
+    fun formatDistance(totalDistance: Int): String {
+        return distanceFormatter.formatDistance(totalDistance)
     }
 }

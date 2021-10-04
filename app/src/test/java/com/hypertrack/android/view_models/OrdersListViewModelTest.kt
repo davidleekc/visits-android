@@ -59,7 +59,11 @@ class OrdersListViewModelTest {
         runBlocking {
             tripsInteractor.refreshTrips()
             assertTrue(tripsInteractor.currentTrip.value != null)
-            val vm = OrdersListViewModel(tripsInteractor, mockk())
+            val vm = OrdersListViewModel(
+                tripsInteractor,
+                mockk(relaxed = true),
+                mockk()
+            )
             vm.orders.observeForever {}
             val orders = vm.orders.value!!
 //            orders.forEach { println("${it.id} ${it.status}") }

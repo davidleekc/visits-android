@@ -4,15 +4,17 @@ import androidx.lifecycle.*
 import com.hypertrack.android.interactors.HistoryInteractor
 import com.hypertrack.android.models.HistoryError
 import com.hypertrack.android.ui.base.BaseViewModel
-import com.hypertrack.android.ui.common.util.DateTimeUtils
 import com.hypertrack.android.utils.OsUtilsProvider
-import com.hypertrack.android.utils.TimeDistanceFormatter
+import com.hypertrack.android.utils.formatters.DistanceFormatter
+import com.hypertrack.android.utils.formatters.TimeFormatter
+
 import com.hypertrack.logistics.android.github.R
 
 class SummaryViewModel(
     private val historyInteractor: HistoryInteractor,
     private val osUtilsProvider: OsUtilsProvider,
-    private val timeDistanceFormatter: TimeDistanceFormatter
+    private val distanceFormatter: DistanceFormatter,
+    private val timeFormatter: TimeFormatter,
 ) : BaseViewModel() {
 
     val summary: LiveData<List<SummaryItem>> = Transformations.map(historyInteractor.todayHistory) {
@@ -21,24 +23,24 @@ class SummaryViewModel(
                 SummaryItem(
                     R.drawable.ic_ht_eta,
                     osUtilsProvider.stringFromResource(R.string.summary_total_tracking_time),
-                    DateTimeUtils.secondsToLocalizedString(summary.totalDuration)
+                    timeFormatter.formatSeconds(summary.totalDuration)
                 ),
                 SummaryItem(
                     R.drawable.ic_ht_drive,
                     osUtilsProvider.stringFromResource(R.string.summary_drive),
-                    DateTimeUtils.secondsToLocalizedString(summary.totalDriveDuration),
-                    timeDistanceFormatter.formatDistance(summary.totalDriveDistance)
+                    timeFormatter.formatSeconds(summary.totalDriveDuration),
+                    distanceFormatter.formatDistance(summary.totalDriveDistance)
                 ),
                 SummaryItem(
                     R.drawable.ic_ht_walk,
                     osUtilsProvider.stringFromResource(R.string.summary_walk),
-                    DateTimeUtils.secondsToLocalizedString(summary.totalWalkDuration),
+                    timeFormatter.formatSeconds(summary.totalWalkDuration),
                     osUtilsProvider.stringFromResource(R.string.steps, summary.stepsCount)
                 ),
                 SummaryItem(
                     R.drawable.ic_ht_stop,
                     osUtilsProvider.stringFromResource(R.string.summary_stop),
-                    DateTimeUtils.secondsToLocalizedString(summary.totalStopDuration)
+                    timeFormatter.formatSeconds(summary.totalStopDuration)
                 ),
             )
         }

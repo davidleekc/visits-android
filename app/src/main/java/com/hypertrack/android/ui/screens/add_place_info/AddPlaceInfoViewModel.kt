@@ -30,6 +30,7 @@ import com.hypertrack.android.ui.common.delegates.GooglePlaceAddressDelegate
 import com.hypertrack.android.ui.common.util.requireValue
 import com.hypertrack.android.ui.screens.add_place.AddPlaceFragmentDirections
 import com.hypertrack.android.utils.*
+import com.hypertrack.android.utils.formatters.MetersDistanceFormatter
 import com.hypertrack.logistics.android.github.R
 import com.squareup.moshi.Moshi
 import kotlinx.coroutines.launch
@@ -41,7 +42,7 @@ class AddPlaceInfoViewModel(
     private val _name: String?,
     private val placesInteractor: PlacesInteractor,
     private val integrationsRepository: IntegrationsRepository,
-    private val distanceFormatter: DistanceFormatter,
+    private val distanceFormatter: MetersDistanceFormatter,
     private val osUtilsProvider: OsUtilsProvider,
     private val crashReportsProvider: CrashReportsProvider,
     private val moshi: Moshi,

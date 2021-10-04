@@ -4,11 +4,14 @@ import android.view.View
 import com.hypertrack.android.models.local.LocalGeofenceVisit
 import com.hypertrack.android.ui.base.BaseAdapter
 import com.hypertrack.android.ui.common.*
-import com.hypertrack.android.ui.common.util.DateTimeUtils
-import com.hypertrack.android.ui.common.util.formatDate
+
 import com.hypertrack.android.ui.common.util.setGoneState
 import com.hypertrack.android.ui.common.util.toView
+import com.hypertrack.android.ui.screens.visits_management.tabs.history.TimeDistanceFormatter
 import com.hypertrack.android.utils.*
+import com.hypertrack.android.utils.formatters.DatetimeFormatter
+import com.hypertrack.android.utils.formatters.DistanceFormatter
+import com.hypertrack.android.utils.formatters.TimeFormatter
 import com.hypertrack.logistics.android.github.R
 import kotlinx.android.synthetic.main.item_place_visit.view.*
 import java.time.ZoneId
@@ -17,9 +20,13 @@ import java.time.format.DateTimeFormatter
 
 class PlaceVisitsAdapter(
     private val osUtilsProvider: OsUtilsProvider,
-    private val timeDistanceFormatter: TimeDistanceFormatter,
+    private val datetimeFormatter: DatetimeFormatter,
+    private val distanceFormatter: DistanceFormatter,
+    private val timeFormatter: TimeFormatter,
     private val onCopyClickListener: ((String) -> Unit)
 ) : BaseAdapter<LocalGeofenceVisit, BaseAdapter.BaseVh<LocalGeofenceVisit>>() {
+    //todo remove legacy
+    private val timeDistanceFormatter = TimeDistanceFormatter(datetimeFormatter, distanceFormatter)
 
     override val itemLayoutResource: Int = R.layout.item_place_visit
 
@@ -32,6 +39,7 @@ class PlaceVisitsAdapter(
                 bindVisit(
                     containerView,
                     item,
+                    timeFormatter,
                     timeDistanceFormatter,
                     osUtilsProvider,
                     onCopyClickListener
@@ -43,9 +51,11 @@ class PlaceVisitsAdapter(
     }
 
     companion object {
+        //todo refactor injection
         fun bindVisit(
             containerView: View,
             item: LocalGeofenceVisit,
+            timeFormatter: TimeFormatter,
             timeDistanceFormatter: TimeDistanceFormatter,
             osUtilsProvider: OsUtilsProvider,
             onCopyClickListener: ((String) -> Unit)?
@@ -56,7 +66,7 @@ class PlaceVisitsAdapter(
                 osUtilsProvider,
                 timeDistanceFormatter
             ).toView(containerView.tvTitle)
-            item.durationSeconds?.let { DateTimeUtils.secondsToLocalizedString(it) }
+            item.durationSeconds?.let { timeFormatter.formatSeconds(it) }
                 ?.toView(containerView.tvDescription)
             item.id.toView(containerView.tvVisitId)
 
@@ -67,7 +77,7 @@ class PlaceVisitsAdapter(
                 MyApplication.context.getString(
                     R.string.place_route_ro,
                     timeDistanceFormatter.formatDistance(it.distance),
-                    DateTimeUtils.secondsToLocalizedString(it.duration)
+                    timeFormatter.formatSeconds(it.duration)
                 )
             }?.toView(containerView.tvRouteTo)
             listOf(containerView.ivRouteTo, containerView.tvRouteTo).forEach {
@@ -91,7 +101,13 @@ class PlaceVisitsAdapter(
             val equalDay = enterDt.dayOfMonth == exitDt?.dayOfMonth
 
             return if (equalDay) {
-                "${getDateString(enterDt, osUtilsProvider)}, ${
+                "${
+                    getDateString(
+                        enterDt,
+                        osUtilsProvider,
+                        timeDistanceFormatter.datetimeFormatter
+                    )
+                }, ${
                     getTimeString(
                         enterDt,
                         osUtilsProvider,
@@ -99,7 +115,13 @@ class PlaceVisitsAdapter(
                     )
                 } — ${getTimeString(exitDt, osUtilsProvider, timeDistanceFormatter)}"
             } else {
-                "${getDateString(enterDt, osUtilsProvider)}, ${
+                "${
+                    getDateString(
+                        enterDt,
+                        osUtilsProvider,
+                        timeDistanceFormatter.datetimeFormatter
+                    )
+                }, ${
                     getTimeString(
                         enterDt,
                         osUtilsProvider,
@@ -107,7 +129,13 @@ class PlaceVisitsAdapter(
                     )
                 } — ${
                     exitDt?.let {
-                        "${getDateString(exitDt, osUtilsProvider)}, ${
+                        "${
+                            getDateString(
+                                exitDt,
+                                osUtilsProvider,
+                                timeDistanceFormatter.datetimeFormatter
+                            )
+                        }, ${
                             getTimeString(
                                 exitDt,
                                 osUtilsProvider,
@@ -119,7 +147,11 @@ class PlaceVisitsAdapter(
             }
         }
 
-        private fun getDateString(it: ZonedDateTime, osUtilsProvider: OsUtilsProvider): String {
+        private fun getDateString(
+            it: ZonedDateTime,
+            osUtilsProvider: OsUtilsProvider,
+            datetimeFormatter: DatetimeFormatter,
+        ): String {
             val now = ZonedDateTime.now()
             val yesterday = ZonedDateTime.now().minusDays(1)
             return when {
@@ -130,7 +162,7 @@ class PlaceVisitsAdapter(
                     osUtilsProvider.stringFromResource(R.string.place_yesterday)
                 }
                 else -> {
-                    it.formatDate()
+                    datetimeFormatter.formatDate(it)
                 }
             }
         }
