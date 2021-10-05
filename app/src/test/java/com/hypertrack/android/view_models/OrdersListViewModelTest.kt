@@ -62,6 +62,7 @@ class OrdersListViewModelTest {
             val vm = OrdersListViewModel(
                 tripsInteractor,
                 mockk(relaxed = true),
+                mockk(relaxed = true),
                 mockk()
             )
             vm.orders.observeForever {}

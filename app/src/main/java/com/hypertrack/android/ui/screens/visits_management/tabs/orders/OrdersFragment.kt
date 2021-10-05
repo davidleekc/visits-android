@@ -74,6 +74,16 @@ class OrdersFragment : BaseFragment<MainActivity>(R.layout.fragment_orders) {
         }
     }
 
+    override fun onPause() {
+        vm.onPause()
+        super.onPause()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        vm.onResume()
+    }
+
     fun refresh() {
         if (isAdded) {
             vm.onRefresh()

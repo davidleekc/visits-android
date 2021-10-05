@@ -124,7 +124,7 @@ object Injector {
     fun provideTabs(): List<Tab> = mutableListOf<Tab>().apply {
         addAll(
             listOf(
-                Tab.MAP,
+                Tab.CURRENT_TRIP,
                 Tab.HISTORY,
             )
         )
@@ -244,6 +244,7 @@ object Injector {
 
         val userScope = UserScope(
             tripsInteractor,
+            TripsUpdateTimerInteractor(tripsInteractor),
             placesInteractor,
             placesVisitsInteractor,
             googlePlacesInteractor,
@@ -310,6 +311,11 @@ object Injector {
         return userScope!!
     }
 
+    private fun destroyUserScope() {
+        userScope?.onDestroy()
+        userScope = null
+    }
+
     private val placesClient: PlacesClient by lazy {
         Places.createClient(MyApplication.context)
     }
@@ -367,7 +373,7 @@ object Injector {
 
     private fun getAccountRepo(context: Context) =
         AccountRepository(serviceLocator, getAccountData(context), getMyPreferences(context))
-        { userScope = null }
+        { destroyUserScope() }
 
     private fun getAccountData(context: Context): AccountData =
         getMyPreferences(context).getAccountData()
@@ -407,6 +413,7 @@ class TripCreationScope(
 
 class UserScope(
     val tripsInteractor: TripsInteractor,
+    val tripsUpdateTimerInteractor: TripsUpdateTimerInteractor,
     val placesInteractor: PlacesInteractor,
     val placesVisitsInteractor: PlacesVisitsInteractor,
     val googlePlacesInteractor: GooglePlacesInteractor,
@@ -417,7 +424,11 @@ class UserScope(
     val photoUploadQueueInteractor: PhotoUploadQueueInteractor,
     val apiClient: ApiClient,
     val userScopeViewModelFactory: UserScopeViewModelFactory
-)
+) {
+    fun onDestroy() {
+        tripsUpdateTimerInteractor.onDestroy()
+    }
+}
 
 //todo move app scope dependencies here
 class AppScope(

@@ -46,6 +46,7 @@ class ComplexTripsTest {
         val listVm = OrdersListViewModel(
             tripsInteractor,
             mockk(relaxed = true),
+            mockk(relaxed = true),
             mockk()
         )
         val detailsVm1 =

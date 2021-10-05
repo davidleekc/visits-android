@@ -70,7 +70,7 @@ class AddOrderInfoViewModel(
                     when (res) {
                         is AddOrderSuccess -> {
                             destination.postValue(
-                                NavGraphDirections.actionGlobalVisitManagementFragment(Tab.MAP)
+                                NavGraphDirections.actionGlobalVisitManagementFragment(Tab.CURRENT_TRIP)
                             )
                         }
                         is AddOrderError -> {
@@ -83,7 +83,7 @@ class AddOrderInfoViewModel(
                 MyApplication.injector.tripCreationScope = TripCreationScope(destinationData)
                 destination.postValue(
                     AddOrderFragmentDirections
-                        .actionGlobalVisitManagementFragment(Tab.MAP)
+                        .actionGlobalVisitManagementFragment(Tab.CURRENT_TRIP)
                 )
             }
         } else {

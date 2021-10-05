@@ -1,6 +1,7 @@
 package com.hypertrack.android.ui.screens.visits_management.tabs.current_trip
 
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -157,6 +158,16 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
         location_button.setOnClickListener {
             vm.onMyLocationClick()
         }
+    }
+
+    override fun onPause() {
+        vm.onPause()
+        super.onPause()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        vm.onResume()
     }
 
     //todo to vm

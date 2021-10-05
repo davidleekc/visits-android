@@ -2,6 +2,7 @@ package com.hypertrack.android.ui.screens.visits_management.tabs.orders
 
 import androidx.lifecycle.*
 import com.hypertrack.android.interactors.TripsInteractor
+import com.hypertrack.android.interactors.TripsUpdateTimerInteractor
 import com.hypertrack.android.models.Order
 import com.hypertrack.android.models.local.LocalOrder
 import com.hypertrack.android.models.local.LocalTrip
@@ -20,6 +21,7 @@ import kotlinx.coroutines.launch
 @Suppress("IfThenToElvis")
 class OrdersListViewModel(
     private val tripsInteractor: TripsInteractor,
+    private val tripsUpdateTimerInteractor: TripsUpdateTimerInteractor,
     private val datetimeFormatter: DatetimeFormatter,
     private val osUtilsProvider: OsUtilsProvider
 ) : BaseViewModel() {
@@ -99,6 +101,14 @@ class OrdersListViewModel(
 
     fun onCopyClick(it: String) {
         osUtilsProvider.copyToClipboard(it)
+    }
+
+    fun onResume() {
+        tripsUpdateTimerInteractor.registerObserver(this.javaClass.simpleName)
+    }
+
+    fun onPause() {
+        tripsUpdateTimerInteractor.unregisterObserver(this.javaClass.simpleName)
     }
 
     fun createAdapter(): OrdersAdapter {

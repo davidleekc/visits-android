@@ -58,6 +58,7 @@ class UserScopeViewModelFactory(
             ) as T
             OrdersListViewModel::class.java -> OrdersListViewModel(
                 tripsInteractor,
+                userScopeProvider.get().tripsUpdateTimerInteractor,
                 appScope.datetimeFormatter,
                 osUtilsProvider
             ) as T
@@ -74,6 +75,7 @@ class UserScopeViewModelFactory(
             CurrentTripViewModel::class.java -> CurrentTripViewModel(
                 tripsInteractor,
                 placesInteractor,
+                userScopeProvider.get().tripsUpdateTimerInteractor,
                 hyperTrackService,
                 deviceLocationProvider,
                 osUtilsProvider,

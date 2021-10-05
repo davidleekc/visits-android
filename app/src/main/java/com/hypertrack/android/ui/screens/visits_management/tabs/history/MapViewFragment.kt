@@ -17,6 +17,8 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.math.MathUtils
 import com.hypertrack.android.models.HistoryTile
+import com.hypertrack.android.ui.MainActivity
+import com.hypertrack.android.ui.base.BaseFragment
 import com.hypertrack.android.ui.common.util.SnackbarUtil
 import com.hypertrack.android.ui.common.util.setGoneState
 import com.hypertrack.android.utils.Factory
@@ -26,7 +28,7 @@ import kotlinx.android.synthetic.main.fragment_tab_map_webview.*
 import kotlinx.android.synthetic.main.progress_bar.*
 import kotlinx.coroutines.launch
 
-class MapViewFragment : Fragment(R.layout.fragment_tab_map_webview) {
+class MapViewFragment : BaseFragment<MainActivity>(R.layout.fragment_tab_map_webview) {
 
     private var state: LoadingProgressState = LoadingProgressState.LOADING
 

@@ -7,6 +7,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.*
 import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.interactors.TripsInteractor
+import com.hypertrack.android.interactors.TripsUpdateTimerInteractor
 import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.models.local.LocalOrder
 import com.hypertrack.android.models.local.LocalTrip
@@ -37,6 +38,7 @@ import java.util.*
 class CurrentTripViewModel(
     private val tripsInteractor: TripsInteractor,
     private val placesInteractor: PlacesInteractor,
+    private val tripsUpdateTimerInteractor: TripsUpdateTimerInteractor,
     private val hyperTrackService: HyperTrackService,
     private val locationProvider: DeviceLocationProvider,
     private val osUtilsProvider: OsUtilsProvider,
@@ -56,6 +58,7 @@ class CurrentTripViewModel(
     }
 
     private val map = MutableLiveData<HypertrackMapWrapper>()
+
     private lateinit var geofencesMapDelegate: GeofencesMapDelegate
 
     override val errorHandler = ErrorHandler(
@@ -137,14 +140,6 @@ class CurrentTripViewModel(
 
         locationProvider.getCurrentLocation {
             userLocation.postValue(it?.toLatLng())
-        }
-    }
-
-    private fun displayTripOnMap(map: HypertrackMapWrapper, it: LocalTrip?) {
-        it?.let {
-            map.clear()
-            map.addTrip(it)
-            map.animateCameraToTrip(it, userLocation.value)
         }
     }
 
@@ -271,6 +266,14 @@ class CurrentTripViewModel(
         }
     }
 
+    fun createOrdersAdapter(): OrdersAdapter {
+        return OrdersAdapter(
+            datetimeFormatter,
+            addressDelegate,
+            showStatus = false
+        )
+    }
+
     override fun onCleared() {
         super.onCleared()
         if (this::geofencesMapDelegate.isInitialized) {
@@ -278,12 +281,26 @@ class CurrentTripViewModel(
         }
     }
 
-    fun createOrdersAdapter(): OrdersAdapter {
-        return OrdersAdapter(
-            datetimeFormatter,
-            addressDelegate,
-            showStatus = false
-        )
+    private fun displayTripOnMap(map: HypertrackMapWrapper, it: LocalTrip?) {
+        it?.let {
+            map.clear()
+            map.addTrip(it)
+            map.animateCameraToTrip(it, userLocation.value)
+        }
+    }
+
+    private fun updateTripEta() {
+        viewModelScope.launch {
+            tripsInteractor.refreshTrips()
+        }
+    }
+
+    fun onResume() {
+        tripsUpdateTimerInteractor.registerObserver(this.javaClass.simpleName)
+    }
+
+    fun onPause() {
+        tripsUpdateTimerInteractor.unregisterObserver(this.javaClass.simpleName)
     }
 
     inner class TripData(val trip: LocalTrip) {

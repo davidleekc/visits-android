@@ -7,7 +7,7 @@ import kotlinx.android.parcel.Parcelize
 
 @Parcelize
 enum class Tab(@DrawableRes val iconRes: Int) : Parcelable {
-    MAP(R.drawable.ic_map_tab),
+    CURRENT_TRIP(R.drawable.ic_map_tab),
     HISTORY(R.drawable.ic_history),
     ORDERS(R.drawable.ic_visits_list_tab),
     PLACES(R.drawable.ic_places),

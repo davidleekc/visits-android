@@ -36,7 +36,7 @@ class SelectDestinationViewModelTest {
             ).newState
             state = reducer.sendAction(
                 state,
-                MapCameraMoved(LatLng(0.01, 0.0), "address", false, false)
+                MapCameraMoved(LatLng(0.01, 0.0), "address", MovedByUser, true)
             ).newState
             state = reducer.sendAction(
                 state,
@@ -44,7 +44,7 @@ class SelectDestinationViewModelTest {
                     LatLng(
                         userLocation.latitude + 0.1,
                         userLocation.longitude + 0.1
-                    ), "address", false, false
+                    ), "address", MovedByUser, false
                 )
             ).newState
 

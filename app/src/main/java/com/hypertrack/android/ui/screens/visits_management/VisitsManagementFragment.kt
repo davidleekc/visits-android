@@ -9,6 +9,7 @@ import androidx.fragment.app.FragmentPagerAdapter
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.hypertrack.android.ui.base.BaseFragment
 import com.hypertrack.android.ui.base.ProgressDialogFragment
 import com.hypertrack.android.ui.common.util.NotificationUtils
 import com.hypertrack.android.ui.common.util.SimplePageChangedListener
@@ -16,7 +17,6 @@ import com.hypertrack.android.ui.common.util.SnackbarUtil
 import com.hypertrack.android.ui.common.Tab
 import com.hypertrack.android.ui.screens.visits_management.tabs.current_trip.CurrentTripFragment
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.MapViewFragment
-import com.hypertrack.android.ui.screens.visits_management.tabs.history.MapViewFragmentOld
 import com.hypertrack.android.ui.screens.visits_management.tabs.orders.OrdersFragment
 import com.hypertrack.android.ui.screens.visits_management.tabs.places.PlacesFragment
 import com.hypertrack.android.ui.screens.visits_management.tabs.profile.ProfileFragment
@@ -32,7 +32,7 @@ class VisitsManagementFragment : ProgressDialogFragment(R.layout.fragment_visits
 
     private val ordersFragment = OrdersFragment.newInstance()
     private val tabsMap = mapOf(
-        Tab.MAP to CurrentTripFragment(),
+        Tab.CURRENT_TRIP to CurrentTripFragment(),
         Tab.HISTORY to MapViewFragment(),
         Tab.ORDERS to ordersFragment,
         Tab.PLACES to PlacesFragment.getInstance(),
@@ -59,17 +59,10 @@ class VisitsManagementFragment : ProgressDialogFragment(R.layout.fragment_visits
 
             override fun getItem(position: Int): Fragment {
                 val fragment = tabsMap.getValue(tabs[position])
-                if (fragment is MapViewFragmentOld) {
-                    fragment.arguments = Bundle().apply {
-                        putString(
-                            MapViewFragmentOld.WEBVIEW_URL,
-                            visitsManagementViewModel.deviceHistoryWebUrl
-                        )
-                    }
-                }
                 return fragment
             }
         }
+
         viewpager.addOnPageChangeListener(object : SimplePageChangedListener() {
             override fun onPageSelected(position: Int) {
                 MyApplication.injector.crashReportsProvider.log(
@@ -161,9 +154,6 @@ class VisitsManagementFragment : ProgressDialogFragment(R.layout.fragment_visits
         ordersFragment.refresh()
     }
 
-    companion object {
-        const val TAG = "VisitsManagementAct"
-    }
 
 }
 

@@ -1,5 +1,6 @@
 package com.hypertrack.android.interactors
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
@@ -23,6 +24,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import retrofit2.HttpException
 import java.util.*
 
+//todo separate
 interface TripsInteractor {
     val errorFlow: MutableSharedFlow<Consumable<Exception>>
     val currentTrip: LiveData<LocalTrip?>

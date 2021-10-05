@@ -17,6 +17,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
+import androidx.annotation.PluralsRes
 import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -284,7 +285,7 @@ public class OsUtilsProvider(
         }
     }
 
-    fun getQuantityString(@StringRes res: Int, number: Int): String {
+    fun getQuantityString(@PluralsRes res: Int, number: Int): String {
         return context.resources.getQuantityString(res, number)
     }
 
