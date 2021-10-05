@@ -12,7 +12,8 @@ data class DisplayLocationInfo(
 ) : Effect()
 
 data class Proceed(val placeData: PlaceData) : Effect()
-data class MoveMap(val latLng: LatLng, val map: HypertrackMapWrapper) : Effect()
+data class MoveMapToPlace(val placeSelected: PlaceSelected, val map: HypertrackMapWrapper) : Effect()
+data class MoveMapToUserLocation(val userLocation: UserLocation, val map: HypertrackMapWrapper) : Effect()
 object CloseKeyboard : Effect() {
     override fun toString(): String = javaClass.simpleName
 }

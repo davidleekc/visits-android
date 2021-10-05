@@ -190,7 +190,6 @@ class CurrentTripViewModel(
                 geofences: List<LocalGeofence>
             ) {
                 if (tripData.value == null) {
-                    Log.v("hypertrack-verbose", "update geofences on map")
                     super.updateGeofencesOnMap(mapWrapper, geofences)
                 }
             }

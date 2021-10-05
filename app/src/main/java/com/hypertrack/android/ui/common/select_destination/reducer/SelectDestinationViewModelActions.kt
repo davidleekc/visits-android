@@ -9,7 +9,9 @@ import com.hypertrack.android.utils.NonEmptyList
 // @formatter:off
 
 sealed class Action
+
 data class UserLocationReceived(val latLng: LatLng, val address: String) : Action()
+
 data class MapReadyAction(
     val map: HypertrackMapWrapper,
     val cameraPosition: LatLng,
@@ -19,10 +21,19 @@ data class MapReadyAction(
 data class MapCameraMoved(
     val latLng: LatLng,
     val address: String,
-    //on user location received or on place selected
-    val isProgrammatic: Boolean,
+    val cause: MapMoveCause,
     val isNearZero: Boolean,
 ) : Action()
+    sealed class MapMoveCause
+    object MovedByUser : MapMoveCause() {
+        override fun toString(): String = javaClass.simpleName
+    }
+    object MovedToPlace : MapMoveCause() {
+        override fun toString(): String = javaClass.simpleName
+    }
+    object MovedToUserLocation : MapMoveCause() {
+        override fun toString(): String = javaClass.simpleName
+    }
 
 data class MapClicked(val latLng: LatLng, val address: String) : Action()
 

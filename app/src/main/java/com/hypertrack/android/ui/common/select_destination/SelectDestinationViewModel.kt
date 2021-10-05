@@ -47,7 +47,8 @@ private val enableLogging = false
     private val placesDelegate = GooglePlacesSearchDelegate(googlePlacesInteractor)
     protected lateinit var geofencesMapDelegate: GeofencesMapDelegate
 
-    private var programmaticCameraMove: Boolean = false
+    private var isMapMovingToPlace: Boolean = false
+    private var isMapMovingToUserLocation: Boolean = false
 
     val searchQuery = MutableLiveData<String>()
     val locationInfo = MutableLiveData<DisplayLocationInfo>()
@@ -110,8 +111,13 @@ private val enableLogging = false
                 CloseKeyboard -> {
                     closeKeyboard.postValue(true)
                 }
-                is MoveMap -> {
-                    moveMapCamera(effect.map, effect.latLng)
+                is MoveMapToPlace -> {
+                    isMapMovingToPlace = true
+                    moveMapCamera(effect.map, effect.placeSelected.latLng)
+                }
+                is MoveMapToUserLocation -> {
+                    isMapMovingToUserLocation = true
+                    moveMapCamera(effect.map, effect.userLocation.latLng)
                 }
                 is Proceed -> {
                     handleEffect(effect)
@@ -176,11 +182,16 @@ private val enableLogging = false
                             )
                         )
                     },
-                    isProgrammatic = programmaticCameraMove,
+                    cause = when {
+                        isMapMovingToPlace -> MovedToPlace
+                        isMapMovingToUserLocation -> MovedToUserLocation
+                        else -> MovedByUser
+                    },
                     isNearZero = position.isNearZero()
                 )
             )
-            programmaticCameraMove = false
+            isMapMovingToPlace = false
+            isMapMovingToUserLocation = false
         }
 
         wrapper.setOnMapClickListener {
@@ -266,7 +277,6 @@ private val enableLogging = false
     }
 
     private fun moveMapCamera(map: HypertrackMapWrapper, latLng: LatLng) {
-        programmaticCameraMove = true
         map.moveCamera(latLng, defaultZoom)
     }
 

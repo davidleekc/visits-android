@@ -173,10 +173,18 @@ fun Place.getAddressString(
             ?: addressComponents?.asList()?.firstOrNull { "political" in it.types }?.name
 
     val thoroughfare =
-        addressComponents?.asList()?.firstOrNull { "route" in it.types }?.name
+        addressComponents?.asList()
+            ?.firstOrNull { "route" in it.types }
+            ?.name
 
-    val subThoroughfare =
+
+    var subThoroughfare =
         addressComponents?.asList()?.firstOrNull { "street_number" in it.types }?.name
+    addressComponents?.asList()
+        ?.firstOrNull { "subpremise" in it.types }
+        ?.name.let {
+            subThoroughfare += " $it"
+        }
 
     val parts = listOfNotNull(locality, thoroughfare, subThoroughfare)
 

@@ -1,6 +1,5 @@
 package com.hypertrack.android.ui.common.select_destination.reducer
 
-import android.graphics.Insets.add
 import com.google.android.gms.maps.model.LatLng
 import com.hypertrack.android.ui.common.HypertrackMapWrapper
 import com.hypertrack.android.utils.IllegalActionException
@@ -45,30 +44,32 @@ class SelectDestinationViewModelReducer {
                         @Suppress("RedundantIf")
                         when (state.flow) {
                             is AutocompleteFlow -> state.asReducerResult()
-                            MapFlow -> MapReady(
-                                state.map,
-                                state.userLocation,
-                                LocationSelected(
-                                    action.latLng,
-                                    action.address
-                                ),
-                                MapFlow,
-                                //if user performed map move or clicked a place (which leads to programmatic move)
-                                //we don't need to move map to his location anymore
-                                //unless it was first map movement near zero coordinates on map init
-                                waitingForUserLocationMove = if (!action.isNearZero) {
-                                    false
-                                } else {
-                                    true
+                            MapFlow -> {
+                                when (action.cause) {
+                                    MovedToPlace -> state.asReducerResult()
+                                    MovedToUserLocation, MovedByUser -> {
+                                        MapReady(
+                                            state.map,
+                                            state.userLocation,
+                                            LocationSelected(
+                                                action.latLng,
+                                                action.address
+                                            ),
+                                            MapFlow,
+                                            //if user performed map move or clicked a place (which leads to programmatic move)
+                                            //we don't need to move map to his location anymore
+                                            //unless it was first map movement near zero coordinates on map init
+                                            waitingForUserLocationMove = if (!action.isNearZero) {
+                                                false
+                                            } else {
+                                                true
+                                            }
+                                        ).withEffects(
+                                            DisplayLocationInfo(action.address, null)
+                                        )
+                                    }
                                 }
-                            ).withEffects(
-                                if (!action.isProgrammatic) {
-                                    setOf(DisplayLocationInfo(action.address, null))
-                                } else {
-                                    //if map moved programmatically then state should have display info effect sent
-                                    setOf()
-                                }
-                            )
+                            }
                         }
                     }
                     is MapNotReady -> throw IllegalActionException(action, state)
@@ -90,7 +91,7 @@ class SelectDestinationViewModelReducer {
                                 CloseKeyboard,
                                 ClearSearchQuery,
                                 RemoveSearchFocus,
-                                MoveMap(action.latLng, state.map),
+                                MoveMapToPlace(place, state.map),
                                 DisplayLocationInfo(
                                     address = place.displayAddress,
                                     placeName = place.name
@@ -161,19 +162,12 @@ class SelectDestinationViewModelReducer {
     ): Set<Effect> {
         return if (waitingForUserLocationMove && userLocation != null) {
             setOf(
-                createMapMoveEffect(map, userLocation.latLng),
+                MoveMapToUserLocation(userLocation, map),
                 DisplayLocationInfo(userLocation.address, null)
             )
         } else {
             setOf()
         }
-    }
-
-    private fun createMapMoveEffect(
-        map: HypertrackMapWrapper,
-        userLocation: LatLng,
-    ): MoveMap {
-        return MoveMap(userLocation, map)
     }
 
     companion object {
