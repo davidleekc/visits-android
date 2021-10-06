@@ -53,31 +53,14 @@ class OrdersListViewModel(
     val orders: LiveData<List<LocalOrder>> =
         Transformations.map(tripsInteractor.currentTrip) { trip ->
             if (trip != null) {
-                trip.orders.sortedWith { o1, o2 ->
-                    when {
-                        o1.status == o2.status -> {
-                            compareByScheduledAt(o1, o2)
-                        }
-                        o1.status != OrderStatus.ONGOING -> 1
-                        o2.status != OrderStatus.ONGOING -> -1
-                        else -> {
-                            compareByScheduledAt(o1, o2)
-                        }
-                    }
+                mutableListOf<LocalOrder>().apply {
+                    addAll(trip.orders.filter { it.status == OrderStatus.ONGOING })
+                    addAll(trip.orders.filter { it.status != OrderStatus.ONGOING })
                 }
             } else {
                 listOf()
             }
         }
-
-    private fun compareByScheduledAt(o1: LocalOrder, o2: LocalOrder): Int {
-        return when {
-            o1.scheduledAt == null && o2.scheduledAt != null -> -1
-            o2.scheduledAt == null && o1.scheduledAt != null -> 1
-            o2.scheduledAt == null && o1.scheduledAt == null -> 0
-            else -> o1.scheduledAt!!.compareTo(o2.scheduledAt!!)
-        }
-    }
 
     init {
         onRefresh()
