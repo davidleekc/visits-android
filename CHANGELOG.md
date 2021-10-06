@@ -1,5 +1,8 @@
 # Changelog
 
+## [0.10.7] - 2021-10-6
+- Changed orders sorting on Orders tab
+
 ## [0.10.6] - 2021-10-6
 - Bugfix
 
