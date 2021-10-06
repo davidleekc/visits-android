@@ -1,5 +1,8 @@
 # Changelog
 
+## [0.10.6] - 2021-09-27
+- Bugfix
+
 ## [0.10.5] - 2021-09-27
 - Adding place flow refactoring
 - Creating places adjacent to existing ones is now prohibited
