@@ -10,13 +10,12 @@ import com.hypertrack.android.interactors.AddOrderError
 import com.hypertrack.android.interactors.AddOrderSuccess
 import com.hypertrack.android.interactors.TripsInteractor
 import com.hypertrack.android.ui.base.BaseViewModel
-import com.hypertrack.android.ui.base.SingleLiveEvent
+import com.hypertrack.android.ui.base.BaseViewModelDependencies
 import com.hypertrack.android.ui.common.Tab
 import com.hypertrack.android.ui.common.delegates.GooglePlaceAddressDelegate
 import com.hypertrack.android.ui.common.select_destination.DestinationData
 import com.hypertrack.android.ui.screens.add_order.AddOrderFragmentDirections
 import com.hypertrack.android.utils.MyApplication
-import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.android.utils.TripCreationScope
 import com.hypertrack.logistics.android.github.NavGraphDirections
 import kotlinx.coroutines.launch
@@ -24,16 +23,13 @@ import kotlinx.coroutines.launch
 
 class AddOrderInfoViewModel(
     private val params: Params,
+    baseDependencies: BaseViewModelDependencies,
     private val tripsInteractor: TripsInteractor,
-    private val osUtilsProvider: OsUtilsProvider,
-) : BaseViewModel(osUtilsProvider) {
+) : BaseViewModel(baseDependencies) {
 
     private val addressDelegate = GooglePlaceAddressDelegate(osUtilsProvider)
 
     val destinationData = params.destinationData
-
-    //todo to baseVM
-    val error = SingleLiveEvent<String>()
 
     //todo persist state in create order scope
     val address = MutableLiveData<String?>().apply {
@@ -61,7 +57,7 @@ class AddOrderInfoViewModel(
         if (enableConfirmButton.value!!) {
             if (!params.isNewTrip) {
                 viewModelScope.launch {
-                    loadingStateBase.postValue(true)
+                    loadingState.postValue(true)
                     val res = tripsInteractor.addOrderToTrip(
                         tripId = params.tripId!!,
                         destinationData.latLng,
@@ -74,10 +70,10 @@ class AddOrderInfoViewModel(
                             )
                         }
                         is AddOrderError -> {
-                            error.postValue(osUtilsProvider.getErrorMessage(res.e))
+                            errorHandler.postException(res.e)
                         }
                     }
-                    loadingStateBase.postValue(false)
+                    loadingState.postValue(false)
                 }
             } else {
                 MyApplication.injector.tripCreationScope = TripCreationScope(destinationData)

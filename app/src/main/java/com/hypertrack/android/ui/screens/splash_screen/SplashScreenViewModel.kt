@@ -1,15 +1,13 @@
 package com.hypertrack.android.ui.screens.splash_screen
 
 import android.app.Activity
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.hypertrack.android.interactors.PermissionDestination
 import com.hypertrack.android.interactors.PermissionsInteractor
 import com.hypertrack.android.repository.AccountRepository
 import com.hypertrack.android.repository.DriverRepository
 import com.hypertrack.android.ui.base.BaseViewModel
-import com.hypertrack.android.utils.CrashReportsProvider
-import com.hypertrack.android.utils.OsUtilsProvider
+import com.hypertrack.android.ui.base.BaseViewModelDependencies
 import com.hypertrack.android.utils.format
 import com.hypertrack.logistics.android.github.R
 import com.squareup.moshi.Moshi
@@ -17,15 +15,12 @@ import com.squareup.moshi.Types
 import kotlinx.coroutines.launch
 
 class SplashScreenViewModel(
+    baseDependencies: BaseViewModelDependencies,
     private val driverRepository: DriverRepository,
     private val accountRepository: AccountRepository,
-    private val crashReportsProvider: CrashReportsProvider,
     private val permissionsInteractor: PermissionsInteractor,
-    private val osUtilsProvider: OsUtilsProvider,
     private val moshi: Moshi
-) : BaseViewModel() {
-
-    val loadingState = MutableLiveData<Boolean>()
+) : BaseViewModel(baseDependencies) {
 
     fun handleDeeplink(parameters: Map<String, Any>, activity: Activity) {
 //        Log.v("hypertrack-verbose", parameters.toString())

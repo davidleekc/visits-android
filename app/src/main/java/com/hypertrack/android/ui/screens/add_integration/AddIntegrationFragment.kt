@@ -58,7 +58,7 @@ class AddIntegrationFragment : BaseFragment<MainActivity>(R.layout.fragment_add_
             lIntegrationsPlaceholder.setGoneState(it.isNotEmpty())
         })
 
-        vm.loadingStateBase.observe(viewLifecycleOwner, {
+        vm.loadingState.observe(viewLifecycleOwner, {
             srlIntegrations.isRefreshing = it
             rvIntegrations.setGoneState(it)
             if (it) lIntegrationsPlaceholder.hide()

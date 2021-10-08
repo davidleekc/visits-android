@@ -7,15 +7,15 @@ import com.hypertrack.android.interactors.ConfirmationRequired
 import com.hypertrack.android.interactors.LoginInteractor
 import com.hypertrack.android.interactors.SignUpError
 import com.hypertrack.android.ui.base.BaseViewModel
-import com.hypertrack.android.utils.OsUtilsProvider
+import com.hypertrack.android.ui.base.BaseViewModelDependencies
 import com.hypertrack.android.ui.common.util.isEmail
 import com.hypertrack.logistics.android.github.R
 import kotlinx.coroutines.launch
 
 class SignUpViewModel(
+    baseDependencies: BaseViewModelDependencies,
     private val loginInteractor: LoginInteractor,
-    private val osUtilsProvider: OsUtilsProvider
-) : BaseViewModel() {
+) : BaseViewModel(baseDependencies) {
 
     val errorTextState = MutableLiveData<String?>()
     val page = MutableLiveData<Int>(0)

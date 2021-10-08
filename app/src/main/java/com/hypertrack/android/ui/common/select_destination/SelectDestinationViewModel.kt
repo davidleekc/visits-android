@@ -10,6 +10,7 @@ import com.google.android.gms.maps.model.*
 import com.hypertrack.android.interactors.GooglePlacesInteractor
 import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.ui.base.BaseViewModel
+import com.hypertrack.android.ui.base.BaseViewModelDependencies
 import com.hypertrack.android.ui.base.SingleLiveEvent
 import com.hypertrack.android.ui.common.*
 import com.hypertrack.android.ui.common.delegates.GeofenceClusterItem
@@ -20,23 +21,20 @@ import com.hypertrack.android.ui.common.util.isNearZero
 import com.hypertrack.android.ui.common.util.nullIfEmpty
 import com.hypertrack.android.ui.screens.add_place.AddPlaceFragmentDirections
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
-import com.hypertrack.android.utils.CrashReportsProvider
 import com.hypertrack.android.utils.MyApplication
-import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.android.utils.asNonEmpty
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 open class SelectDestinationViewModel(
+    baseDependencies: BaseViewModelDependencies,
     private val placesInteractor: PlacesInteractor,
     private val googlePlacesInteractor: GooglePlacesInteractor,
-    private val osUtilsProvider: OsUtilsProvider,
     private val deviceLocationProvider: DeviceLocationProvider,
-    private val crashReportsProvider: CrashReportsProvider
-) : BaseViewModel(osUtilsProvider) {
+) : BaseViewModel(baseDependencies) {
 
-//    private val enableLogging = MyApplication.DEBUG_MODE
-private val enableLogging = false
+    //    private val enableLogging = MyApplication.DEBUG_MODE
+    private val enableLogging = false
 
     protected open val defaultZoom = 13f
 
@@ -81,7 +79,7 @@ private val enableLogging = false
     private fun applyState(state: State) {
         when (state) {
             is MapNotReady -> {
-                loadingStateBase.postValue(true)
+                loadingState.postValue(true)
                 showConfirmButton.postValue(false)
             }
             is MapReady -> {
@@ -126,7 +124,7 @@ private val enableLogging = false
                     removeSearchFocusEvent.postValue(true)
                 }
                 HideProgressbar -> {
-                    loadingStateBase.postValue(false)
+                    loadingState.postValue(false)
                 }
                 ClearSearchQuery -> {
                     searchQuery.postValue("")

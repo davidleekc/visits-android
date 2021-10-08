@@ -5,6 +5,7 @@ import androidx.lifecycle.*
 import com.hypertrack.android.interactors.HistoryInteractor
 import com.hypertrack.android.models.*
 import com.hypertrack.android.ui.base.BaseViewModel
+import com.hypertrack.android.ui.base.BaseViewModelDependencies
 import com.hypertrack.android.ui.base.ErrorHandler
 import com.hypertrack.android.utils.Constants
 import com.hypertrack.android.utils.OsUtilsProvider
@@ -15,19 +16,22 @@ import com.hypertrack.android.utils.formatters.DistanceFormatter
 import com.hypertrack.logistics.android.github.R
 
 class HistoryViewModel(
+    baseDependencies: BaseViewModelDependencies,
     private val historyInteractor: HistoryInteractor,
     private val datetimeFormatter: DatetimeFormatter,
     private val distanceFormatter: DistanceFormatter,
-    private val osUtilsProvider: OsUtilsProvider
-) : BaseViewModel(osUtilsProvider) {
+) : BaseViewModel(baseDependencies) {
     //todo remove legacy
     private val timeDistanceFormatter = TimeDistanceFormatter(
         datetimeFormatter,
         distanceFormatter
     )
 
-    override val errorHandler =
-        ErrorHandler(osUtilsProvider, historyInteractor.errorFlow.asLiveData())
+    override val errorHandler = ErrorHandler(
+        osUtilsProvider,
+        crashReportsProvider,
+        historyInteractor.errorFlow.asLiveData()
+    )
 
     val history = historyInteractor.todayHistory
 

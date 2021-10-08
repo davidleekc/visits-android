@@ -102,7 +102,7 @@ class OrderDetailsFragment : ProgressDialogFragment(R.layout.fragment_order_deta
             etVisitNote.isEnabled = it
         })
 
-        vm.loadingStateBase.observe(viewLifecycleOwner, {
+        vm.loadingState.observe(viewLifecycleOwner, {
             if (it) showProgress() else dismissProgress()
         })
 

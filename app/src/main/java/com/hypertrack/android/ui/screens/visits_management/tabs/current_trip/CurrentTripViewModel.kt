@@ -1,7 +1,6 @@
 package com.hypertrack.android.ui.screens.visits_management.tabs.current_trip
 
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.*
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.*
@@ -23,29 +22,25 @@ import com.hypertrack.android.ui.common.util.*
 import com.hypertrack.android.ui.screens.visits_management.VisitsManagementFragmentDirections
 import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
 import com.hypertrack.android.ui.screens.visits_management.tabs.orders.OrdersAdapter
-import com.hypertrack.android.utils.CrashReportsProvider
 import com.hypertrack.android.utils.HyperTrackService
-import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.android.utils.formatters.DatetimeFormatter
 import com.hypertrack.android.utils.formatters.TimeFormatter
 import com.hypertrack.logistics.android.github.R
 import kotlinx.android.synthetic.main.inflate_current_trip.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.time.format.DateTimeFormatter
 import java.util.*
 
 class CurrentTripViewModel(
+    baseDependencies: BaseViewModelDependencies,
     private val tripsInteractor: TripsInteractor,
     private val placesInteractor: PlacesInteractor,
     private val tripsUpdateTimerInteractor: TripsUpdateTimerInteractor,
     private val hyperTrackService: HyperTrackService,
     private val locationProvider: DeviceLocationProvider,
-    private val osUtilsProvider: OsUtilsProvider,
-    private val crashReportsProvider: CrashReportsProvider,
     private val datetimeFormatter: DatetimeFormatter,
     private val timeFormatter: TimeFormatter,
-) : BaseViewModel(osUtilsProvider) {
+) : BaseViewModel(baseDependencies) {
 
     private val addressDelegate = OrderAddressDelegate(osUtilsProvider, datetimeFormatter)
 
@@ -63,6 +58,7 @@ class CurrentTripViewModel(
 
     override val errorHandler = ErrorHandler(
         osUtilsProvider,
+        crashReportsProvider,
         exceptionSource = MediatorLiveData<Consumable<Exception>>().apply {
             addSource(tripsInteractor.errorFlow.asLiveData()) {
                 postValue(it)
@@ -144,7 +140,7 @@ class CurrentTripViewModel(
     }
 
     fun onViewCreated() {
-        if (loadingStateBase.value != true) {
+        if (loadingState.value != true) {
             viewModelScope.launch {
                 tripsInteractor.refreshTrips()
             }
@@ -213,7 +209,7 @@ class CurrentTripViewModel(
     }
 
     fun onDestinationResult(destinationData: DestinationData) {
-        loadingStateBase.updateValue(true)
+        loadingState.updateValue(true)
         GlobalScope.launch {
             when (val res =
                 tripsInteractor.createTrip(destinationData.latLng, destinationData.address)) {
@@ -223,7 +219,7 @@ class CurrentTripViewModel(
                     errorHandler.postException(res.exception)
                 }
             }
-            loadingStateBase.postValue(false)
+            loadingState.postValue(false)
         }
     }
 
@@ -245,10 +241,10 @@ class CurrentTripViewModel(
     }
 
     fun onCompleteClick() {
-        loadingStateBase.postValue(true)
+        loadingState.postValue(true)
         viewModelScope.launch {
             tripsInteractor.completeTrip(tripData.value!!.trip.id)
-            loadingStateBase.postValue(false)
+            loadingState.postValue(false)
         }
     }
 

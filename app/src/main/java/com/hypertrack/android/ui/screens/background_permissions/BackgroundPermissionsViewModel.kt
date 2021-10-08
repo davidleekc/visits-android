@@ -7,10 +7,12 @@ import androidx.navigation.NavDirections
 import com.hypertrack.android.interactors.PermissionDestination
 import com.hypertrack.android.interactors.PermissionsInteractor
 import com.hypertrack.android.ui.base.BaseViewModel
+import com.hypertrack.android.ui.base.BaseViewModelDependencies
 
 class BackgroundPermissionsViewModel(
+    baseDependencies: BaseViewModelDependencies,
     private val permissionsInteractor: PermissionsInteractor
-) : BaseViewModel() {
+) : BaseViewModel(baseDependencies) {
 
     fun onAllowClick(activity: Activity) {
         permissionsInteractor.requestBackgroundLocationPermission(activity)

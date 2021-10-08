@@ -1,19 +1,16 @@
 package com.hypertrack.android.ui.screens.visits_management.tabs.places
 
 import androidx.lifecycle.asLiveData
-import com.hypertrack.android.api.GeofenceVisit
 import com.hypertrack.android.interactors.HistoryInteractor
 import com.hypertrack.android.interactors.PlacesVisitsInteractor
 import com.hypertrack.android.models.History
 import com.hypertrack.android.models.local.LocalGeofenceVisit
 import com.hypertrack.android.ui.base.BaseViewModel
+import com.hypertrack.android.ui.base.BaseViewModelDependencies
 import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.base.SingleLiveEvent
-import com.hypertrack.android.ui.common.util.format
 import com.hypertrack.android.ui.common.util.requireValue
 import com.hypertrack.android.ui.screens.visits_management.VisitsManagementFragmentDirections
-import com.hypertrack.android.ui.screens.visits_management.tabs.history.TimeDistanceFormatter
-import com.hypertrack.android.utils.OsUtilsProvider
 
 import com.hypertrack.android.utils.applyAddAll
 import com.hypertrack.android.utils.formatters.DatetimeFormatter
@@ -23,16 +20,15 @@ import com.hypertrack.android.utils.formatters.prettyFormat
 import kotlinx.coroutines.*
 import java.time.LocalDate
 import java.time.Month
-import java.time.ZonedDateTime
 
 class PlacesVisitsViewModel(
+    baseDependencies: BaseViewModelDependencies,
     private val placesVisitsInteractor: PlacesVisitsInteractor,
     private val historyInteractor: HistoryInteractor,
-    private val osUtilsProvider: OsUtilsProvider,
     private val datetimeFormatter: DatetimeFormatter,
     private val distanceFormatter: DistanceFormatter,
     private val timeFormatter: TimeFormatter,
-) : BaseViewModel(osUtilsProvider) {
+) : BaseViewModel(baseDependencies) {
 
     val adapter = createVisitsAdapter()
     private var adapterData = VisitsData(listOf(), mapOf())
@@ -59,8 +55,8 @@ class PlacesVisitsViewModel(
     }
 
     fun init() {
-        loadingStateBase.value = false
-        loadingStateBase.postValue(false)
+        loadingState.value = false
+        loadingState.postValue(false)
         updateJob?.cancel()
         nextPageToken = null
         adapter.updateItems(listOf())
@@ -78,13 +74,13 @@ class PlacesVisitsViewModel(
     }
 
     fun onLoadMore() {
-        if (loadingStateBase.value == null || loadingStateBase.value == false) {
+        if (loadingState.value == null || loadingState.value == false) {
             //todo change to viewModelScope (viewModelScope cause bug when launch is not called after geofence creation)
             updateJob = GlobalScope.launch {
                 try {
                     if (nextPageToken != null || visitsPage.value == null) {
 //                        Log.v("hypertrack-verbose", "** loading ${nextPageToken.hashCode()}")
-                        loadingStateBase.postValue(true)
+                        loadingState.postValue(true)
                         val res = placesVisitsInteractor.loadPage(nextPageToken)
                         nextPageToken = res.paginationToken
 //                        Log.v("hypertrack-verbose", "nextPageToken = ${nextPageToken.hashCode()}")
@@ -96,12 +92,12 @@ class PlacesVisitsViewModel(
 
                         visitsPage.postValue(Consumable(res.items))
                         triggerHistoryUpdates()
-                        loadingStateBase.postValue(false)
+                        loadingState.postValue(false)
                     }
                 } catch (e: Exception) {
                     if (e !is CancellationException) {
                         errorHandler.postException(e)
-                        loadingStateBase.postValue(false)
+                        loadingState.postValue(false)
                     }
                 }
             }

@@ -4,18 +4,18 @@ import androidx.lifecycle.*
 import com.hypertrack.android.interactors.HistoryInteractor
 import com.hypertrack.android.models.HistoryError
 import com.hypertrack.android.ui.base.BaseViewModel
-import com.hypertrack.android.utils.OsUtilsProvider
+import com.hypertrack.android.ui.base.BaseViewModelDependencies
 import com.hypertrack.android.utils.formatters.DistanceFormatter
 import com.hypertrack.android.utils.formatters.TimeFormatter
 
 import com.hypertrack.logistics.android.github.R
 
 class SummaryViewModel(
+    baseDependencies: BaseViewModelDependencies,
     private val historyInteractor: HistoryInteractor,
-    private val osUtilsProvider: OsUtilsProvider,
     private val distanceFormatter: DistanceFormatter,
     private val timeFormatter: TimeFormatter,
-) : BaseViewModel() {
+) : BaseViewModel(baseDependencies) {
 
     val summary: LiveData<List<SummaryItem>> = Transformations.map(historyInteractor.todayHistory) {
         it.summary.let { summary ->

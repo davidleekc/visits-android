@@ -173,30 +173,6 @@ public class OsUtilsProvider(
         return base64thumbnail.decodeBase64Bitmap()
     }
 
-    fun getErrorMessage(e: Exception): String {
-        //todo move to error handler
-        //todo NonReportableException
-        crashReportsProvider.logException(e)
-        return when (e) {
-            is HttpException -> {
-                val errorBody = e.response()?.errorBody()?.string()
-                if (MyApplication.DEBUG_MODE) {
-                    Log.v("hypertrack-verbose", errorBody.toString())
-                }
-                val path = e.response()?.raw()?.request?.let {
-                    "${it.method} ${e.response()!!.code()} ${it.url.encodedPath}"
-                }
-                return "${path.toString()}\n\n${errorBody.toString()}"
-            }
-            else -> {
-                if (MyApplication.DEBUG_MODE) {
-                    e.printStackTrace()
-                }
-                e.format()
-            }
-        }
-    }
-
     fun shareText(text: String, title: String? = null) {
         val sharingTitle: String = context.getString(R.string.share_trip_via)
         val sendIntent = Intent()

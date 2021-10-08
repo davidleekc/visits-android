@@ -27,9 +27,9 @@ class PlacesFragment : ProgressDialogFragment(R.layout.fragment_places) {
         initPlaces()
         initVisits()
 
-        vm.loadingStateBase.observe(viewLifecycleOwner, {
-            srlPlaces.isRefreshing = (vm.loadingStateBase.value == true
-                    || visitsVm.loadingStateBase.value == true)
+        vm.loadingState.observe(viewLifecycleOwner, {
+            srlPlaces.isRefreshing = (vm.loadingState.value == true
+                    || visitsVm.loadingState.value == true)
                     && when (state) {
                 State.PLACES -> adapter.itemCount == 0
                 State.VISITS -> visitsAdapter.itemCount == 0
@@ -37,9 +37,9 @@ class PlacesFragment : ProgressDialogFragment(R.layout.fragment_places) {
             paginationProgressbar.setGoneState(!it || adapter.itemCount == 0)
         })
 
-        visitsVm.loadingStateBase.observe(viewLifecycleOwner, {
-            srlPlaces.isRefreshing = (vm.loadingStateBase.value == true
-                    || visitsVm.loadingStateBase.value == true)
+        visitsVm.loadingState.observe(viewLifecycleOwner, {
+            srlPlaces.isRefreshing = (vm.loadingState.value == true
+                    || visitsVm.loadingState.value == true)
                     && when (state) {
                 State.PLACES -> adapter.itemCount == 0
                 State.VISITS -> visitsAdapter.itemCount == 0

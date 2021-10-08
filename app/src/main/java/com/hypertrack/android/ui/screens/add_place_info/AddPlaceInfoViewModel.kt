@@ -12,7 +12,6 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.Circle
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
-import com.google.android.gms.maps.model.MarkerOptions
 import com.google.maps.android.SphericalUtil
 import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.models.Integration
@@ -21,6 +20,7 @@ import com.hypertrack.android.repository.CreateGeofenceError
 import com.hypertrack.android.repository.CreateGeofenceSuccess
 import com.hypertrack.android.repository.IntegrationsRepository
 import com.hypertrack.android.ui.base.BaseViewModel
+import com.hypertrack.android.ui.base.BaseViewModelDependencies
 import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.common.HypertrackMapWrapper
 import com.hypertrack.android.ui.common.MapParams
@@ -40,19 +40,17 @@ class AddPlaceInfoViewModel(
     private val latLng: LatLng,
     private val initialAddress: String?,
     private val _name: String?,
+    baseDependencies: BaseViewModelDependencies,
     private val placesInteractor: PlacesInteractor,
     private val integrationsRepository: IntegrationsRepository,
     private val distanceFormatter: MetersDistanceFormatter,
-    private val osUtilsProvider: OsUtilsProvider,
-    private val crashReportsProvider: CrashReportsProvider,
     private val moshi: Moshi,
-) : BaseViewModel(osUtilsProvider) {
+) : BaseViewModel(baseDependencies) {
 
     private val addressDelegate = GooglePlaceAddressDelegate(osUtilsProvider)
     private lateinit var geofencesMapDelegate: GeofencesMapDelegate
 
     val hasIntegrations = MutableLiveData<Boolean?>(false)
-    val loadingState = MutableLiveData<Boolean>(true)
     val adjacentGeofenceDialog = MutableLiveData<Consumable<GeofenceCreationParams>>()
 
     private var map: HypertrackMapWrapper? = null

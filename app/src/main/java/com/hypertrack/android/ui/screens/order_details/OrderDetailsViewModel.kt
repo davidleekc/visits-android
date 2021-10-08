@@ -13,37 +13,33 @@ import com.hypertrack.android.interactors.*
 import com.hypertrack.android.models.local.LocalOrder
 import com.hypertrack.android.models.local.OrderStatus
 import com.hypertrack.android.repository.AccountRepository
-import com.hypertrack.android.ui.base.BaseViewModel
-import com.hypertrack.android.ui.base.Consumable
-import com.hypertrack.android.ui.base.ErrorHandler
-import com.hypertrack.android.ui.base.ZipNotNullableLiveData
+import com.hypertrack.android.ui.base.*
 import com.hypertrack.android.ui.common.KeyValueItem
 import com.hypertrack.android.ui.common.delegates.OrderAddressDelegate
 import com.hypertrack.android.ui.common.util.format
 import com.hypertrack.android.ui.common.util.requireValue
-import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.android.utils.formatters.DatetimeFormatter
 import com.hypertrack.logistics.android.github.R
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.util.*
 import kotlin.Exception
 
 class OrderDetailsViewModel(
     private val orderId: String,
+    baseDependencies: BaseViewModelDependencies,
     private val tripsInteractor: TripsInteractor,
     private val photoUploadInteractor: PhotoUploadQueueInteractor,
-    private val osUtilsProvider: OsUtilsProvider,
     private val accountRepository: AccountRepository,
     private val datetimeFormatter: DatetimeFormatter,
-    private val apiClient: ApiClient,
-    private val globalScope: CoroutineScope
-) : BaseViewModel(osUtilsProvider) {
-
+) : BaseViewModel(baseDependencies) {
     private val addressDelegate = OrderAddressDelegate(osUtilsProvider, datetimeFormatter)
 
     override val errorHandler =
-        ErrorHandler(osUtilsProvider, tripsInteractor.errorFlow.asLiveData())
+        ErrorHandler(
+            osUtilsProvider,
+            baseDependencies.crashReportsProvider,
+            tripsInteractor.errorFlow.asLiveData()
+        )
     private val map = MutableLiveData<GoogleMap>()
 
     private val order = tripsInteractor.getOrderLiveData(orderId)
@@ -178,12 +174,12 @@ class OrderDetailsViewModel(
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == AppCompatActivity.RESULT_OK) {
             viewModelScope.launch {
                 currentPhotoPath?.let {
-                    loadingStateBase.postValue(true)
+                    loadingState.postValue(true)
                     tripsInteractor.addPhotoToOrder(
                         orderId,
                         currentPhotoPath!!
                     )
-                    loadingStateBase.postValue(false)
+                    loadingState.postValue(false)
                 }
             }
         }
@@ -208,7 +204,7 @@ class OrderDetailsViewModel(
 
     private fun onOrderCompleteAction(cancel: Boolean, note: String?) {
         viewModelScope.launch {
-            loadingStateBase.postValue(true)
+            loadingState.postValue(true)
             note?.let {
                 tripsInteractor.updateOrderNote(orderId, it)
             }
@@ -218,7 +214,7 @@ class OrderDetailsViewModel(
                 tripsInteractor.cancelOrder(order.value!!.id)
             }
             handleOrderCompletionResult(res)
-            loadingStateBase.postValue(false)
+            loadingState.postValue(false)
         }
     }
 

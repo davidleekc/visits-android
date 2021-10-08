@@ -1,7 +1,6 @@
 package com.hypertrack.android.ui.screens.visits_management.tabs.current_trip
 
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -9,18 +8,15 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.hypertrack.android.models.local.LocalTrip
 import com.hypertrack.android.ui.base.ProgressDialogFragment
 import com.hypertrack.android.ui.common.select_destination.DestinationData
 import com.hypertrack.android.ui.common.util.*
 import com.hypertrack.android.utils.MyApplication
-import com.hypertrack.android.utils.stringFromResource
 import com.hypertrack.logistics.android.github.BuildConfig
 import com.hypertrack.logistics.android.github.R
 import kotlinx.android.synthetic.main.fragment_current_trip.*
 import kotlinx.android.synthetic.main.inflate_current_trip.*
 import kotlinx.android.synthetic.main.progress_bar.*
-import java.time.format.DateTimeFormatter
 
 class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_trip) {
 
@@ -113,7 +109,7 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
             }
         })
 
-        vm.loadingStateBase.observe(viewLifecycleOwner, {
+        vm.loadingState.observe(viewLifecycleOwner, {
             whereAreYouGoing.setGoneState(it)
             progress.setGoneState(!it)
             if (it) {

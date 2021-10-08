@@ -4,27 +4,19 @@ import android.app.Activity
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.hypertrack.android.interactors.*
-import com.hypertrack.android.ui.base.BaseViewModel
-import com.hypertrack.android.ui.base.Consumable
-import com.hypertrack.android.ui.base.SingleLiveEvent
-import com.hypertrack.android.ui.base.toConsumable
-import com.hypertrack.android.utils.OsUtilsProvider
+import com.hypertrack.android.ui.base.*
 import com.hypertrack.logistics.android.github.R
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
-import java.lang.Exception
 
 class ConfirmEmailViewModel(
+    baseDependencies: BaseViewModelDependencies,
     private val loginInteractor: LoginInteractor,
     private val permissionsInteractor: PermissionsInteractor,
-    private val osUtilsProvider: OsUtilsProvider,
-) : BaseViewModel() {
+) : BaseViewModel(baseDependencies) {
 
     private lateinit var email: String
 
-    val loadingState = MutableLiveData<Boolean>()
     val proceedButtonEnabled = MutableLiveData<Boolean>(false)
-    override val errorText = MutableLiveData<Consumable<String>>()
     val clipboardCode = SingleLiveEvent<String>()
 
     fun init(email: String) {
@@ -68,14 +60,10 @@ class ConfirmEmailViewModel(
                         )
                     }
                     is OtpWrongCode -> {
-                        errorText.postValue(
-                            osUtilsProvider.stringFromResource(R.string.wrong_code).toConsumable()
-                        )
+                        errorHandler.postText(R.string.wrong_code)
                     }
                     is OtpError -> {
-                        errorText.postValue(
-                            osUtilsProvider.getErrorMessage(res.exception).toConsumable()
-                        )
+                        errorHandler.postException(res.exception)
                     }
                 }
             }
@@ -99,9 +87,7 @@ class ConfirmEmailViewModel(
                     )
                 }
                 is ResendError -> {
-                    errorText.postValue(
-                        osUtilsProvider.getErrorMessage(res.exception).toConsumable()
-                    )
+                    errorHandler.postException(res.exception)
                 }
             }
 

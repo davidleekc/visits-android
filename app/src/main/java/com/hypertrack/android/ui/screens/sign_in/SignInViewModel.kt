@@ -5,15 +5,16 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.hypertrack.android.interactors.*
 import com.hypertrack.android.ui.base.BaseViewModel
+import com.hypertrack.android.ui.base.BaseViewModelDependencies
 import com.hypertrack.android.utils.*
 import com.hypertrack.logistics.android.github.R
 import kotlinx.coroutines.launch
 
 class SignInViewModel(
+    baseDependencies: BaseViewModelDependencies,
     private val loginInteractor: LoginInteractor,
     private val permissionsInteractor: PermissionsInteractor,
-    private val osUtilsProvider: OsUtilsProvider
-) : BaseViewModel() {
+) : BaseViewModel(baseDependencies) {
 
     private var login = ""
     private var password = ""

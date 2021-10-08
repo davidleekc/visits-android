@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.hypertrack.android.api.ApiClient
 import com.hypertrack.android.repository.AccountRepository
+import com.hypertrack.android.ui.base.BaseViewModelDependencies
 import com.hypertrack.android.ui.screens.add_order.AddOrderViewModel
 import com.hypertrack.android.ui.screens.add_order_info.AddOrderInfoViewModel
 import com.hypertrack.android.ui.screens.add_place_info.AddPlaceInfoViewModel
@@ -34,52 +35,51 @@ class ParamViewModelFactory<T>(
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        val baseDependencies = BaseViewModelDependencies(
+            osUtilsProvider,
+            crashReportsProvider
+        )
         return when (modelClass) {
             PlaceDetailsViewModel::class.java -> PlaceDetailsViewModel(
                 geofenceId = param as String,
                 userScopeProvider.get().placesInteractor,
-                osUtilsProvider,
-                crashReportsProvider,
                 appScope.datetimeFormatter,
                 appScope.distanceFormatter,
                 appScope.timeFormatter,
-                moshi
+                moshi,
+                baseDependencies
             ) as T
             OrderDetailsViewModel::class.java -> OrderDetailsViewModel(
                 orderId = param as String,
+                baseDependencies,
                 userScopeProvider.get().tripsInteractor,
                 userScopeProvider.get().photoUploadQueueInteractor,
-                osUtilsProvider,
                 accountRepository,
                 appScope.datetimeFormatter,
-                userScopeProvider.get().apiClient,
-                GlobalScope
             ) as T
             AddPlaceInfoViewModel::class.java -> (param as DestinationData).let { destinationData ->
                 AddPlaceInfoViewModel(
                     destinationData.latLng,
                     initialAddress = destinationData.address,
                     _name = destinationData.name,
+                    baseDependencies,
                     userScopeProvider.get().placesInteractor,
                     userScopeProvider.get().integrationsRepository,
                     MetersDistanceFormatter(osUtilsProvider),
-                    osUtilsProvider,
-                    crashReportsProvider,
                     moshi
                 ) as T
             }
             AddOrderInfoViewModel::class.java -> AddOrderInfoViewModel(
                 param as AddOrderInfoViewModel.Params,
+                baseDependencies,
                 userScopeProvider.get().tripsInteractor,
-                osUtilsProvider
             ) as T
             AddOrderViewModel::class.java -> AddOrderViewModel(
                 param as String,
+                baseDependencies,
                 userScopeProvider.get().placesInteractor,
                 userScopeProvider.get().googlePlacesInteractor,
                 deviceLocationProvider,
-                osUtilsProvider,
-                crashReportsProvider
             ) as T
             else -> throw IllegalArgumentException("Can't instantiate class $modelClass")
         }

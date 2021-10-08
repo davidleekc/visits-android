@@ -9,6 +9,7 @@ import com.hypertrack.android.interactors.PermissionsInteractor
 import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.interactors.TripsInteractor
 import com.hypertrack.android.repository.*
+import com.hypertrack.android.ui.base.BaseViewModelDependencies
 import com.hypertrack.android.ui.screens.add_integration.AddIntegrationViewModel
 import com.hypertrack.android.ui.screens.add_place.AddPlaceViewModel
 import com.hypertrack.android.ui.screens.visits_management.VisitsManagementViewModel
@@ -51,94 +52,94 @@ class UserScopeViewModelFactory(
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        val baseDependencies = BaseViewModelDependencies(
+            osUtilsProvider,
+            crashReportsProvider
+        )
         return when (modelClass) {
             SendFeedbackViewModel::class.java -> SendFeedbackViewModel(
+                baseDependencies,
                 feedbackInteractor,
-                osUtilsProvider
             ) as T
             OrdersListViewModel::class.java -> OrdersListViewModel(
+                baseDependencies,
                 tripsInteractor,
                 userScopeProvider.get().tripsUpdateTimerInteractor,
                 appScope.datetimeFormatter,
-                osUtilsProvider
             ) as T
             AddIntegrationViewModel::class.java -> AddIntegrationViewModel(
+                baseDependencies,
                 integrationsRepository
             ) as T
             AddPlaceViewModel::class.java -> AddPlaceViewModel(
+                baseDependencies,
                 userScopeProvider.get().placesInteractor,
                 userScopeProvider.get().googlePlacesInteractor,
-                osUtilsProvider,
                 deviceLocationProvider,
-                crashReportsProvider
             ) as T
             CurrentTripViewModel::class.java -> CurrentTripViewModel(
+                baseDependencies,
                 tripsInteractor,
                 placesInteractor,
                 userScopeProvider.get().tripsUpdateTimerInteractor,
                 hyperTrackService,
                 deviceLocationProvider,
-                osUtilsProvider,
-                crashReportsProvider,
                 appScope.datetimeFormatter,
                 appScope.timeFormatter
             ) as T
             SelectDestinationViewModel::class.java -> SelectDestinationViewModel(
+                baseDependencies,
                 userScopeProvider.get().placesInteractor,
                 userScopeProvider.get().googlePlacesInteractor,
-                osUtilsProvider,
                 deviceLocationProvider,
-                crashReportsProvider
             ) as T
             PlacesViewModel::class.java -> PlacesViewModel(
+                baseDependencies,
                 userScopeProvider.get().placesInteractor,
-                osUtilsProvider,
                 deviceLocationProvider,
                 appScope.distanceFormatter,
                 appScope.datetimeFormatter
             ) as T
             PermissionRequestViewModel::class.java -> PermissionRequestViewModel(
+                baseDependencies,
                 permissionsInteractor,
                 hyperTrackService
             ) as T
             SummaryViewModel::class.java -> SummaryViewModel(
+                baseDependencies,
                 userScopeProvider.get().historyInteractor,
-                osUtilsProvider,
                 appScope.distanceFormatter,
                 appScope.timeFormatter
             ) as T
             HistoryViewModel::class.java -> HistoryViewModel(
+                baseDependencies,
                 userScopeProvider.get().historyInteractor,
                 appScope.datetimeFormatter,
                 appScope.distanceFormatter,
-                osUtilsProvider
             ) as T
             VisitsManagementViewModel::class.java -> VisitsManagementViewModel(
+                baseDependencies,
                 userScopeProvider.get().historyInteractor,
                 accountRepository,
                 hyperTrackService,
-                crashReportsProvider,
-                osUtilsProvider,
                 accessTokenRepository
             ) as T
             ProfileViewModel::class.java -> ProfileViewModel(
+                baseDependencies,
                 driverRepository,
                 hyperTrackService,
                 accountRepository,
-                osUtilsProvider,
-                crashReportsProvider,
             ) as T
             SelectTripDestinationViewModel::class.java -> SelectTripDestinationViewModel(
+                baseDependencies,
                 userScopeProvider.get().placesInteractor,
                 userScopeProvider.get().googlePlacesInteractor,
                 deviceLocationProvider,
-                osUtilsProvider,
-                crashReportsProvider
             ) as T
             PlacesVisitsViewModel::class.java -> PlacesVisitsViewModel(
+                baseDependencies,
                 userScopeProvider.get().placesVisitsInteractor,
                 userScopeProvider.get().historyInteractor,
-                osUtilsProvider,
                 appScope.datetimeFormatter,
                 appScope.distanceFormatter,
                 appScope.timeFormatter,

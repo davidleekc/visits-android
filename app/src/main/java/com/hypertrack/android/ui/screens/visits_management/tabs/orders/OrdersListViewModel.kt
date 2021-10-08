@@ -3,34 +3,29 @@ package com.hypertrack.android.ui.screens.visits_management.tabs.orders
 import androidx.lifecycle.*
 import com.hypertrack.android.interactors.TripsInteractor
 import com.hypertrack.android.interactors.TripsUpdateTimerInteractor
-import com.hypertrack.android.models.Order
 import com.hypertrack.android.models.local.LocalOrder
 import com.hypertrack.android.models.local.LocalTrip
 import com.hypertrack.android.models.local.OrderStatus
 import com.hypertrack.android.ui.base.BaseViewModel
+import com.hypertrack.android.ui.base.BaseViewModelDependencies
 import com.hypertrack.android.ui.common.KeyValueItem
 import com.hypertrack.android.ui.common.delegates.OrderAddressDelegate
 import com.hypertrack.android.ui.screens.visits_management.VisitsManagementFragmentDirections
-import com.hypertrack.android.utils.Injector
-import com.hypertrack.android.utils.MyApplication
-import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.android.utils.formatters.DatetimeFormatter
 import com.hypertrack.logistics.android.github.BuildConfig
 import kotlinx.coroutines.launch
 
 @Suppress("IfThenToElvis")
 class OrdersListViewModel(
+    baseDependencies: BaseViewModelDependencies,
     private val tripsInteractor: TripsInteractor,
     private val tripsUpdateTimerInteractor: TripsUpdateTimerInteractor,
     private val datetimeFormatter: DatetimeFormatter,
-    private val osUtilsProvider: OsUtilsProvider
-) : BaseViewModel() {
+) : BaseViewModel(baseDependencies) {
 
     private val addressDelegate = OrderAddressDelegate(osUtilsProvider, datetimeFormatter)
 
     val error = tripsInteractor.errorFlow.asLiveData()
-
-    val loadingState = MutableLiveData<Boolean>()
 
     val trip: LiveData<LocalTrip?> = tripsInteractor.currentTrip
 

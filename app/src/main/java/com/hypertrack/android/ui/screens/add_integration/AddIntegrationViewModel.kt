@@ -1,22 +1,21 @@
 package com.hypertrack.android.ui.screens.add_integration
 
-import android.widget.Toast
 import androidx.lifecycle.*
 import com.hypertrack.android.models.Integration
 import com.hypertrack.android.repository.IntegrationsRepository
 import com.hypertrack.android.ui.base.BaseViewModel
+import com.hypertrack.android.ui.base.BaseViewModelDependencies
 import com.hypertrack.android.ui.base.Consumable
-import com.hypertrack.android.utils.MyApplication
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.debounce
-import kotlin.coroutines.CoroutineContext
 
 @Suppress("EXPERIMENTAL_API_USAGE")
 class AddIntegrationViewModel(
+    baseDependencies: BaseViewModelDependencies,
     private val integrationsRepository: IntegrationsRepository
-) : BaseViewModel() {
+) : BaseViewModel(baseDependencies) {
 
     private val searchFlow = MutableSharedFlow<String>()
     private var searchJob: Job? = null
@@ -28,7 +27,7 @@ class AddIntegrationViewModel(
     val integrationSelectedEvent = MutableLiveData<Consumable<Integration>>()
 
     init {
-        loadingStateBase.postValue(true)
+        loadingState.postValue(true)
 
         viewModelScope.launch {
             search("")
@@ -49,10 +48,10 @@ class AddIntegrationViewModel(
     }
 
     private suspend fun search(query: String) {
-        loadingStateBase.postValue(true)
+        loadingState.postValue(true)
         val integrationsRes = integrationsRepository.getIntegrations(query)
         integrations.postValue(integrationsRes)
-        loadingStateBase.postValue(false)
+        loadingState.postValue(false)
     }
 
     fun onIntegrationClicked(integration: Integration) {

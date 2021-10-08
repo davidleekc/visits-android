@@ -39,10 +39,8 @@ class ConfirmFragment : ProgressDialogFragment(R.layout.fragment_confirm) {
             verified.isEnabled = it
         })
 
-        vm.errorText.observe(viewLifecycleOwner, {
-            it.consume {
-                SnackbarUtil.showErrorSnackbar(view, it)
-            }
+        vm.errorHandler.errorText.observe(viewLifecycleOwner, {
+            SnackbarUtil.showErrorSnackbar(view, it)
         })
 
         vm.destination.observe(viewLifecycleOwner, {

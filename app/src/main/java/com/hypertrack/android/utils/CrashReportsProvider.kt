@@ -20,7 +20,7 @@ class FirebaseCrashReportsProvider : CrashReportsProvider {
         if (MyApplication.DEBUG_MODE) {
             e.printStackTrace()
         }
-        if (!e.shouldNotBeReported()) {
+        if (e.shouldBeReported()) {
             metadata.forEach {
                 FirebaseCrashlytics.getInstance().setCustomKey(it.key, it.value)
             }
@@ -30,10 +30,12 @@ class FirebaseCrashReportsProvider : CrashReportsProvider {
 
     override fun setUserIdentifier(id: String) = FirebaseCrashlytics.getInstance().setUserId(id)
 
+    //todo keys to enum
     override fun setCustomKey(key: String, value: String) {
         FirebaseCrashlytics.getInstance().setCustomKey(key, value)
     }
 
+    //todo keys to enum
     override fun log(txt: String) {
 //        if(MyApplication.DEBUG_MODE) {
 //            Log.v("hypertrack-verbose", txt)
@@ -41,11 +43,21 @@ class FirebaseCrashReportsProvider : CrashReportsProvider {
         FirebaseCrashlytics.getInstance().log(txt)
     }
 
-    companion object {
-        const val KEY_DEVICE_ID = "device_id"
-        const val KEY_PUBLISHABLE_KEY = "publishable_key"
+    private fun Throwable.shouldBeReported(): Boolean {
+        return if (this is Exception) {
+            when {
+                this.isNetworkError() ||
+                        this is HttpException ||
+                        this is NonReportableException
+                -> false
+                else -> true
+            }
+        } else true
     }
+
 }
+
+class NonReportableException(message: String) : Exception(message)
 
 @JsonClass(generateAdapter = true)
 class UserIdentifier(
@@ -54,7 +66,8 @@ class UserIdentifier(
     val pubKey: String,
 )
 
-fun Throwable.shouldNotBeReported(): Boolean {
+
+fun Exception.isNetworkError(): Boolean {
     return when (this) {
         is HttpException,
         is SocketTimeoutException,
@@ -64,3 +77,5 @@ fun Throwable.shouldNotBeReported(): Boolean {
         else -> false
     }
 }
+
+

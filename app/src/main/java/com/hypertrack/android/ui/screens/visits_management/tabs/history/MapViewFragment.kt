@@ -63,7 +63,7 @@ class MapViewFragment : BaseFragment<MainActivity>(R.layout.fragment_tab_map_web
             }
         }
 
-        historyViewModel.errorText.observe(viewLifecycleOwner, {
+        historyViewModel.errorHandler.errorText.observe(viewLifecycleOwner, {
             SnackbarUtil.showErrorSnackbar(view, it)
         })
 

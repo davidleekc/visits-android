@@ -3,13 +3,14 @@ package com.hypertrack.android.ui.screens.send_feedback
 import android.app.Activity
 import com.hypertrack.android.interactors.FeedbackInteractor
 import com.hypertrack.android.ui.base.BaseViewModel
+import com.hypertrack.android.ui.base.BaseViewModelDependencies
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.logistics.android.github.R
 
 class SendFeedbackViewModel(
+    baseDependencies: BaseViewModelDependencies,
     private val feedbackInteractor: FeedbackInteractor,
-    private val osUtilsProvider: OsUtilsProvider
-) : BaseViewModel(osUtilsProvider) {
+) : BaseViewModel(baseDependencies) {
 
     fun getSavedText(): String {
         return feedbackInteractor.savedFeedbackText

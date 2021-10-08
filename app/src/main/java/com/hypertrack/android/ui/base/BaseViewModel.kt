@@ -1,40 +1,29 @@
 package com.hypertrack.android.ui.base
 
+import android.util.Log
 import androidx.annotation.StringRes
 import androidx.lifecycle.*
 import androidx.navigation.NavDirections
-import com.hypertrack.android.utils.OsUtilsProvider
-import com.hypertrack.android.utils.format
+import com.hypertrack.android.utils.*
+import retrofit2.HttpException
 import com.hypertrack.logistics.android.github.R
 
 @Suppress("LeakingThis")
 open class BaseViewModel(
-    //todo inject everywhere
-    private val osUtilsProvider: OsUtilsProvider? = null
+    private val baseDependencies: BaseViewModelDependencies
 ) : ViewModel() {
+    protected val crashReportsProvider = baseDependencies.crashReportsProvider
+    protected val osUtilsProvider = baseDependencies.osUtilsProvider
 
     val destination = SingleLiveEvent<NavDirections>()
     val popBackStack = SingleLiveEvent<Boolean>()
 
-    //todo migrate to this
-    open val errorHandler = ErrorHandler(osUtilsProvider)
+    open val errorHandler =
+        ErrorHandler(baseDependencies.osUtilsProvider, baseDependencies.crashReportsProvider)
 
-    //todo remove loadingState from children and rename to loadingState
-    open val loadingStateBase = MutableLiveData<Boolean>()
+    open val loadingState = MutableLiveData<Boolean>()
 
-    open val exception: MutableLiveData<Consumable<Exception>> =
-        SingleLiveEvent<Consumable<Exception>>()
-    open val errorText: MutableLiveData<Consumable<String>> by lazy {
-        MediatorLiveData<Consumable<String>>().apply {
-            addSource(exception) {
-                postValue(it.map { e ->
-                    osUtilsProvider?.getErrorMessage(e) ?: e.message ?: "Unknown error: No message"
-                })
-            }
-        }
-    }
-
-    protected val observers = mutableListOf<Pair<LiveData<*>, Observer<*>>>()
+    private val observers = mutableListOf<Pair<LiveData<*>, Observer<*>>>()
 
     protected fun <T> LiveData<T>.observeManaged(observer: Observer<T>) {
         observeForever(observer)
@@ -47,8 +36,14 @@ open class BaseViewModel(
     }
 }
 
+class BaseViewModelDependencies(
+    val osUtilsProvider: OsUtilsProvider,
+    val crashReportsProvider: CrashReportsProvider,
+)
+
 class ErrorHandler(
-    private val osUtilsProvider: OsUtilsProvider?,
+    private val osUtilsProvider: OsUtilsProvider,
+    private val crashReportsProvider: CrashReportsProvider,
     private val exceptionSource: LiveData<Consumable<Exception>>? = null,
     private val errorTextSource: LiveData<Consumable<String>>? = null
 ) {
@@ -58,6 +53,7 @@ class ErrorHandler(
     private val _exception = MediatorLiveData<Consumable<Exception>>().apply {
         exceptionSource?.let {
             addSource(exceptionSource) {
+                onExceptionReceived(it.payload)
                 postValue(it)
             }
         }
@@ -73,16 +69,18 @@ class ErrorHandler(
         }
         addSource(_exception) {
             postValue(it.map {
-                osUtilsProvider?.getErrorMessage(it) ?: it.format()
+                getErrorMessage(it)
             })
         }
     }
 
     fun postConsumable(e: Consumable<Exception>) {
+        onExceptionReceived(e.payload)
         _exception.postValue(e)
     }
 
     fun postException(e: Exception) {
+        onExceptionReceived(e)
         _exception.postValue(Consumable(e))
     }
 
@@ -91,6 +89,37 @@ class ErrorHandler(
     }
 
     fun postText(@StringRes res: Int) {
-        _errorText.postValue(Consumable(osUtilsProvider!!.stringFromResource(res)))
+        _errorText.postValue(Consumable(osUtilsProvider.stringFromResource(res)))
     }
+
+    private fun onExceptionReceived(e: Exception) {
+        crashReportsProvider.logException(e)
+    }
+
+    private fun getErrorMessage(e: Exception): String {
+        //todo NonReportableException
+        return when (e) {
+            is HttpException -> {
+                val errorBody = e.response()?.errorBody()?.string()
+                if (MyApplication.DEBUG_MODE) {
+                    Log.v("hypertrack-verbose", errorBody.toString())
+                }
+                val path = e.response()?.raw()?.request?.let {
+                    "${it.method} ${e.response()!!.code()} ${it.url.encodedPath}"
+                }
+                return "${path.toString()}\n\n${errorBody.toString()}"
+            }
+            else -> {
+                if (e.isNetworkError()) {
+                    osUtilsProvider.stringFromResource(R.string.network_error)
+                } else {
+                    if (MyApplication.DEBUG_MODE) {
+                        e.printStackTrace()
+                    }
+                    e.format()
+                }
+            }
+        }
+    }
+
 }

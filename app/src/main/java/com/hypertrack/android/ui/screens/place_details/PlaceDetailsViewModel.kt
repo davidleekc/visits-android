@@ -15,6 +15,7 @@ import com.hypertrack.android.models.Integration
 import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.models.local.LocalGeofenceVisit
 import com.hypertrack.android.ui.base.BaseViewModel
+import com.hypertrack.android.ui.base.BaseViewModelDependencies
 import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.base.ZipNotNullableLiveData
 import com.hypertrack.android.ui.common.HypertrackMapWrapper
@@ -23,9 +24,7 @@ import com.hypertrack.android.ui.common.MapParams
 import com.hypertrack.android.ui.common.delegates.GeofenceAddressDelegate
 import com.hypertrack.android.ui.common.util.format
 
-import com.hypertrack.android.utils.CrashReportsProvider
 import com.hypertrack.android.utils.MyApplication
-import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.android.utils.formatters.DatetimeFormatter
 import com.hypertrack.android.utils.formatters.DistanceFormatter
 import com.hypertrack.android.utils.formatters.TimeFormatter
@@ -36,19 +35,16 @@ import kotlinx.coroutines.launch
 class PlaceDetailsViewModel(
     private val geofenceId: String,
     private val placesInteractor: PlacesInteractor,
-    private val osUtilsProvider: OsUtilsProvider,
-    private val crashReportsProvider: CrashReportsProvider,
     private val datetimeFormatter: DatetimeFormatter,
     private val distanceFormatter: DistanceFormatter,
     private val timeFormatter: TimeFormatter,
-    private val moshi: Moshi
-) : BaseViewModel(osUtilsProvider) {
+    private val moshi: Moshi,
+    baseDependencies: BaseViewModelDependencies
+) : BaseViewModel(baseDependencies) {
 
     private val addressDelegate = GeofenceAddressDelegate(osUtilsProvider)
 
     private val mapWrapper = MutableLiveData<HypertrackMapWrapper>()
-
-    val loadingState = MutableLiveData<Boolean>(false)
 
     private val geofence = MutableLiveData<LocalGeofence>().apply {
         viewModelScope.launch {

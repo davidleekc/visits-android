@@ -7,6 +7,7 @@ import com.hypertrack.android.interactors.HistoryInteractor
 import com.hypertrack.android.repository.AccessTokenRepository
 import com.hypertrack.android.repository.AccountRepository
 import com.hypertrack.android.ui.base.BaseViewModel
+import com.hypertrack.android.ui.base.BaseViewModelDependencies
 import com.hypertrack.android.ui.base.ErrorHandler
 import com.hypertrack.android.utils.*
 import com.hypertrack.logistics.android.github.R
@@ -17,16 +18,18 @@ import kotlinx.coroutines.launch
 
 @SuppressLint("NullSafeMutableLiveData")
 class VisitsManagementViewModel(
+    baseDependencies: BaseViewModelDependencies,
     private val historyInteractor: HistoryInteractor,
     private val accountRepository: AccountRepository,
     private val hyperTrackService: HyperTrackService,
-    private val crashReportsProvider: CrashReportsProvider,
-    private val osUtilsProvider: OsUtilsProvider,
     accessTokenRepository: AccessTokenRepository
-) : BaseViewModel(osUtilsProvider) {
+) : BaseViewModel(baseDependencies) {
 
-    override val errorHandler =
-        ErrorHandler(osUtilsProvider, historyInteractor.errorFlow.asLiveData())
+    override val errorHandler = ErrorHandler(
+        osUtilsProvider,
+        crashReportsProvider,
+        historyInteractor.errorFlow.asLiveData()
+    )
 
     val isTracking = Transformations.map(hyperTrackService.state) {
         it == TrackingStateValue.TRACKING

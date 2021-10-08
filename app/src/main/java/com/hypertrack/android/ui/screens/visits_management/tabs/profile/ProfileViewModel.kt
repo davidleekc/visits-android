@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import com.hypertrack.android.repository.AccountRepository
 import com.hypertrack.android.repository.DriverRepository
 import com.hypertrack.android.ui.base.BaseViewModel
+import com.hypertrack.android.ui.base.BaseViewModelDependencies
 import com.hypertrack.android.ui.common.KeyValueItem
 import com.hypertrack.android.ui.screens.visits_management.VisitsManagementFragment
 import com.hypertrack.android.ui.screens.visits_management.VisitsManagementFragmentDirections
@@ -13,12 +14,11 @@ import com.hypertrack.logistics.android.github.BuildConfig
 import com.hypertrack.logistics.android.github.R
 
 class ProfileViewModel(
+    baseDependencies: BaseViewModelDependencies,
     driverRepository: DriverRepository,
     hyperTrackService: HyperTrackService,
     accountRepository: AccountRepository,
-    private val osUtilsProvider: OsUtilsProvider,
-    private val crashReportsProvider: CrashReportsProvider,
-) : BaseViewModel() {
+) : BaseViewModel(baseDependencies) {
 
     val profile = MutableLiveData<List<KeyValueItem>>(mutableListOf<KeyValueItem>().apply {
         driverRepository.user?.let { user ->

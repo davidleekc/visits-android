@@ -92,6 +92,7 @@
     <string name="password_too_short">Password length must be 8 characters or more </string>
     <string name="invalid_email">Invalid email</string>
 
+    <string name="network_error">Network error. Please check your internet connection</string>
     <string name="clocked_in">You are clocked in</string>
     <string name="clocked_out">You are clocked out</string>
     <string name="directions_button">Show in Maps app</string>

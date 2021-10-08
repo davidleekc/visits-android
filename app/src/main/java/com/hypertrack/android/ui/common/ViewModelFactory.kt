@@ -6,6 +6,7 @@ import com.hypertrack.android.interactors.LoginInteractor
 import com.hypertrack.android.interactors.PermissionsInteractor
 import com.hypertrack.android.repository.AccountRepository
 import com.hypertrack.android.repository.DriverRepository
+import com.hypertrack.android.ui.base.BaseViewModelDependencies
 import com.hypertrack.android.ui.screens.background_permissions.BackgroundPermissionsViewModel
 import com.hypertrack.android.ui.screens.confirm_email.ConfirmEmailViewModel
 import com.hypertrack.android.ui.screens.sign_in.SignInViewModel
@@ -27,30 +28,34 @@ class ViewModelFactory(
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        val baseDependencies = BaseViewModelDependencies(
+            osUtilsProvider,
+            crashReportsProvider
+        )
         return when (modelClass) {
             ConfirmEmailViewModel::class.java -> ConfirmEmailViewModel(
+                baseDependencies,
                 loginInteractor,
                 permissionsInteractor,
-                osUtilsProvider
             ) as T
             SignInViewModel::class.java -> SignInViewModel(
+                baseDependencies,
                 loginInteractor,
                 permissionsInteractor,
-                osUtilsProvider
             ) as T
             SignUpViewModel::class.java -> SignUpViewModel(
+                baseDependencies,
                 loginInteractor,
-                osUtilsProvider,
             ) as T
             SplashScreenViewModel::class.java -> SplashScreenViewModel(
+                baseDependencies,
                 driverRepository,
                 accountRepository,
-                crashReportsProvider,
                 permissionsInteractor,
-                osUtilsProvider,
                 moshi
             ) as T
             BackgroundPermissionsViewModel::class.java -> BackgroundPermissionsViewModel(
+                baseDependencies,
                 permissionsInteractor
             ) as T
             else -> throw IllegalArgumentException("Can't instantiate class $modelClass")

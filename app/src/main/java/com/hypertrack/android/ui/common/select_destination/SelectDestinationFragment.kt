@@ -63,7 +63,7 @@ open class SelectDestinationFragment :
             } else false
         }
 
-        vm.loadingStateBase.observe(viewLifecycleOwner, {
+        vm.loadingState.observe(viewLifecycleOwner, {
             progressbar.setGoneState(!it)
         })
 

@@ -54,11 +54,11 @@ class AddOrderInfoFragment : ProgressDialogFragment(R.layout.fragment_add_order_
             etAddress.silentUpdate(listener, it)
         })
 
-        vm.error.observe(viewLifecycleOwner, {
+        vm.errorHandler.errorText.observe(viewLifecycleOwner, {
             SnackbarUtil.showErrorSnackbar(view, it)
         })
 
-        vm.loadingStateBase.observe(viewLifecycleOwner, {
+        vm.loadingState.observe(viewLifecycleOwner, {
             if (it) showProgress() else dismissProgress()
         })
 
