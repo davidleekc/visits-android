@@ -8,99 +8,75 @@ import androidx.core.graphics.blue
 import androidx.core.graphics.green
 import androidx.core.graphics.red
 import androidx.core.view.isVisible
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.math.MathUtils
-import com.hypertrack.android.models.HistoryTile
 import com.hypertrack.android.ui.MainActivity
 import com.hypertrack.android.ui.base.BaseFragment
 import com.hypertrack.android.ui.common.util.SnackbarUtil
 import com.hypertrack.android.ui.common.util.setGoneState
-import com.hypertrack.android.utils.Factory
 import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.logistics.android.github.R
 import kotlinx.android.synthetic.main.fragment_tab_map_webview.*
 import kotlinx.android.synthetic.main.progress_bar.*
-import kotlinx.coroutines.launch
 
 class MapViewFragment : BaseFragment<MainActivity>(R.layout.fragment_tab_map_webview) {
 
-    private var state: LoadingProgressState = LoadingProgressState.LOADING
-
-    private val historyViewModel: HistoryViewModel by viewModels {
+    private val vm: HistoryViewModel by viewModels {
         MyApplication.injector.provideUserScopeViewModelFactory()
     }
-    private var historyRenderer: HistoryMapRenderer? = null
 
-    private val rendererFactory: Factory<SupportMapFragment, HistoryMapRenderer> =
-        MyApplication.injector.getHistoryRendererFactory()
+    private lateinit var bottomSheetBehavior: BottomSheetBehavior<View>
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-
-        (childFragmentManager.findFragmentById(R.id.deviceHistoryView) as SupportMapFragment?)?.let {
-            historyRenderer = rendererFactory.create(it)
+        (childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?)?.getMapAsync {
+            vm.onMapReady(requireContext(), it)
         }
 
-        setupTimeline(historyRenderer, historyViewModel.tiles)
-        historyViewModel.tiles.observe(viewLifecycleOwner) {
-            timeLineView.adapter?.notifyDataSetChanged()
-        }
-        historyViewModel.history.observe(viewLifecycleOwner) { history ->
-            historyRenderer?.let { map ->
-                viewLifecycleOwner.lifecycleScope.launch {
-                    map.showHistory(history)
-                    displayLoadingState(false)
-                    mapLoaderCanvas?.visibility = View.GONE
-                    state = LoadingProgressState.DONE
-                }
+        vm.loadingState.observe(viewLifecycleOwner, {
+            displayLoadingState(it)
+        })
+
+        //value doesn't represent correct state
+        vm.bottomSheetOpened.observe(viewLifecycleOwner, {
+            bottomSheetBehavior.state = if (it) {
+                BottomSheetBehavior.STATE_EXPANDED
+            } else {
+                BottomSheetBehavior.STATE_COLLAPSED
             }
+            rvTimeline.scrollToPosition(0)
+        })
+
+        vm.tiles.observe(viewLifecycleOwner) {
+            rvTimeline.adapter?.notifyDataSetChanged()
         }
 
-        historyViewModel.errorHandler.errorText.observe(viewLifecycleOwner, {
+        vm.errorHandler.errorText.observe(viewLifecycleOwner, {
             SnackbarUtil.showErrorSnackbar(view, it)
         })
 
+        setupTimeline()
     }
 
     override fun onResume() {
         super.onResume()
-        if (state == LoadingProgressState.LOADING) displayLoadingState(true)
-        historyViewModel.refreshHistory()
+        vm.onResume()
     }
 
-    override fun onPause() {
-        super.onPause()
-        if (progress.isVisible) displayLoadingState(false)
-    }
+    private fun setupTimeline() {
+        bottomSheetBehavior = BottomSheetBehavior.from(rvTimeline)
+        bottomSheetBehavior.peekHeight = vm.style.summaryPeekHeight
 
-    private fun setupTimeline(
-        historyNavigationHandler: HistoryMapRenderer?,
-        tiles: LiveData<List<HistoryTile>>
-    ) {
-
-        val bottomSheetBehavior = BottomSheetBehavior.from(timeLineView)
-
-        val style = BaseHistoryStyle(MyApplication.context)
-        bottomSheetBehavior.peekHeight = style.summaryPeekHeight
         val adapter = TimelineTileItemAdapter(
-            tiles,
-            style
-        ) { historyNavigationHandler?.onTileSelected(it) }
-        timeLineView.adapter = adapter
-        timeLineView.layoutManager  =  LinearLayoutManager(MyApplication.context)
-
-        bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
-
-        deviceHistoryView.setOnClickListener {
-            bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
-        }
+            vm.tiles,
+            vm.style
+        ) { vm.onTileSelected(it) }
+        rvTimeline.adapter = adapter
+        rvTimeline.layoutManager = LinearLayoutManager(MyApplication.context)
 
         scrim.setOnClickListener { bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED }
         bottomSheetBehavior.addBottomSheetCallback(object :
@@ -122,16 +98,9 @@ class MapViewFragment : BaseFragment<MainActivity>(R.layout.fragment_tab_map_web
 
     private fun displayLoadingState(isLoading: Boolean) {
         progress?.setGoneState(!isLoading)
+        mapLoaderCanvas?.setGoneState(!isLoading)
         progress?.background = null
         if (isLoading) loader?.playAnimation() else loader?.cancelAnimation()
     }
-
-    companion object {
-        const val TAG = "MapViewFragment"
-    }
 }
 
-private enum class LoadingProgressState {
-    LOADING,
-    DONE
-}

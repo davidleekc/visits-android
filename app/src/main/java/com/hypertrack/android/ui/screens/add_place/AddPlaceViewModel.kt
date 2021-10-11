@@ -19,7 +19,7 @@ import com.hypertrack.android.ui.common.select_destination.DestinationData
 import com.hypertrack.android.ui.common.select_destination.SelectDestinationViewModel
 import com.hypertrack.android.ui.common.select_destination.reducer.Proceed
 import com.hypertrack.android.ui.common.select_destination.toDestinationData
-import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
+import com.hypertrack.android.utils.DeviceLocationProvider
 import com.hypertrack.android.utils.stringFromResource
 import com.hypertrack.logistics.android.github.R
 import kotlinx.coroutines.launch

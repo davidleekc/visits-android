@@ -387,23 +387,9 @@ object Injector {
     private fun getCognitoLoginProvider(context: Context): CognitoAccountLoginProvider =
         CognitoAccountLoginProviderImpl(context)
 
-    private fun getHistoryMapRenderer(supportMapFragment: SupportMapFragment): HistoryMapRenderer =
-        GoogleMapHistoryRenderer(
-            supportMapFragment,
-            BaseHistoryStyle(MyApplication.context),
-            getDeviceLocationProvider(),
-            crashReportsProvider
-        )
-
     private fun getDeviceLocationProvider(): DeviceLocationProvider {
         return FusedDeviceLocationProvider(MyApplication.context)
     }
-
-    fun getHistoryRendererFactory(): Factory<SupportMapFragment, HistoryMapRenderer> =
-        Factory { a -> getHistoryMapRenderer(a) }
-
-    fun getRealTimeUpdatesService(ctx: Context): Provider<HyperTrackViews> =
-        Provider { HyperTrackViews.getInstance(ctx, getAccountRepo(ctx).publishableKey) }
 
 }
 

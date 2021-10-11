@@ -6,8 +6,8 @@ import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.ui.base.BaseViewModelDependencies
 import com.hypertrack.android.ui.common.select_destination.DestinationData
 import com.hypertrack.android.ui.common.select_destination.SelectDestinationViewModel
-import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
 import com.hypertrack.android.utils.CrashReportsProvider
+import com.hypertrack.android.utils.DeviceLocationProvider
 import com.hypertrack.android.utils.OsUtilsProvider
 
 

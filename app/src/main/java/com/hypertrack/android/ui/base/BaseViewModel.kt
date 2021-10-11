@@ -122,4 +122,12 @@ class ErrorHandler(
         }
     }
 
+    fun handle(code: () -> Unit) {
+        try {
+            code.invoke()
+        } catch (e: Exception) {
+            postException(e)
+        }
+    }
+
 }

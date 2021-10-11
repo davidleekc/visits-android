@@ -9,7 +9,19 @@ import com.hypertrack.android.models.Status
 import com.hypertrack.logistics.android.github.R
 import java.lang.IllegalArgumentException
 
-class BaseHistoryStyle(private val context: Context) : HistoryStyle, TimelineStyle{
+interface HistoryStyle {
+    val activeColor: Int
+    val driveSelectionColor: Int
+    val walkSelectionColor: Int
+    val stopSelectionColor: Int
+    val outageSelectionColor: Int
+    val mapPadding: Int
+    val summaryPeekHeight: Int
+    fun colorForStatus(status: Status): Int
+    fun markerForStatus(status: Status): Bitmap
+}
+
+class BaseHistoryStyle(private val context: Context) : HistoryStyle, TimelineStyle {
     override val activeColor: Int
         get() = context.resources.getColor(R.color.colorHistoryActiveSegment, context.theme)
     override val driveSelectionColor: Int

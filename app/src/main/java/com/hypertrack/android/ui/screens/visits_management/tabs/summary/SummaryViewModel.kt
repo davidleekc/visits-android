@@ -49,6 +49,6 @@ class SummaryViewModel(
     val error = MutableLiveData<HistoryError>()
 
     fun refreshSummary() {
-        historyInteractor.loadTodayHistory()
+        historyInteractor.refreshTodayHistory()
     }
 }

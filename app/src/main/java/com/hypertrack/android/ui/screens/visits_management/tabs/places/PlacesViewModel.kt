@@ -3,7 +3,7 @@ package com.hypertrack.android.ui.screens.visits_management.tabs.places
 import com.hypertrack.android.interactors.PlacesInteractor
 import com.hypertrack.android.ui.base.*
 import com.hypertrack.android.ui.screens.visits_management.VisitsManagementFragmentDirections
-import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
+import com.hypertrack.android.utils.DeviceLocationProvider
 import com.hypertrack.android.utils.formatters.DatetimeFormatter
 import com.hypertrack.android.utils.formatters.DistanceFormatter
 

@@ -20,7 +20,6 @@ import com.hypertrack.android.ui.common.select_destination.SelectDestinationView
 import com.hypertrack.android.ui.screens.select_trip_destination.SelectTripDestinationViewModel
 import com.hypertrack.android.ui.screens.send_feedback.SendFeedbackViewModel
 import com.hypertrack.android.ui.screens.visits_management.tabs.current_trip.CurrentTripViewModel
-import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
 import com.hypertrack.android.ui.screens.visits_management.tabs.orders.OrdersListViewModel
 import com.hypertrack.android.ui.screens.visits_management.tabs.places.PlacesViewModel
 import com.hypertrack.android.ui.screens.visits_management.tabs.places.PlacesVisitsViewModel
@@ -116,6 +115,7 @@ class UserScopeViewModelFactory(
                 userScopeProvider.get().historyInteractor,
                 appScope.datetimeFormatter,
                 appScope.distanceFormatter,
+                deviceLocationProvider
             ) as T
             VisitsManagementViewModel::class.java -> VisitsManagementViewModel(
                 baseDependencies,

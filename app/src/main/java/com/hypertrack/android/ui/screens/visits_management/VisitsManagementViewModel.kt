@@ -1,7 +1,6 @@
 package com.hypertrack.android.ui.screens.visits_management
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.lifecycle.*
 import com.hypertrack.android.interactors.HistoryInteractor
 import com.hypertrack.android.repository.AccessTokenRepository
@@ -11,8 +10,6 @@ import com.hypertrack.android.ui.base.BaseViewModelDependencies
 import com.hypertrack.android.ui.base.ErrorHandler
 import com.hypertrack.android.utils.*
 import com.hypertrack.logistics.android.github.R
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
@@ -97,7 +94,7 @@ class VisitsManagementViewModel(
 
     fun refreshHistory() {
         MainScope().launch {
-            historyInteractor.loadTodayHistory()
+            historyInteractor.refreshTodayHistory()
         }
     }
 

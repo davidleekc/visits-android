@@ -7,11 +7,13 @@ import android.util.TypedValue
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.*
+import com.hypertrack.android.models.History
 import com.hypertrack.android.models.local.LocalGeofence
 import com.hypertrack.android.models.local.LocalTrip
 import com.hypertrack.android.models.local.OrderStatus
 import com.hypertrack.android.ui.common.select_destination.reducer.UserLocation
 import com.hypertrack.android.ui.screens.visits_management.tabs.current_trip.CurrentTripViewModel
+import com.hypertrack.android.ui.screens.visits_management.tabs.history.HistoryStyle
 import com.hypertrack.android.utils.CrashReportsProvider
 import com.hypertrack.android.utils.Intersect
 import com.hypertrack.android.utils.OsUtilsProvider
@@ -27,8 +29,6 @@ class HypertrackMapWrapper(
     private val crashReportsProvider: CrashReportsProvider,
     private val params: MapParams
 ) {
-
-
     init {
         googleMap.uiSettings.apply {
             isScrollGesturesEnabled = params.enableScroll
@@ -66,6 +66,22 @@ class HypertrackMapWrapper(
     val canceledOrderIcon = osUtilsProvider.bitmapDescriptorFromVectorResource(
         R.drawable.ic_order_canceled, R.color.colorHyperTrackGreen
     )
+
+    private val tripStyleAttrs by lazy {
+        StyleAttrs().let { tripStyleAttrs ->
+            tripStyleAttrs.tripRouteWidth = tripRouteWidth
+            tripStyleAttrs.tripRouteColor =
+                osUtilsProvider.colorFromResource(com.hypertrack.maps.google.R.color.ht_route)
+            tripStyleAttrs
+        }
+    }
+
+    private val tripRouteWidth by lazy {
+        TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP, 3f,
+            osUtilsProvider.getDisplayMetrics()
+        )
+    }
 
     fun setOnCameraMovedListener(listener: (LatLng) -> Unit) {
         googleMap.setOnCameraIdleListener { listener.invoke(googleMap.viewportPosition) }
@@ -246,6 +262,10 @@ class HypertrackMapWrapper(
         }
     }
 
+    fun showHistory(history: History, style: HistoryStyle) {
+        addPolyline(history.asPolylineOptions().color(style.activeColor))
+    }
+
     fun animateCameraToTrip(trip: LocalTrip, userLocation: LatLng? = null) {
         val map = googleMap
         try {
@@ -290,30 +310,23 @@ class HypertrackMapWrapper(
         googleMap.clear()
     }
 
+    fun addPolyline(polylineOptions: PolylineOptions) {
+        googleMap.addPolyline(polylineOptions)
+    }
+
+    fun setPadding(left: Int = 0, top: Int = 0, right: Int = 0, bottom: Int = 0) {
+        googleMap.setPadding(left, top, right, bottom)
+    }
+
+    private fun History.asPolylineOptions(): PolylineOptions = this
+        .locationTimePoints
+        .map { it.first }
+        .fold(PolylineOptions()) { options, point ->
+            options.add(LatLng(point.latitude, point.longitude))
+        }
+
     companion object {
         const val DEFAULT_ZOOM = 13f
-    }
-
-    private val tripStyleAttrs by lazy {
-        StyleAttrs().let { tripStyleAttrs ->
-            tripStyleAttrs.tripRouteWidth = tripRouteWidth
-            tripStyleAttrs.tripRouteColor =
-                osUtilsProvider.colorFromResource(com.hypertrack.maps.google.R.color.ht_route)
-            tripStyleAttrs
-        }
-    }
-
-    val tripRouteWidth by lazy {
-        TypedValue.applyDimension(
-            TypedValue.COMPLEX_UNIT_DIP, 3f,
-            osUtilsProvider.getDisplayMetrics()
-        )
-    }
-    val accuracyStrokeWidth by lazy {
-        TypedValue.applyDimension(
-            TypedValue.COMPLEX_UNIT_DIP, 1f,
-            osUtilsProvider.getDisplayMetrics()
-        )
     }
 
     private class StyleAttrs {

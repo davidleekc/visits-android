@@ -1,15 +1,21 @@
 package com.hypertrack.android.ui.screens.visits_management.tabs.history
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.*
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.model.*
+import com.google.android.gms.maps.model.Marker
+import com.google.android.gms.maps.model.Polyline
 import com.hypertrack.android.interactors.HistoryInteractor
 import com.hypertrack.android.models.*
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.BaseViewModelDependencies
 import com.hypertrack.android.ui.base.ErrorHandler
-import com.hypertrack.android.utils.Constants
-import com.hypertrack.android.utils.OsUtilsProvider
-import com.hypertrack.android.utils.datetimeFromString
+import com.hypertrack.android.ui.common.HypertrackMapWrapper
+import com.hypertrack.android.ui.common.MapParams
+import com.hypertrack.android.utils.*
 import com.hypertrack.android.utils.formatters.DatetimeFormatter
 import com.hypertrack.android.utils.formatters.DistanceFormatter
 
@@ -20,6 +26,7 @@ class HistoryViewModel(
     private val historyInteractor: HistoryInteractor,
     private val datetimeFormatter: DatetimeFormatter,
     private val distanceFormatter: DistanceFormatter,
+    private val deviceLocationProvider: DeviceLocationProvider,
 ) : BaseViewModel(baseDependencies) {
     //todo remove legacy
     private val timeDistanceFormatter = TimeDistanceFormatter(
@@ -27,17 +34,32 @@ class HistoryViewModel(
         distanceFormatter
     )
 
+    val style = BaseHistoryStyle(MyApplication.context)
+
     override val errorHandler = ErrorHandler(
         osUtilsProvider,
         crashReportsProvider,
         historyInteractor.errorFlow.asLiveData()
     )
 
-    val history = historyInteractor.todayHistory
+    //value doesn't represent correct state
+    val bottomSheetOpened = MutableLiveData<Boolean>(false)
 
     val tiles = MediatorLiveData<List<HistoryTile>>()
 
+    private val history = historyInteractor.todayHistory
+    private var userLocation: LatLng? = null
+    private var map: HypertrackMapWrapper? = null
+
+    private var selectedSegment: Polyline? = null
+    private var viewBounds: LatLngBounds? = null
+    private val activeMarkers = mutableListOf<Marker>()
+
+    private var firstMovePerformed = false
+
     init {
+        loadingState.postValue(true)
+
         tiles.addSource(history) {
             if (it.locationTimePoints.isNotEmpty()) {
                 Log.d(TAG, "got new history $it")
@@ -49,10 +71,144 @@ class HistoryViewModel(
                 tiles.postValue(emptyList())
             }
         }
+
+        history.observeManaged {
+            loadingState.postValue(false)
+            val map = this.map
+            if (map != null) {
+                displayHistory(map, it)
+                moveMap(map, it, userLocation)
+            }
+        }
+
+        deviceLocationProvider.getCurrentLocation {
+            userLocation = it?.toLatLng()
+            history.value?.let { hist ->
+                map?.let { map ->
+                    moveMap(map, hist, it?.toLatLng())
+                }
+            }
+        }
     }
 
-    fun refreshHistory() {
-        historyInteractor.loadTodayHistory()
+    fun onMapReady(context: Context, googleMap: GoogleMap) {
+        firstMovePerformed = false
+        val style = BaseHistoryStyle(MyApplication.context)
+        this.map = HypertrackMapWrapper(
+            googleMap, osUtilsProvider, crashReportsProvider, MapParams(
+                enableScroll = true,
+                enableZoomKeys = true,
+                enableMyLocationButton = true,
+                enableMyLocationIndicator = true
+            )
+        )
+        val map = this.map!!
+
+        map.setPadding(bottom = style.summaryPeekHeight)
+        map.setOnMapClickListener {
+            bottomSheetOpened.postValue(false)
+        }
+        history.value?.let { hist ->
+            displayHistory(map, hist)
+            moveMap(map, hist, userLocation)
+        }
+    }
+
+    fun onTileSelected(tile: HistoryTile) {
+        try {
+            if (tile.tileType == HistoryTileType.SUMMARY) return
+
+            selectedSegment?.remove()
+            activeMarkers.forEach { it.remove() }
+            map?.googleMap?.let { googleMap ->
+                selectedSegment = googleMap.addPolyline(
+                    tile.locations
+                        .map { LatLng(it.latitude, it.longitude) }
+                        .fold(PolylineOptions()) { options, loc -> options.add(loc) }
+                        .color(style.colorForStatus(tile.status))
+                        .clickable(true)
+                )
+                tile.locations.firstOrNull()?.let {
+                    activeMarkers.add(addMarker(it, googleMap, tile.address, tile.status))
+                }
+                tile.locations.lastOrNull()?.let {
+                    activeMarkers.add(addMarker(it, googleMap, tile.address, tile.status))
+                }
+                //newLatLngBounds can cause crash if called before layout without map size
+                googleMap.animateCamera(
+                    CameraUpdateFactory.newLatLngBounds(
+                        tile.locations.boundRect(),
+                        style.mapPadding
+                    )
+                )
+                googleMap.setOnMapClickListener {
+                    selectedSegment?.remove()
+                    activeMarkers.forEach { it.remove() }
+                    activeMarkers.clear()
+                    selectedSegment = null
+                    viewBounds?.let { bounds ->
+                        //newLatLngBounds can cause crash if called before layout without map size
+                        googleMap.animateCamera(
+                            CameraUpdateFactory.newLatLngBounds(
+                                bounds,
+                                style.mapPadding
+                            )
+                        )
+                    }
+                }
+            }
+            bottomSheetOpened.postValue(false)
+        } catch (e: Exception) {
+            errorHandler.postException(e)
+        }
+    }
+
+    fun onResume() {
+        historyInteractor.refreshTodayHistory()
+    }
+
+    private fun displayHistory(map: HypertrackMapWrapper, history: History) {
+        errorHandler.handle {
+            map.showHistory(history, style)
+        }
+    }
+
+    private fun addMarker(
+        location: Location,
+        map: GoogleMap,
+        address: CharSequence?,
+        status: Status
+    ): Marker {
+        val markerOptions = MarkerOptions().position(LatLng(location.latitude, location.longitude))
+            .icon(BitmapDescriptorFactory.fromBitmap(style.markerForStatus(status)))
+        address?.let { markerOptions.title(it.toString()) }
+        return map.addMarker(markerOptions)
+    }
+
+    private fun moveMap(map: HypertrackMapWrapper, history: History, userLocation: LatLng?) {
+        if (!firstMovePerformed) {
+            if (history.locationTimePoints.isEmpty()) {
+                userLocation?.let { map.moveCamera(it) }
+            } else {
+                val viewBounds = history.locationTimePoints.map { it.first }.boundRect().let {
+                    if (userLocation != null) {
+                        it.including(userLocation)
+                    } else it
+                }
+                //newLatLngBounds can cause crash if called before layout without map size
+                try {
+                    map.googleMap.animateCamera(
+                        CameraUpdateFactory.newLatLngBounds(
+                            viewBounds,
+                            style.mapPadding
+                        )
+                    )
+                } catch (e: Exception) {
+                    userLocation?.let { map.moveCamera(it) }
+                }
+            }
+            firstMovePerformed = true
+        }
     }
 
     private fun historyToTiles(
@@ -271,4 +427,10 @@ class TimeDistanceFormatter(
     fun formatDistance(totalDistance: Int): String {
         return distanceFormatter.formatDistance(totalDistance)
     }
+}
+
+private fun Iterable<Location>.boundRect(): LatLngBounds {
+    return fold(LatLngBounds.builder()) { builder, point ->
+        builder.include(point.toLatLng())
+    }.build()
 }

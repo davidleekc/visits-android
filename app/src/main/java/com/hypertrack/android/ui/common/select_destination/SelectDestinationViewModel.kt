@@ -20,7 +20,7 @@ import com.hypertrack.android.ui.common.select_destination.reducer.*
 import com.hypertrack.android.ui.common.util.isNearZero
 import com.hypertrack.android.ui.common.util.nullIfEmpty
 import com.hypertrack.android.ui.screens.add_place.AddPlaceFragmentDirections
-import com.hypertrack.android.ui.screens.visits_management.tabs.history.DeviceLocationProvider
+import com.hypertrack.android.utils.DeviceLocationProvider
 import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.android.utils.asNonEmpty
 import kotlinx.coroutines.async

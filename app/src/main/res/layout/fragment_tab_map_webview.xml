@@ -8,7 +8,7 @@
 
     <androidx.fragment.app.FragmentContainerView
         android:name="com.google.android.gms.maps.SupportMapFragment"
-        android:id="@+id/deviceHistoryView"
+        android:id="@+id/map"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
@@ -36,7 +36,7 @@
         android:visibility="gone"/>
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/timeLineView"
+        android:id="@+id/rvTimeline"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_behavior="@string/bottom_sheet_behavior"

@@ -10,20 +10,19 @@ import com.hypertrack.android.ui.base.toConsumable
 import com.hypertrack.android.ui.common.util.toHotTransformation
 import com.hypertrack.android.utils.OsUtilsProvider
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.ZonedDateTime
+import java.time.temporal.ChronoUnit
 
 interface HistoryInteractor {
     val todayHistory: LiveData<History>
-//    val monthSummaries: LiveData<Map<Month, Summary>>
     val history: LiveData<Map<LocalDate, History>>
     val errorFlow: MutableSharedFlow<Consumable<Exception>>
-    fun loadTodayHistory()
+    fun refreshTodayHistory()
     fun loadHistory(date: LocalDate)
-//    fun loadMonthSummary(month: Month)
 }
 
 class HistoryInteractorImpl(
@@ -31,6 +30,9 @@ class HistoryInteractorImpl(
     private val osUtilsProvider: OsUtilsProvider,
     private val globalScope: CoroutineScope
 ) : HistoryInteractor {
+
+    //todo update timer
+    private var lastUpdate: ZonedDateTime? = null
 
     override val todayHistory = MutableLiveData<History>()
 
@@ -40,23 +42,31 @@ class HistoryInteractorImpl(
         }.toMap()
     }.toHotTransformation().liveData
 
-//    override val monthSummaries = MutableLiveData<Map<Month, Summary>>(mapOf())
-//    private val _monthSummaries = mutableMapOf<Month, Summary>()
-
     override val errorFlow = MutableSharedFlow<Consumable<Exception>>(
         extraBufferCapacity = 1,
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
 
-    override fun loadTodayHistory() {
-        globalScope.launch {
-            val res = historyRepository.getHistory(LocalDate.now())
-            when (res) {
-                is History -> {
-                    todayHistory.postValue(res)
-                }
-                is HistoryError -> {
-                    errorFlow.emit((res.error ?: Exception("History error null")).toConsumable())
+    override fun refreshTodayHistory() {
+        //todo test
+        if (lastUpdate == null || ChronoUnit.MINUTES.between(
+                ZonedDateTime.now(),
+                lastUpdate
+            ) > UPDATE_TIMEOUT_MINUTES
+        ) {
+            val updateTime = ZonedDateTime.now()
+            globalScope.launch {
+                val res = historyRepository.getHistory(LocalDate.now())
+                when (res) {
+                    is History -> {
+                        lastUpdate = updateTime
+                        todayHistory.postValue(res)
+                    }
+                    is HistoryError -> {
+                        errorFlow.emit(
+                            (res.error ?: Exception("History error null")).toConsumable()
+                        )
+                    }
                 }
             }
         }
@@ -68,32 +78,8 @@ class HistoryInteractorImpl(
         }
     }
 
-//    override fun loadMonthSummary(month: Month) {
-//        Log.v("hypertrack-verbose", "loadMonthSummary $month")
-//        globalScope.launch {
-//            try {
-//                val firstDay = LocalDate.of(
-//                    LocalDate.now().year,
-//                    month,
-//                    1
-//                )
-//                val from = ZonedDateTime.of(
-//                    firstDay,
-//                    LocalTime.MIN,
-//                    osUtilsProvider.getTimeZoneId(),
-//                )
-//                val to = ZonedDateTime.of(
-//                    firstDay.withDayOfMonth(firstDay.lengthOfMonth()),
-//                    LocalTime.MIN,
-//                    osUtilsProvider.getTimeZoneId(),
-//                )
-//                val res = historyRepository.getSummary(from, to)
-//                _monthSummaries[month] = res
-//                monthSummaries.postValue(_monthSummaries)
-//            } catch (e: Exception) {
-//                errorFlow.emit(e.toConsumable())
-//            }
-//        }
-//    }
+    companion object {
+        const val UPDATE_TIMEOUT_MINUTES = 1
+    }
 
 }
