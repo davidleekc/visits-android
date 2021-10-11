@@ -56,7 +56,9 @@ class IntegrationsRepositoryImpl(
         }
 
         try {
-            return apiClient.getIntegrations(query, limit = 100)
+            return apiClient.getIntegrations(query, limit = 100).filter {
+                it.name != null
+            }
         } catch (e: Exception) {
             errorFlow.emit(Consumable(e))
             return listOf()
