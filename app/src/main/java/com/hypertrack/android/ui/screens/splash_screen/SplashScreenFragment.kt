@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.navigation.fragment.findNavController
 import com.hypertrack.android.ui.base.ProgressDialogFragment
+import com.hypertrack.android.ui.base.navigate
 import com.hypertrack.android.ui.common.util.SnackbarUtil
 import com.hypertrack.logistics.android.github.R
 

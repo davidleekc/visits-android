@@ -556,18 +556,18 @@ class OrdersDetailsViewModelTest {
         ): OrderDetailsViewModel {
             return OrderDetailsViewModel(
                 id,
+                mockk(relaxed = true) {
+                    every { osUtilsProvider } returns mockk(relaxed = true) {
+                        every { stringFromResource(R.string.order_status) } returns "order_status"
+                        every { stringFromResource(R.string.order_picked_up) } returns "order_picked_up"
+                        every { cacheDir } returns File("nofile")
+                        every { createImageFile() } returns File("nofile")
+                    }
+                },
                 tripsInteractor,
                 photoUploadInteractor,
-                mockk(relaxed = true) {
-                    every { stringFromResource(R.string.order_status) } returns "order_status"
-                    every { stringFromResource(R.string.order_picked_up) } returns "order_picked_up"
-                    every { cacheDir } returns File("nofile")
-                    every { createImageFile() } returns File("nofile")
-                },
                 mockk() { coEvery { isPickUpAllowed } returns pickUpAllowed },
                 mockk(relaxed = true),
-                mockk() {},
-                scope
             )
         }
     }

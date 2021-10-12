@@ -11,6 +11,7 @@ import androidx.navigation.fragment.navArgs
 import com.google.android.gms.maps.SupportMapFragment
 import com.hypertrack.android.models.Integration
 import com.hypertrack.android.ui.base.ProgressDialogFragment
+import com.hypertrack.android.ui.base.navigate
 import com.hypertrack.android.ui.common.util.*
 import com.hypertrack.android.utils.MyApplication
 import com.hypertrack.android.utils.stringFromResource

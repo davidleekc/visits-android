@@ -3,6 +3,8 @@ package com.hypertrack.android.ui.base
 import android.util.Log
 import androidx.annotation.StringRes
 import androidx.lifecycle.*
+import androidx.navigation.NavController
+import androidx.navigation.NavDestination
 import androidx.navigation.NavDirections
 import com.hypertrack.android.utils.*
 import retrofit2.HttpException
@@ -15,8 +17,8 @@ open class BaseViewModel(
     protected val crashReportsProvider = baseDependencies.crashReportsProvider
     protected val osUtilsProvider = baseDependencies.osUtilsProvider
 
-    val destination = SingleLiveEvent<NavDirections>()
-    val popBackStack = SingleLiveEvent<Boolean>()
+    val destination = MutableLiveData<Consumable<NavDirections>>()
+    val popBackStack = MutableLiveData<Consumable<Boolean>>()
 
     open val errorHandler =
         ErrorHandler(baseDependencies.osUtilsProvider, baseDependencies.crashReportsProvider)
@@ -130,4 +132,14 @@ class ErrorHandler(
         }
     }
 
+}
+
+fun <T> MutableLiveData<Consumable<T>>.postValue(item: T) {
+    postValue(Consumable(item))
+}
+
+fun NavController.navigate(d: Consumable<NavDirections>) {
+    d.consume {
+        navigate(it)
+    }
 }

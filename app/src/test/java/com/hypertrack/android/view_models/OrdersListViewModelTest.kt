@@ -60,10 +60,10 @@ class OrdersListViewModelTest {
             tripsInteractor.refreshTrips()
             assertTrue(tripsInteractor.currentTrip.value != null)
             val vm = OrdersListViewModel(
+                mockk(relaxed = true),
                 tripsInteractor,
                 mockk(relaxed = true),
                 mockk(relaxed = true),
-                mockk()
             )
             vm.orders.observeForever {}
             val orders = vm.orders.value!!

@@ -234,7 +234,6 @@ object Injector {
 
         val historyInteractor = HistoryInteractorImpl(
             historyRepository,
-            osUtilsProvider,
             GlobalScope
         )
 

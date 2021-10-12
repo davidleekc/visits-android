@@ -6,6 +6,7 @@ import com.hypertrack.android.interactors.PermissionDestination
 import com.hypertrack.android.interactors.PermissionsInteractor
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.BaseViewModelDependencies
+import com.hypertrack.android.ui.base.postValue
 import com.hypertrack.android.utils.HyperTrackService
 
 class PermissionRequestViewModel(

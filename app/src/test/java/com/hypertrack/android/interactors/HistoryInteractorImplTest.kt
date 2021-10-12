@@ -39,29 +39,31 @@ class HistoryInteractorImplTest {
                 mockk(relaxed = true),
                 mockk(relaxed = true),
             ),
-            mockk(relaxed = true),
             scope
         )
+        interactor.refreshTodayHistory()
 
         interactor.history.observeForever {
             println(it.size)
         }
 
-        val dayCount = 100
+        val dayCount = 1000
 
         runBlocking {
             for (i in 1..dayCount) {
+                interactor.refreshTodayHistory()
                 interactor.loadHistory(LocalDate.now().plusDays(i.toLong()))
             }
         }
 
         while (true) {
             sleep(500)
-            if (!scope.isActive || interactor.history.requireValue().size == dayCount) {
+            //including today
+            if (!scope.isActive || interactor.history.requireValue().size == dayCount + 1) {
                 break
             }
         }
-        assertEquals(dayCount, interactor.history.requireValue().size)
+        assertEquals(dayCount + 1, interactor.history.requireValue().size)
     }
 
 }

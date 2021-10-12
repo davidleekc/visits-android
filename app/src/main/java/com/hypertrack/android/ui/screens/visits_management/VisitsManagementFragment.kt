@@ -9,8 +9,8 @@ import androidx.fragment.app.FragmentPagerAdapter
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.hypertrack.android.ui.base.BaseFragment
 import com.hypertrack.android.ui.base.ProgressDialogFragment
+import com.hypertrack.android.ui.base.navigate
 import com.hypertrack.android.ui.common.util.NotificationUtils
 import com.hypertrack.android.ui.common.util.SimplePageChangedListener
 import com.hypertrack.android.ui.common.util.SnackbarUtil

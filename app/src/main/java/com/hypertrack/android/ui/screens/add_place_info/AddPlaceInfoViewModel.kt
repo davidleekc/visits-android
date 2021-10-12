@@ -22,6 +22,7 @@ import com.hypertrack.android.repository.IntegrationsRepository
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.BaseViewModelDependencies
 import com.hypertrack.android.ui.base.Consumable
+import com.hypertrack.android.ui.base.postValue
 import com.hypertrack.android.ui.common.HypertrackMapWrapper
 import com.hypertrack.android.ui.common.MapParams
 import com.hypertrack.android.ui.common.Tab

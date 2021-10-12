@@ -18,7 +18,7 @@ class SummaryViewModel(
 ) : BaseViewModel(baseDependencies) {
 
     val summary: LiveData<List<SummaryItem>> = Transformations.map(historyInteractor.todayHistory) {
-        it.summary.let { summary ->
+        it?.summary?.let { summary ->
             listOf(
                 SummaryItem(
                     R.drawable.ic_ht_eta,

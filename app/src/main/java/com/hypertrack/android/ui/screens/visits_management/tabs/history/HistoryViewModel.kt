@@ -61,23 +61,27 @@ class HistoryViewModel(
         loadingState.postValue(true)
 
         tiles.addSource(history) {
-            if (it.locationTimePoints.isNotEmpty()) {
-                Log.d(TAG, "got new history $it")
-                val asTiles = historyToTiles(it, timeDistanceFormatter)
-                Log.d(TAG, "converted to tiles $asTiles")
-                tiles.postValue(asTiles)
-            } else {
-                Log.d(TAG, "Empty history")
-                tiles.postValue(emptyList())
+            it?.let {
+                if (it.locationTimePoints.isNotEmpty()) {
+                    Log.d(TAG, "got new history $it")
+                    val asTiles = historyToTiles(it, timeDistanceFormatter)
+                    Log.d(TAG, "converted to tiles $asTiles")
+                    tiles.postValue(asTiles)
+                } else {
+                    Log.d(TAG, "Empty history")
+                    tiles.postValue(emptyList())
+                }
             }
         }
 
         history.observeManaged {
-            loadingState.postValue(false)
-            val map = this.map
-            if (map != null) {
-                displayHistory(map, it)
-                moveMap(map, it, userLocation)
+            it?.let {
+                loadingState.postValue(false)
+                val map = this.map
+                if (map != null) {
+                    displayHistory(map, it)
+                    moveMap(map, it, userLocation)
+                }
             }
         }
 

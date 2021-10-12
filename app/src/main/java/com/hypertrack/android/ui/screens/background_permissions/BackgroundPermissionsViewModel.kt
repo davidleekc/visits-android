@@ -1,13 +1,11 @@
 package com.hypertrack.android.ui.screens.background_permissions
 
 import android.app.Activity
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.navigation.NavDirections
 import com.hypertrack.android.interactors.PermissionDestination
 import com.hypertrack.android.interactors.PermissionsInteractor
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.BaseViewModelDependencies
+import com.hypertrack.android.ui.base.postValue
 
 class BackgroundPermissionsViewModel(
     baseDependencies: BaseViewModelDependencies,

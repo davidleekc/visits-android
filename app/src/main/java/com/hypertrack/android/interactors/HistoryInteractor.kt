@@ -18,29 +18,27 @@ import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 
 interface HistoryInteractor {
-    val todayHistory: LiveData<History>
+    val todayHistory: LiveData<History?>
     val history: LiveData<Map<LocalDate, History>>
     val errorFlow: MutableSharedFlow<Consumable<Exception>>
     fun refreshTodayHistory()
     fun loadHistory(date: LocalDate)
 }
 
+//todo test
 class HistoryInteractorImpl(
     private val historyRepository: HistoryRepository,
-    private val osUtilsProvider: OsUtilsProvider,
     private val globalScope: CoroutineScope
 ) : HistoryInteractor {
 
     //todo update timer
     private var lastUpdate: ZonedDateTime? = null
 
-    override val todayHistory = MutableLiveData<History>()
+    override val todayHistory: LiveData<History?> = Transformations.map(historyRepository.history) {
+        it[LocalDate.now()]
+    }
 
-    override val history = Transformations.map(historyRepository.history) {
-        HashMap(it).apply {
-            todayHistory.value?.let { put(LocalDate.now(), it) }
-        }.toMap()
-    }.toHotTransformation().liveData
+    override val history = historyRepository.history
 
     override val errorFlow = MutableSharedFlow<Consumable<Exception>>(
         extraBufferCapacity = 1,
@@ -56,11 +54,11 @@ class HistoryInteractorImpl(
         ) {
             val updateTime = ZonedDateTime.now()
             globalScope.launch {
+                //adds today history to cache
                 val res = historyRepository.getHistory(LocalDate.now())
                 when (res) {
                     is History -> {
                         lastUpdate = updateTime
-                        todayHistory.postValue(res)
                     }
                     is HistoryError -> {
                         errorFlow.emit(

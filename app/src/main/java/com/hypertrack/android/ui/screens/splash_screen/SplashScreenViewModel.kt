@@ -8,6 +8,7 @@ import com.hypertrack.android.repository.AccountRepository
 import com.hypertrack.android.repository.DriverRepository
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.BaseViewModelDependencies
+import com.hypertrack.android.ui.base.postValue
 import com.hypertrack.android.utils.format
 import com.hypertrack.logistics.android.github.R
 import com.squareup.moshi.Moshi

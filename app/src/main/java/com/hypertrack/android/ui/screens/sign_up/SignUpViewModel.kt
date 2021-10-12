@@ -36,7 +36,7 @@ class SignUpViewModel(
                     when (res) {
                         ConfirmationRequired -> {
                             throw NotImplementedError()
-//                            destination.postValue(
+//                            destination.postConsumable(
 //                                SignUpFragmentDirections.actionSignUpFragmentToConfirmFragment(
 //                                    login
 //                                )
@@ -61,7 +61,7 @@ class SignUpViewModel(
 
     fun onSignInClicked() {
         throw NotImplementedError()
-//        destination.postValue(SignUpFragmentDirections.actionSignUpFragmentToSignInFragment(null))
+//        destination.postConsumable(SignUpFragmentDirections.actionSignUpFragmentToSignInFragment(null))
     }
 
     fun onBackPressed(): Boolean {

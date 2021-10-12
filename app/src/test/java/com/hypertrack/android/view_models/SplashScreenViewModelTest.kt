@@ -626,25 +626,27 @@ class SplashScreenVieswModelTest {
             driverRepository: DriverRepository = mockk(relaxed = true),
             accountRepository: AccountRepository = createAccountRepo(loggedIn),
         ) = SplashScreenViewModel(
-            driverRepository,
-            accountRepository,
-            crashReportsProvider,
-            mockk(relaxed = true),
             mockk(relaxed = true) {
-                every { isEmail(any()) } answers {
-                    firstArg<String>().contains("@")
-                }
-                every { stringFromResource(any(), any()) } answers {
-                    "${firstArg<Int>()}"
-                }
-                every { stringFromResource(any()) } answers {
-                    "${firstArg<Int>()}"
-                }
+                every { osUtilsProvider } returns mockk(relaxed = true) {
+                    every { isEmail(any()) } answers {
+                        firstArg<String>().contains("@")
+                    }
+                    every { stringFromResource(any(), any()) } answers {
+                        "${firstArg<Int>()}"
+                    }
+                    every { stringFromResource(any()) } answers {
+                        "${firstArg<Int>()}"
+                    }
 //                  every { getErrorMessage(any()) } answers {
 //                      print("ddd ${firstArg<Any>()}")
 //                      (firstArg() as Any).toString()
 //                  }
+                }
+                every { this@mockk.crashReportsProvider } returns crashReportsProvider
             },
+            driverRepository,
+            accountRepository,
+            mockk(relaxed = true),
             Injector.getMoshi(),
         )
 

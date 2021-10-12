@@ -5,10 +5,7 @@ import com.hypertrack.android.interactors.HistoryInteractor
 import com.hypertrack.android.interactors.PlacesVisitsInteractor
 import com.hypertrack.android.models.History
 import com.hypertrack.android.models.local.LocalGeofenceVisit
-import com.hypertrack.android.ui.base.BaseViewModel
-import com.hypertrack.android.ui.base.BaseViewModelDependencies
-import com.hypertrack.android.ui.base.Consumable
-import com.hypertrack.android.ui.base.SingleLiveEvent
+import com.hypertrack.android.ui.base.*
 import com.hypertrack.android.ui.common.util.requireValue
 import com.hypertrack.android.ui.screens.visits_management.VisitsManagementFragmentDirections
 

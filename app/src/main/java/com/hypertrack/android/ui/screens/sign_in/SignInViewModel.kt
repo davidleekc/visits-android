@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.hypertrack.android.interactors.*
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.BaseViewModelDependencies
+import com.hypertrack.android.ui.base.postValue
 import com.hypertrack.android.utils.*
 import com.hypertrack.logistics.android.github.R
 import kotlinx.coroutines.launch
@@ -100,7 +101,7 @@ class SignInViewModel(
     }
 
 //    fun onSignUpClick() {
-//        destination.postValue(SignInFragmentDirections.actionSignInFragmentToSignUpFragment())
+//        destination.postConsumable(SignInFragmentDirections.actionSignInFragmentToSignUpFragment())
 //    }
 
     fun Int.stringFromResource(): String {

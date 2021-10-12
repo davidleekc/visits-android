@@ -40,9 +40,8 @@ class AddPlaceInfoViewModelTest {
                 "",
                 "",
                 mockk(relaxed = true),
+                mockk(relaxed = true),
                 integrationsRepository,
-                mockk(relaxed = true),
-                mockk(relaxed = true),
                 mockk(relaxed = true),
                 mockk(relaxed = true),
             ).let {
@@ -72,9 +71,8 @@ class AddPlaceInfoViewModelTest {
                 "",
                 "",
                 mockk(relaxed = true),
+                mockk(relaxed = true),
                 integrationsRepository,
-                mockk(relaxed = true),
-                mockk(relaxed = true),
                 mockk(relaxed = true),
                 mockk(relaxed = true),
             ).let {
