@@ -6,10 +6,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.hypertrack.android.models.*
 import com.hypertrack.android.models.local.OrderStatus
 import com.hypertrack.android.repository.AccessTokenRepository
-import com.hypertrack.android.utils.CrashReportsProvider
-import com.hypertrack.android.utils.Injector
-import com.hypertrack.android.utils.MockData
-import com.hypertrack.android.utils.MyApplication
+import com.hypertrack.android.utils.*
 import com.hypertrack.logistics.android.github.BuildConfig
 import com.squareup.moshi.Moshi
 import kotlinx.coroutines.Dispatchers
@@ -363,6 +360,32 @@ class ApiClient(
         }
     }
 
+    suspend fun snoozeOrder(orderId: String, tripId: String): SimpleResult {
+        return try {
+            val res = api.snoozeOrder(tripId = tripId, orderId = orderId)
+            if (res.isSuccessful) {
+                JustSuccess
+            } else {
+                JustFailure(HttpException(res))
+            }
+        } catch (e: Exception) {
+            JustFailure(e)
+        }
+    }
+
+    suspend fun unsnoozeOrder(orderId: String, tripId: String): SimpleResult {
+        return try {
+            val res = api.unsnoozeOrder(tripId = tripId, orderId = orderId)
+            if (res.isSuccessful) {
+                JustSuccess
+            } else {
+                JustFailure(HttpException(res))
+            }
+        } catch (e: Exception) {
+            JustFailure(e)
+        }
+    }
+
     suspend fun getIntegrations(query: String? = null, limit: Int? = null): List<Integration> {
         val res = api.getIntegrations(query, limit)
         if (res.isSuccessful) {
@@ -490,3 +513,4 @@ object OrderCompletionSuccess : OrderCompletionResponse()
 object OrderCompletionCanceled : OrderCompletionResponse()
 object OrderCompletionCompleted : OrderCompletionResponse()
 class OrderCompletionFailure(val exception: Exception) : OrderCompletionResponse()
+

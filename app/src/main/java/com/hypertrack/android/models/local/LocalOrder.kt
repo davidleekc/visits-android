@@ -94,7 +94,11 @@ data class LocalOrder(
 }
 
 enum class OrderStatus(val value: String) {
-    ONGOING("ongoing"), COMPLETED("completed"), CANCELED("cancelled"), UNKNOWN("");
+    ONGOING("ongoing"),
+    COMPLETED("completed"),
+    CANCELED("cancelled"),
+    SNOOZED("snoozed"),
+    UNKNOWN("");
 
     companion object {
         fun fromString(str: String?): OrderStatus {

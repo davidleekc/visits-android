@@ -283,6 +283,42 @@
                 app:layout_constraintTop_toBottomOf="@+id/divider"
                 tools:visibility="visible" />
 
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/tvSnooze"
+                style="@style/LightButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                android:fontFamily="@font/medium"
+                android:gravity="center"
+                android:padding="10dp"
+                android:text="@string/order_snooze"
+                android:textColor="@color/colorWhite"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tvPickUp"
+                tools:visibility="visible" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/tvUnsnooze"
+                style="@style/LightButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                android:fontFamily="@font/medium"
+                android:gravity="center"
+                android:padding="10dp"
+                android:text="@string/order_unsnooze"
+                android:textColor="@color/colorWhite"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tvPickUp"
+                tools:visibility="visible" />
+
             <ImageView
                 android:id="@+id/divider2"
                 android:layout_width="0dp"
@@ -291,7 +327,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/tvPickUp"
+                app:layout_constraintTop_toBottomOf="@+id/tvSnooze"
                 app:srcCompat="@color/colorBlack" />
 
             <androidx.appcompat.widget.AppCompatTextView

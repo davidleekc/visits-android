@@ -57,12 +57,14 @@ class ComplexTripsTest {
                 mockk(relaxed = true),
                 mockk(relaxed = true),
                 mockk(relaxed = true),
+                mockk(relaxed = true),
             )
         val detailsVm2 =
             OrderDetailsViewModel(
                 "2",
                 mockk(relaxed = true),
                 tripsInteractor,
+                mockk(relaxed = true),
                 mockk(relaxed = true),
                 mockk(relaxed = true),
                 mockk(relaxed = true),

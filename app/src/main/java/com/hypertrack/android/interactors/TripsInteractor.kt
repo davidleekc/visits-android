@@ -14,10 +14,9 @@ import com.hypertrack.android.models.local.TripStatus
 import com.hypertrack.android.repository.*
 import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.common.util.nullIfBlank
+import com.hypertrack.android.ui.common.util.requireValue
 import com.hypertrack.android.ui.common.util.toHotTransformation
-import com.hypertrack.android.utils.HyperTrackService
-import com.hypertrack.android.utils.ImageDecoder
-import com.hypertrack.android.utils.OsUtilsProvider
+import com.hypertrack.android.utils.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -41,7 +40,16 @@ interface TripsInteractor {
     fun retryPhotoUpload(orderId: String, photoId: String)
     suspend fun createTrip(latLng: LatLng, address: String?): TripCreationResult
     suspend fun completeTrip(tripId: String)
-    suspend fun addOrderToTrip(tripId: String, latLng: LatLng, address: String?): AddOrderResult
+    suspend fun addOrderToTrip(
+        tripId: String,
+        latLng: LatLng,
+        address: String?
+    ): AddOrderResult
+}
+
+interface OrdersInteractor {
+    suspend fun snoozeOrder(orderId: String): SimpleResult
+    suspend fun unsnoozeOrder(orderId: String): SimpleResult
 }
 
 open class TripsInteractorImpl(
@@ -53,7 +61,7 @@ open class TripsInteractorImpl(
     private val osUtilsProvider: OsUtilsProvider,
     private val ioDispatcher: CoroutineDispatcher,
     private val globalScope: CoroutineScope
-) : TripsInteractor {
+) : TripsInteractor, OrdersInteractor {
 
     override val completedTrips = Transformations.map(tripsRepository.trips) {
         it.filter { it.status != TripStatus.ACTIVE }
@@ -89,12 +97,58 @@ open class TripsInteractorImpl(
     }
 
     override suspend fun completeOrder(orderId: String): OrderCompletionResponse {
-        if (hyperTrackService.isTracking.value == true) {
-            return withContext(globalScope.coroutineContext) {
+        return if (hyperTrackService.isTracking.value == true) {
+            withContext(globalScope.coroutineContext) {
                 setOrderCompletionStatus(orderId, canceled = false)
             }
         } else {
-            return OrderCompletionFailure(NotClockedInException)
+            OrderCompletionFailure(NotClockedInException)
+        }
+    }
+
+    override suspend fun snoozeOrder(orderId: String): SimpleResult {
+        return if (hyperTrackService.isTracking.value == true) {
+            withContext(globalScope.coroutineContext) {
+                try {
+                    currentTrip.value!!.let { trip ->
+                        trip.getOrder(orderId = orderId)!!.let { order ->
+                            if (!order.legacy) {
+                                updateOrderMetadata(trip.id, order)
+                                apiClient.snoozeOrder(orderId = orderId, tripId = trip.id)
+                                    .let { res ->
+                                        if (res is JustSuccess) {
+                                            tripsRepository.updateLocalOrder(orderId) {
+                                                it.status = OrderStatus.SNOOZED
+                                            }
+                                        }
+                                        globalScope.launch {
+                                            refreshTrips()
+                                        }
+                                        res
+                                    }
+                            } else {
+                                JustFailure(IllegalArgumentException("Can't snooze legacy order"))
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    JustFailure(e)
+                }
+            }
+        } else {
+            JustFailure(NotClockedInException)
+        }
+    }
+
+    override suspend fun unsnoozeOrder(orderId: String): SimpleResult {
+        return try {
+            onlyWhenClockedIn {
+                currentTrip.value!!.let { trip ->
+                    apiClient.unsnoozeOrder(tripId = trip.id, orderId = orderId)
+                }
+            }
+        } catch (e: Exception) {
+            JustFailure(e)
         }
     }
 
@@ -243,24 +297,7 @@ open class TripsInteractorImpl(
 //                            }
 //                        }
                     } else {
-                        val metadata = (order._metadata ?: Metadata.empty())
-                        if (
-                            metadata.visitsAppMetadata.note != order.note
-                            || !(metadata.visitsAppMetadata.photos ?: listOf())
-                                .hasSameContent(order.photos.map { it.photoId }.toList())
-                        ) {
-                            val mdRes = apiClient.updateOrderMetadata(
-                                orderId = orderId,
-                                tripId = trip.id,
-                                metadata = metadata.apply {
-                                    visitsAppMetadata.note = order.note
-                                    visitsAppMetadata.photos = order.photos.map { it.photoId }
-                                }
-                            )
-                            if (!mdRes.isSuccessful) {
-                                throw HttpException(mdRes)
-                            }
-                        }
+                        updateOrderMetadata(trip.id, order)
 
                         val res = if (!canceled) {
                             apiClient.completeOrder(orderId = orderId, tripId = trip.id)
@@ -294,6 +331,28 @@ open class TripsInteractorImpl(
         }
     }
 
+    private suspend fun updateOrderMetadata(tripId: String, order: LocalOrder) {
+        val orderId = order.id
+        val metadata = (order._metadata ?: Metadata.empty())
+        if (
+            metadata.visitsAppMetadata.note != order.note
+            || !(metadata.visitsAppMetadata.photos ?: listOf())
+                .hasSameContent(order.photos.map { it.photoId }.toList())
+        ) {
+            val mdRes = apiClient.updateOrderMetadata(
+                orderId = orderId,
+                tripId = tripId,
+                metadata = metadata.apply {
+                    visitsAppMetadata.note = order.note
+                    visitsAppMetadata.photos = order.photos.map { it.photoId }
+                }
+            )
+            if (!mdRes.isSuccessful) {
+                throw HttpException(mdRes)
+            }
+        }
+    }
+
     fun logState(): Map<String, Any?> {
         return mapOf(
             "currentTrip" to currentTrip.value?.let { trip ->
@@ -310,6 +369,14 @@ open class TripsInteractorImpl(
             }
         )
 
+    }
+
+    private suspend fun <T> onlyWhenClockedIn(code: (suspend () -> T)): T {
+        return if (hyperTrackService.isTracking.value == true) {
+            code.invoke()
+        } else {
+            throw NotClockedInException
+        }
     }
 
 }

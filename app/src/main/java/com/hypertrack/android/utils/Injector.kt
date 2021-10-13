@@ -243,6 +243,7 @@ object Injector {
 
         val userScope = UserScope(
             tripsInteractor,
+            tripsInteractor,
             TripsUpdateTimerInteractor(tripsInteractor),
             placesInteractor,
             placesVisitsInteractor,
@@ -398,6 +399,7 @@ class TripCreationScope(
 
 class UserScope(
     val tripsInteractor: TripsInteractor,
+    val ordersInteractor: OrdersInteractor,
     val tripsUpdateTimerInteractor: TripsUpdateTimerInteractor,
     val placesInteractor: PlacesInteractor,
     val placesVisitsInteractor: PlacesVisitsInteractor,

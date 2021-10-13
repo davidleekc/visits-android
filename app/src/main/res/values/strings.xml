@@ -142,8 +142,11 @@
 
     <string name="order_complete">Complete</string>
     <string name="order_cancel">Cancel</string>
+    <string name="order_snooze">Snooze</string>
+    <string name="order_unsnooze">Un-Snooze</string>
     <string name="order_save_note">Save</string>
     <string name="order_cancel_note">Discard</string>
+    <string name="order_snooze_confirmation">Are you sure you want to SNOOZE this order?</string>
     <string name="order_cancel_confirmation">Are you sure you want to CANCEL this order?</string>
     <string name="order_complete_confirmation">Are you sure you want to COMPLETE this order?</string>
     <string name="order_note_hint">Enter order notes</string>

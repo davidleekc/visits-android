@@ -90,6 +90,16 @@ class OrderDetailsFragment : ProgressDialogFragment(R.layout.fragment_order_deta
             divider.setGoneState(!it)
         })
 
+        vm.showSnoozeButton.observe(viewLifecycleOwner, {
+            tvSnooze.setGoneState(!it)
+            divider.setGoneState(!it)
+        })
+
+        vm.showUnsnoozeButton.observe(viewLifecycleOwner, {
+            tvUnsnooze.setGoneState(!it)
+            divider.setGoneState(!it)
+        })
+
         vm.showPhotosGroup.observe(viewLifecycleOwner, {
             photosGroup.setGoneState(!it)
         })
@@ -139,7 +149,15 @@ class OrderDetailsFragment : ProgressDialogFragment(R.layout.fragment_order_deta
         }
 
         tvPickUp.setOnClickListener {
-            vm.onPickUpClicked()
+            createSnoozeDialog().show()
+        }
+
+        tvSnooze.setOnClickListener {
+            vm.onSnoozeClicked()
+        }
+
+        tvUnsnooze.setOnClickListener {
+            vm.onUnsnoozeClicked()
         }
 
         bDirections.setOnClickListener {
@@ -170,6 +188,18 @@ class OrderDetailsFragment : ProgressDialogFragment(R.layout.fragment_order_deta
                     .let { createBoldSpannable(it, it.indexOf("COMPLETE"), "COMPLETE".length) })
             .setPositiveButton(R.string.yes, DialogInterface.OnClickListener { dialog, which ->
                 vm.onCompleteClicked(etVisitNote.textString())
+            })
+            .setNegativeButton(R.string.no, null)
+            .create()
+    }
+
+    private fun createSnoozeDialog(): AlertDialog {
+        return AlertDialog.Builder(requireContext())
+            .setMessage(
+                R.string.order_snooze_confirmation.stringFromResource()
+                    .let { createBoldSpannable(it, it.indexOf("SNOOZE"), "SNOOZE".length) })
+            .setPositiveButton(R.string.yes, DialogInterface.OnClickListener { dialog, which ->
+                vm.onSnoozeClicked()
             })
             .setNegativeButton(R.string.no, null)
             .create()

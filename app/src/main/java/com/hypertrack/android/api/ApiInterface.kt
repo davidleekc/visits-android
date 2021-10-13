@@ -106,6 +106,18 @@ interface ApiInterface {
         @Path("order_id") orderId: String,
     ): Response<Void>
 
+    @POST("client/trips/{trip_id}/orders/{order_id}/disable")
+    suspend fun snoozeOrder(
+        @Path("trip_id") tripId: String,
+        @Path("order_id") orderId: String,
+    ): Response<Void>
+
+    @POST("client/trips/{trip_id}/orders/{order_id}/enable")
+    suspend fun unsnoozeOrder(
+        @Path("trip_id") tripId: String,
+        @Path("order_id") orderId: String,
+    ): Response<Void>
+
     @PATCH("client/trips/{trip_id}/orders/{order_id}")
     suspend fun updateOrder(
         @Path("trip_id") tripId: String,

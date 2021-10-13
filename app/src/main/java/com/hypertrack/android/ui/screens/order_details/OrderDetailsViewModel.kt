@@ -18,6 +18,9 @@ import com.hypertrack.android.ui.common.KeyValueItem
 import com.hypertrack.android.ui.common.delegates.OrderAddressDelegate
 import com.hypertrack.android.ui.common.util.format
 import com.hypertrack.android.ui.common.util.requireValue
+import com.hypertrack.android.utils.JustFailure
+import com.hypertrack.android.utils.JustSuccess
+import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.android.utils.formatters.DatetimeFormatter
 import com.hypertrack.logistics.android.github.R
 import kotlinx.coroutines.launch
@@ -28,6 +31,7 @@ class OrderDetailsViewModel(
     private val orderId: String,
     baseDependencies: BaseViewModelDependencies,
     private val tripsInteractor: TripsInteractor,
+    private val ordersInteractor: OrdersInteractor,
     private val photoUploadInteractor: PhotoUploadQueueInteractor,
     private val accountRepository: AccountRepository,
     private val datetimeFormatter: DatetimeFormatter,
@@ -96,6 +100,12 @@ class OrderDetailsViewModel(
     val showPickUpButton = Transformations.map(order) {
         it.legacy && !it.isPickedUp && it.status == OrderStatus.ONGOING && accountRepository.isPickUpAllowed
     }
+    val showSnoozeButton = Transformations.map(order) {
+        !it.legacy && it.status == OrderStatus.ONGOING
+    }
+    val showUnsnoozeButton = Transformations.map(order) {
+        !it.legacy && it.status == OrderStatus.SNOOZED
+    }
     val externalMapsIntent = MutableLiveData<Consumable<Intent>>()
 
     init {
@@ -151,6 +161,30 @@ class OrderDetailsViewModel(
     fun onPickUpClicked() {
         viewModelScope.launch {
             tripsInteractor.setOrderPickedUp(orderId)
+        }
+    }
+
+    fun onSnoozeClicked() {
+        viewModelScope.launch {
+            ordersInteractor.snoozeOrder(orderId).let {
+                when (it) {
+                    JustSuccess -> {
+                    }
+                    is JustFailure -> errorHandler.postException(it.exception)
+                }
+            }
+        }
+    }
+
+    fun onUnsnoozeClicked() {
+        viewModelScope.launch {
+            ordersInteractor.unsnoozeOrder(orderId).let {
+                when (it) {
+                    JustSuccess -> {
+                    }
+                    is JustFailure -> errorHandler.postException(it.exception)
+                }
+            }
         }
     }
 

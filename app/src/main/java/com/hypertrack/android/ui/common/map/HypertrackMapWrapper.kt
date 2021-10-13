@@ -251,7 +251,7 @@ class HypertrackMapWrapper(
                             OrderStatus.COMPLETED -> {
                                 completedOrderIcon
                             }
-                            OrderStatus.CANCELED, OrderStatus.UNKNOWN -> {
+                            OrderStatus.CANCELED, OrderStatus.UNKNOWN, OrderStatus.SNOOZED -> {
                                 canceledOrderIcon
                             }
                         }
