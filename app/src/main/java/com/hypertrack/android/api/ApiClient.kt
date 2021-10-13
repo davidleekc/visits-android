@@ -161,7 +161,7 @@ class ApiClient(
             if (response.isSuccessful) {
                 // Log.v(TAG, "Got response ${response.body()}")
                 return response.body()?.trips?.filterNot {
-                    it.destination == null || it.id.isEmpty()
+                    it.destination == null || it.id.isNullOrEmpty()
                 }
                     ?: emptyList()
             }

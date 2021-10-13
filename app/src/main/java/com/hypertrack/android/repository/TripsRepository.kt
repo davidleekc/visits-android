@@ -159,7 +159,7 @@ class TripsRepositoryImpl(
             val localTrips = tripsStorage.getTrips().toMap { it.id }
             val newTrips = remoteTrips.map { remoteTrip ->
                 if (remoteTrip.id in localTrips.keys) {
-                    val localTrip = localTrips.getValue(remoteTrip.id)
+                    val localTrip = localTrips.getValue(remoteTrip.id!!)
                     val remoteOrders = (remoteTrip.orders ?: listOf())
                     val localOrders = localTrip.orders
 
@@ -197,7 +197,7 @@ class TripsRepositoryImpl(
     @Suppress("UNCHECKED_CAST")
     private fun localTripFromRemote(remoteTrip: Trip, newLocalOrders: List<LocalOrder>): LocalTrip {
         return LocalTrip(
-            remoteTrip.id,
+            remoteTrip.id!!,
             TripStatus.fromString(remoteTrip.status),
             ((remoteTrip.metadata ?: mapOf<String, String>())
                 .filter { it.value is String } as Map<String, String>)
@@ -227,7 +227,7 @@ class TripsRepositoryImpl(
 
     private fun createLegacyRemoteOrder(trip: Trip): Order {
         return Order(
-            id = trip.id,
+            id = trip.id!!,
             destination = trip.destination!!,
             _status = OrderStatus.ONGOING.value,
             scheduledAt = null,

@@ -233,8 +233,8 @@ data class ImageResponse(
 
 @JsonClass(generateAdapter = true)
 data class Trip(
-    @field:Json(name = "trip_id") val id: String,
-    @field:Json(name = "views") val views: Views,
+    @field:Json(name = "trip_id") val id: String?,
+    @field:Json(name = "views") val views: Views?,
     @field:Json(name = "status") val status: String,
     @field:Json(name = "started_at") val createdAt: String,
     @field:Json(name = "metadata") val metadata: Map<String, Any>?,
