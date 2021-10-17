@@ -129,7 +129,6 @@ class OrdersDetailsViewModelLegacyTest {
                 "1",
                 tripsInteractor,
                 pickUpAllowed,
-                scope = this
             )
             tripsInteractor.refreshTrips()
 

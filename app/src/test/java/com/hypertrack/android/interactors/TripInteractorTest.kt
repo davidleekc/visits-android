@@ -535,7 +535,10 @@ class TripInteractorTest {
             }
         }
 
-        fun createMockApiClient(backendTrips: List<Trip> = listOf()): ApiClient {
+        fun createMockApiClient(
+            backendTrips: List<Trip> = listOf(),
+            additionalConfig: (ApiClient) -> Unit = {}
+        ): ApiClient {
             return mockk {
                 coEvery { getTrips() } returns backendTrips
                 coEvery { completeOrder(any(), any()) } returns OrderCompletionSuccess
@@ -554,6 +557,7 @@ class TripInteractorTest {
                     })
                     Response.success(trip)
                 }
+                additionalConfig.invoke(this)
             }
         }
 
