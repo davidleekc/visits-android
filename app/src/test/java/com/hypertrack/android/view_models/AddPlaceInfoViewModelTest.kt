@@ -50,7 +50,7 @@ class AddPlaceInfoViewModelTest {
                 runBlocking {
                     assertEquals(
                         AddPlaceInfoFragmentDirections.actionAddPlaceInfoFragmentToAddIntegrationFragment(),
-                        it.destination.observeAndGetValue()
+                        it.destination.observeAndGetValue().payload
                     )
                     coVerify {
                         integrationsRepository.hasIntegrations()

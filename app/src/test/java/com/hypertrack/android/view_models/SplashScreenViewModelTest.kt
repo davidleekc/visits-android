@@ -31,7 +31,7 @@ class SplashScreenVieswModelTest {
     fun `handle empty deeplink`() {
         val vm = createVm()
         vm.handleDeeplink(mapOf(), mockk(relaxed = true))
-        vm.destination.observeAndGetValue().let {
+        vm.destination.observeAndGetValue().payload.let {
             assertEquals(
                 SplashScreenFragmentDirections.actionSplashScreenFragmentToSignInFragment(),
                 it
@@ -44,7 +44,7 @@ class SplashScreenVieswModelTest {
         val driverRepository: DriverRepository = mockk(relaxed = true)
         val vm = createVm(driverRepository = driverRepository, loggedIn = true)
         vm.handleDeeplink(mapOf(), mockk(relaxed = true))
-        vm.destination.observeAndGetValue().let {
+        vm.destination.observeAndGetValue().payload.let {
             assertEquals(
                 SplashScreenFragmentDirections.actionGlobalVisitManagementFragment(),
                 it
@@ -71,7 +71,7 @@ class SplashScreenVieswModelTest {
         vm.errorHandler.errorText.observeAndGetValue().let {
             assertEquals(R.string.splash_screen_invalid_link.toString(), it.value)
         }
-        vm.destination.observeAndGetValue().let {
+        vm.destination.observeAndGetValue().payload.let {
             assertEquals(
                 SplashScreenFragmentDirections.actionSplashScreenFragmentToSignInFragment(),
                 it
@@ -96,7 +96,7 @@ class SplashScreenVieswModelTest {
         vm.errorHandler.errorText.observeAndGetValue().let {
             assertEquals(R.string.splash_screen_invalid_link.toString(), it.value)
         }
-        vm.destination.observeAndGetValue().let {
+        vm.destination.observeAndGetValue().payload.let {
             assertEquals(
                 SplashScreenFragmentDirections.actionGlobalVisitManagementFragment(),
                 it
@@ -127,7 +127,7 @@ class SplashScreenVieswModelTest {
         vm.errorHandler.errorText.observeAndGetValue().let {
             assertEquals(R.string.splash_screen_invalid_link.toString(), it.value)
         }
-        vm.destination.observeAndGetValue().let {
+        vm.destination.observeAndGetValue().payload.let {
             assertEquals(
                 SplashScreenFragmentDirections.actionSplashScreenFragmentToSignInFragment(),
                 it
@@ -155,7 +155,7 @@ class SplashScreenVieswModelTest {
         vm.errorHandler.errorText.observeAndGetValue().let {
             assertEquals(R.string.splash_screen_invalid_link.toString(), it.value)
         }
-        vm.destination.observeAndGetValue().let {
+        vm.destination.observeAndGetValue().payload.let {
             assertEquals(
                 SplashScreenFragmentDirections.actionGlobalVisitManagementFragment(),
                 it
@@ -174,7 +174,7 @@ class SplashScreenVieswModelTest {
         fun assertCheck(vm: SplashScreenViewModel, driverId: String) {
             vm.errorHandler.errorText.observeAndAssertNull()
 
-            vm.destination.observeAndGetValue().let {
+            vm.destination.observeAndGetValue().payload.let {
                 assertEquals(
                     SplashScreenFragmentDirections.actionGlobalVisitManagementFragment(),
                     it
@@ -221,7 +221,7 @@ class SplashScreenVieswModelTest {
         fun assertCheck(vm: SplashScreenViewModel, driverId: String) {
             vm.errorHandler.errorText.observeAndAssertNull()
 
-            vm.destination.observeAndGetValue().let {
+            vm.destination.observeAndGetValue().payload.let {
                 assertEquals(
                     SplashScreenFragmentDirections.actionGlobalVisitManagementFragment(),
                     it
@@ -277,7 +277,7 @@ class SplashScreenVieswModelTest {
         fun assertCheck(vm: SplashScreenViewModel) {
             vm.errorHandler.errorText.observeAndAssertNull()
 
-            vm.destination.observeAndGetValue().let {
+            vm.destination.observeAndGetValue().payload.let {
                 assertEquals(
                     SplashScreenFragmentDirections.actionGlobalVisitManagementFragment(),
                     it
@@ -323,7 +323,7 @@ class SplashScreenVieswModelTest {
         fun assertCheck(vm: SplashScreenViewModel) {
             vm.errorHandler.errorText.observeAndAssertNull()
 
-            vm.destination.observeAndGetValue().let {
+            vm.destination.observeAndGetValue().payload.let {
                 assertEquals(
                     SplashScreenFragmentDirections.actionGlobalVisitManagementFragment(),
                     it
@@ -388,7 +388,7 @@ class SplashScreenVieswModelTest {
 
             vm.errorHandler.errorText.observeAndAssertNull()
 
-            vm.destination.observeAndGetValue().let {
+            vm.destination.observeAndGetValue().payload.let {
                 assertEquals(
                     SplashScreenFragmentDirections.actionGlobalVisitManagementFragment(),
                     it
@@ -428,7 +428,7 @@ class SplashScreenVieswModelTest {
 
             vm.errorHandler.errorText.observeAndAssertNull()
 
-            vm.destination.observeAndGetValue().let {
+            vm.destination.observeAndGetValue().payload.let {
                 assertEquals(
                     SplashScreenFragmentDirections.actionGlobalVisitManagementFragment(),
                     it
@@ -484,7 +484,7 @@ class SplashScreenVieswModelTest {
         vm.errorHandler.errorText.observeAndGetValue().let {
             assertEquals("Exception: Invalid publishable_key", it.value)
         }
-        vm.destination.observeAndGetValue().let {
+        vm.destination.observeAndGetValue().payload.let {
             assertEquals(
                 SplashScreenFragmentDirections.actionSplashScreenFragmentToSignInFragment(),
                 it
@@ -510,7 +510,7 @@ class SplashScreenVieswModelTest {
         vm.errorHandler.errorText.observeAndGetValue().let {
             assertEquals("Exception: Invalid publishable_key", it.value)
         }
-        vm.destination.observeAndGetValue().let {
+        vm.destination.observeAndGetValue().payload.let {
             assertEquals(
                 SplashScreenFragmentDirections.actionGlobalVisitManagementFragment(),
                 it
@@ -536,7 +536,7 @@ class SplashScreenVieswModelTest {
                 assertEquals(R.string.splash_screen_invalid_link.toString(), it.value)
             }
 
-            vm.destination.observeAndGetValue().let {
+            vm.destination.observeAndGetValue().payload.let {
                 assertEquals(
                     SplashScreenFragmentDirections.actionGlobalVisitManagementFragment(),
                     it
@@ -558,7 +558,7 @@ class SplashScreenVieswModelTest {
                 assertEquals(R.string.splash_screen_invalid_link.toString(), it.value)
             }
 
-            vm.destination.observeAndGetValue().let {
+            vm.destination.observeAndGetValue().payload.let {
                 assertEquals(
                     SplashScreenFragmentDirections.actionSplashScreenFragmentToSignInFragment(),
                     it
@@ -607,7 +607,7 @@ class SplashScreenVieswModelTest {
 
             vm.errorHandler.errorText.observeAndAssertNull()
 
-            vm.destination.observeAndGetValue().let {
+            vm.destination.observeAndGetValue().payload.let {
                 assertEquals(
                     SplashScreenFragmentDirections.actionGlobalVisitManagementFragment(),
                     it
