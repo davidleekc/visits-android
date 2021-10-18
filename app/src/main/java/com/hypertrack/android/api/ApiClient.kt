@@ -156,11 +156,9 @@ class ApiClient(
         try {
             val response = api.getTrips(deviceId, page)
             if (response.isSuccessful) {
-                // Log.v(TAG, "Got response ${response.body()}")
                 return response.body()?.trips?.filterNot {
-                    it.destination == null || it.id.isNullOrEmpty()
-                }
-                    ?: emptyList()
+                    it.id.isNullOrEmpty()
+                } ?: emptyList()
             }
         } catch (e: Exception) {
             Log.w(TAG, "Got exception while trying to refresh trips $e")
@@ -297,14 +295,14 @@ class ApiClient(
         }
     }
 
-    suspend fun completeTrip(tripId: String): TripCompletionResult {
+    suspend fun completeTrip(tripId: String): SimpleResult {
         return try {
             with(api.completeTrip(tripId)) {
-                if (isSuccessful) TripCompletionSuccess
-                else TripCompletionError(HttpException(this))
+                if (isSuccessful) JustSuccess
+                else JustFailure(HttpException(this))
             }
-        } catch (t: Throwable) {
-            TripCompletionError(t)
+        } catch (e: Exception) {
+            JustFailure(e)
         }
     }
 

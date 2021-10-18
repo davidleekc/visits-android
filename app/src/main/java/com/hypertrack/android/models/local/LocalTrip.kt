@@ -17,7 +17,7 @@ data class LocalTrip(
 ) {
 
     val nextOrder: LocalOrder?
-        get() = orders.firstOrNull()
+        get() = ongoingOrders.firstOrNull()
 
     val ongoingOrders: List<LocalOrder>
         get() = orders.filter { it.status == OrderStatus.ONGOING }

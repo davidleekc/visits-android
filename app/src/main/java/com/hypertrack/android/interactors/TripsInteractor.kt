@@ -39,7 +39,7 @@ interface TripsInteractor {
     suspend fun addPhotoToOrder(orderId: String, path: String)
     fun retryPhotoUpload(orderId: String, photoId: String)
     suspend fun createTrip(latLng: LatLng, address: String?): TripCreationResult
-    suspend fun completeTrip(tripId: String)
+    suspend fun completeTrip(tripId: String): SimpleResult
     suspend fun addOrderToTrip(
         tripId: String,
         latLng: LatLng,
@@ -224,14 +224,20 @@ open class TripsInteractorImpl(
         }
     }
 
-    override suspend fun completeTrip(tripId: String) {
-        globalScope.launch {
-            try {
-                tripsRepository.completeTrip(tripId)
-                refreshTrips()
-            } catch (e: Exception) {
-                errorFlow.emit(Consumable(e))
+    override suspend fun completeTrip(tripId: String): SimpleResult {
+        return try {
+            tripsRepository.completeTrip(tripId).let {
+                when (it) {
+                    JustSuccess -> {
+                        refreshTrips()
+                        it
+                    }
+                    is JustFailure -> it
+                }
             }
+
+        } catch (e: Exception) {
+            JustFailure(e)
         }
     }
 
@@ -282,7 +288,7 @@ open class TripsInteractorImpl(
                         //todo completion is disabled regarding to Indiabulls use-case
 //                        val res = apiClient.completeTrip(order.id)
 //                        when (res) {
-//                            TripCompletionSuccess -> {
+//                            JustSuccess -> {
 //                                updateCurrentTripOrderStatus(
 //                                    orderId, if (!canceled) {
 //                                        OrderStatus.COMPLETED

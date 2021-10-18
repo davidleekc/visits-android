@@ -521,7 +521,3 @@ class OrderParams(
     @field:Json(name = "destination") val destination: TripDestination?,
 ) {
 }
-
-sealed class TripCompletionResult
-class TripCompletionError(val error: Throwable?) : TripCompletionResult()
-object TripCompletionSuccess : TripCompletionResult()

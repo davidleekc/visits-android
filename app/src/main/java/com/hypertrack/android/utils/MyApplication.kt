@@ -82,7 +82,3 @@ class MyApplication : Application() {
         lateinit var context: Context
     }
 }
-
-enum class Destination {
-    SPLASH_SCREEN, LOGIN, DRIVER_ID_INPUT, PERMISSION_REQUEST, VISITS_MANAGEMENT, VISIT_DETAILS
-}

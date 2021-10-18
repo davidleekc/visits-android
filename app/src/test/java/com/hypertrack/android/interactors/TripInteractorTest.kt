@@ -15,6 +15,7 @@ import com.hypertrack.android.observeAndAssertNull
 import com.hypertrack.android.observeAndGetValue
 import com.hypertrack.android.repository.*
 import com.hypertrack.android.utils.HyperTrackService
+import com.hypertrack.android.utils.JustSuccess
 import io.mockk.*
 import io.mockk.coVerify
 import junit.framework.Assert.*
@@ -332,7 +333,7 @@ class TripInteractorTest {
         )
         val apiClient: ApiClient = mockk(relaxed = true) {
             coEvery { getTrips() } returns backendTrips
-            coEvery { completeTrip(any()) } returns TripCompletionSuccess
+            coEvery { completeTrip(any()) } returns JustSuccess
             coEvery { updateOrderMetadata(any(), any(), any()) } returns Response.success(trip)
         }
         val tripsInteractorImpl = createTripInteractorImpl(
@@ -363,7 +364,7 @@ class TripInteractorTest {
         )
         val apiClient: ApiClient = mockk(relaxed = true) {
             coEvery { getTrips() } returns backendTrips
-            coEvery { completeTrip(any()) } returns TripCompletionSuccess
+            coEvery { completeTrip(any()) } returns JustSuccess
             coEvery { updateOrderMetadata(any(), any(), any()) } returns Response.success(trip)
         }
         val tripsInteractorImpl = createTripInteractorImpl(
@@ -396,7 +397,7 @@ class TripInteractorTest {
         )
         val apiClient: ApiClient = mockk(relaxed = true) {
             coEvery { getTrips() } returns backendTrips
-            coEvery { completeTrip(any()) } returns TripCompletionSuccess
+            coEvery { completeTrip(any()) } returns JustSuccess
             coEvery { completeOrder(any(), any()) } returns OrderCompletionSuccess
             coEvery { cancelOrder(any(), any()) } returns OrderCompletionSuccess
             coEvery { updateOrderMetadata(any(), any(), any()) } returns Response.success(
@@ -478,7 +479,7 @@ class TripInteractorTest {
 //        )
 //        val apiClient: ApiClient = mockk {
 //            coEvery { getTrips() } returns backendTrips
-//            coEvery { completeTrip(any()) } returns TripCompletionSuccess
+//            coEvery { completeTrip(any()) } returns JustSuccess
 //        }
 //        val tripsInteractorImpl = createTripInteractorImpl(
 //            backendTrips = backendTrips,
@@ -503,7 +504,7 @@ class TripInteractorTest {
 //        )
 //        val apiClient: ApiClient = mockk {
 //            coEvery { getTrips() } returns backendTrips
-//            coEvery { completeTrip(any()) } returns TripCompletionSuccess
+//            coEvery { completeTrip(any()) } returns JustSuccess
 //        }
 //        val tripsInteractorImpl = createTripInteractorImpl(
 //            backendTrips = backendTrips,

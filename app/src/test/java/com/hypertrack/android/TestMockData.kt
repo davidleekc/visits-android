@@ -8,26 +8,6 @@ object TestMockData {
                "links" : {},
                "data" : [
                   {
-                     "device_id" : "42",
-                     "analytics" : {},
-                     "completed_at" : null,
-                     "status" : "active",
-                     "metadata" : {
-                        "reason" : "api-test"
-                     },
-                     "device_info" : {
-                        "sdk_version" : "4.3.1",
-                        "os_version" : "10"
-                     },
-                     "views" : {
-                        "embed_url" : "https://embed.hypertrack.com/trips/0201c34b-53a8-4a4d-9c3d-cd28effd36e3?publishable_key=uvIAA8xJANxUxDgINOX62-LINLuLeymS6JbGieJ9PegAPITcr9fgUpROpfSMdL9kv-qFjl17NeAuBHse8Qu9sw",
-                        "share_url" : "https://trck.at/mmmnt3kpsc"
-                     },
-                     "trip_id" : "0201c34b-53a8-4a4d-9c3d-cd28effd36e3",
-                     "summary" : null,
-                     "started_at" : "2020-09-15T07:40:32.643897Z"
-                  },
-                  {
                      "estimate" : {
                         "arrive_at" : "2020-09-15T09:28:38.176257Z",
                         "route" : {
@@ -194,26 +174,6 @@ object TestMockData {
                         }
                      },
                      "started_at" : "2020-09-15T07:51:38.828420Z"
-                  },
-                  {
-                     "device_id" : "42",
-                     "completed_at" : null,
-                     "analytics" : {},
-                     "device_info" : {
-                        "os_version" : "10",
-                        "sdk_version" : "4.3.1"
-                     },
-                     "metadata" : {
-                        "reason" : "api-test"
-                     },
-                     "status" : "active",
-                     "summary" : null,
-                     "views" : {
-                        "embed_url" : "https://embed.hypertrack.com/trips/9b5c5fa6-4f77-4ed6-b03f-4e19c238b8f0?publishable_key=uvIAA8xJANxUxDgINOX62-LINLuLeymS6JbGieJ9PegAPITcr9fgUpROpfSMdL9kv-qFjl17NeAuBHse8Qu9sw",
-                        "share_url" : "https://trck.at/mmmntqv5qd"
-                     },
-                     "trip_id" : "9b5c5fa6-4f77-4ed6-b03f-4e19c238b8f0",
-                     "started_at" : "2020-09-15T07:58:07.937579Z"
                   }
                ]
             }

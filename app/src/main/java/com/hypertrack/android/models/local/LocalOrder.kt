@@ -69,13 +69,15 @@ data class LocalOrder(
         }
 
     val awaySeconds: Long?
-        get() = estimate?.let {
-            it.arriveAt?.let { arriveAt ->
-                ChronoUnit.SECONDS.between(
-                    ZonedDateTime.now(),
-                    datetimeFromString(arriveAt)
-                ).let {
-                    if (it < 0) null else it
+        get() {
+            return estimate?.let {
+                it.arriveAt?.let { arriveAt ->
+                    ChronoUnit.SECONDS.between(
+                        ZonedDateTime.now(),
+                        datetimeFromString(arriveAt)
+                    ).let {
+                        if (it < 0) null else it
+                    }
                 }
             }
         }

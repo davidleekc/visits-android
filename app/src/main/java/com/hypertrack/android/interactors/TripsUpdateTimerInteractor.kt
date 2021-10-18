@@ -19,7 +19,6 @@ class TripsUpdateTimerInteractor(
             updateJob = GlobalScope.launch {
                 while (true) {
                     delay(ETA_UPDATE_PERIOD)
-                    Log.v("hypertrack-verbose", "timer")
                     tripsInteractor.refreshTrips()
                 }
             }

@@ -42,8 +42,26 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:paddingLeft="@dimen/content_padding"
-            android:paddingTop="@dimen/content_padding"
-            android:paddingBottom="@dimen/content_padding">
+            android:paddingTop="@dimen/content_padding">
+
+            <Button
+                android:id="@+id/bCompleteTrip"
+                style="@style/ShareTripButtonStyleLive"
+                android:layout_width="96dp"
+                android:layout_height="40dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_info"
+                android:text="@string/current_trip_complete"
+                android:textColor="@color/colorHyperTrackGreen"
+                android:textSize="14dp"
+                android:textStyle="bold"
+                android:visibility="visible"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/trips_count" />
+
+            <androidx.constraintlayout.widget.Group
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
 
             <TextView
                 android:id="@+id/trip_to"
@@ -67,15 +85,15 @@
                 android:id="@+id/destination_address"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
                 android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
                 android:ellipsize="end"
                 android:lines="1"
+                android:singleLine="true"
                 android:textSize="16dp"
                 android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="@id/destination_icon"
                 app:layout_constraintEnd_toStartOf="@+id/linearLayout2"
-                app:layout_constraintRight_toLeftOf="@id/endTripButton"
                 app:layout_constraintStart_toEndOf="@+id/destination_icon"
                 app:layout_constraintTop_toTopOf="@id/destination_icon" />
 
@@ -87,7 +105,10 @@
                 android:drawableStart="@drawable/eta"
                 android:drawablePadding="4dp"
                 android:textSize="18sp"
+                app:layout_constraintEnd_toStartOf="@+id/destination_away_title"
+                app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintStart_toStartOf="@+id/destination_icon"
                 app:layout_constraintTop_toBottomOf="@id/destination_address" />
 
             <TextView
@@ -122,26 +143,17 @@
                 app:layout_constraintTop_toBottomOf="@id/destination_away" />
 
             <TextView
-                android:id="@+id/endTripButton"
-                style="@style/MinorButtonStyle"
-                android:layout_width="96dp"
-                android:layout_height="24dp"
-                android:padding="0dp"
-                android:paddingStart="0dp"
-                android:paddingLeft="0dp"
-                android:paddingTop="0dp"
-                android:paddingEnd="0dp"
-                android:paddingRight="0dp"
-                android:paddingBottom="0dp"
-                android:text="@string/end_trip"
-                android:textSize="10dp"
-                android:textStyle="bold"
-                android:visibility="gone"
-                app:layout_constraintBottom_toBottomOf="@+id/trip_to"
-                app:layout_constraintEnd_toStartOf="@+id/linearLayout2"
-                app:layout_constraintStart_toEndOf="@+id/trip_to"
-                app:layout_constraintTop_toTopOf="@+id/trip_to"
-                tools:visibility="visible" />
+                android:id="@+id/trips_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:layout_marginStart="2dp"
+                android:layout_marginTop="8dp"
+                android:textColor="@color/textColorSecondary"
+                android:textSize="12sp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/destination_arrival_title"
+                tools:text="@string/you_have_ongoing_orders" />
 
             <LinearLayout
                 android:id="@+id/linearLayout2"
@@ -186,16 +198,6 @@
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="4dp"
             android:background="@drawable/divider_mid" />
-
-        <TextView
-            android:id="@+id/trips_count"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:layout_marginLeft="16dp"
-            android:textColor="@color/textColorSecondary"
-            android:textSize="12sp"
-            tools:text="@string/you_have_ongoing_orders" />
 
         <View
             android:id="@+id/bottom_holder_cover"

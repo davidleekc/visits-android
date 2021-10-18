@@ -1,7 +1,11 @@
 package com.hypertrack.android.utils
 
+import com.google.android.gms.maps.model.LatLng
 import com.hypertrack.android.api.*
 import com.hypertrack.android.models.*
+import com.hypertrack.android.models.local.OrderStatus
+import com.hypertrack.android.models.local.TripStatus
+import com.hypertrack.android.utils.formatters.toIso
 import com.hypertrack.logistics.android.github.R
 import java.time.LocalDate
 import java.time.ZonedDateTime
@@ -10,6 +14,8 @@ import java.util.*
 import kotlin.Metadata
 
 object MockData {
+
+    private val paloAltoLatLng = LatLng(37.381451, -122.063616)
 
     private val addr = listOf(
         "2875 El Camino Real",
@@ -98,7 +104,7 @@ object MockData {
         )
     }
 
-    fun createGeofenceMarker(plus: Int = 0): GeofenceMarker {
+    private fun createGeofenceMarker(plus: Int = 0): GeofenceMarker {
         var ts = plus
         return GeofenceMarker(
             MarkerType.GEOFENCE_ENTRY,
@@ -195,6 +201,45 @@ object MockData {
             100,
             null,
             null,
+        )
+    }
+
+    fun createTrip(
+        id: String? = null,
+        orders: List<Order> = listOf(
+            createOrder(status = OrderStatus.ONGOING),/*.copy(estimate=null)*/
+            createOrder(status = OrderStatus.ONGOING),
+            createOrder(status = OrderStatus.SNOOZED),
+            createOrder(status = OrderStatus.CANCELED),
+            createOrder(status = OrderStatus.COMPLETED),
+        )
+    ): Trip {
+        return Trip(
+            id ?: "tripId " + Math.random(),
+            null,
+            TripStatus.ACTIVE.value,
+            ZonedDateTime.now().toIso(),
+            mapOf(),
+            null,
+            Estimate(
+                ZonedDateTime.now().toIso(),
+                null
+            ),
+            orders,
+        )
+    }
+
+    fun createOrder(
+        id: String? = null,
+        status: OrderStatus = OrderStatus.ONGOING
+    ): Order {
+        return Order(
+            id ?: ("order " + Math.random()),
+            TripDestination(paloAltoLatLng, "Test Address"),
+            status.value,
+            ZonedDateTime.now().toIso(),
+            Estimate(ZonedDateTime.now().plusMinutes(29).toIso(), null),
+            mapOf(),
         )
     }
 

@@ -6,7 +6,6 @@ import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.MutableLiveData
 import com.hypertrack.android.api.ApiClient
 import com.hypertrack.android.api.MainCoroutineScopeRule
-import com.hypertrack.android.api.TripCompletionSuccess
 import com.hypertrack.android.createBaseOrder
 import com.hypertrack.android.createBaseTrip
 import com.hypertrack.android.interactors.*
@@ -19,6 +18,7 @@ import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.common.util.updateValue
 import com.hypertrack.android.ui.screens.order_details.OrderDetailsViewModel.Companion.REQUEST_IMAGE_CAPTURE
 import com.hypertrack.android.utils.HyperTrackService
+import com.hypertrack.android.utils.JustSuccess
 import com.hypertrack.android.utils.TrackingState
 import com.hypertrack.android.utils.TrackingStateValue
 import com.hypertrack.sdk.HyperTrack
@@ -231,7 +231,7 @@ class OrdersDetailsViewModelLegacyTest {
             )
             val apiClient: ApiClient = mockk {
                 coEvery { getTrips() } returns backendTrips
-                coEvery { completeTrip(any()) } returns TripCompletionSuccess
+                coEvery { completeTrip(any()) } returns JustSuccess
             }
             val slot = slot<Map<String, Any>>()
             val sdk: HyperTrack = mockk {
@@ -305,7 +305,7 @@ class OrdersDetailsViewModelLegacyTest {
             )
             val apiClient: ApiClient = mockk {
                 coEvery { getTrips() } returns backendTrips
-                coEvery { completeTrip(any()) } returns TripCompletionSuccess
+                coEvery { completeTrip(any()) } returns JustSuccess
             }
             val slot = slot<Map<String, Any>>()
             val sdk: HyperTrack = mockk {
@@ -374,7 +374,7 @@ class OrdersDetailsViewModelLegacyTest {
             )
             val apiClient: ApiClient = mockk {
                 coEvery { getTrips() } returns backendTrips
-                coEvery { completeTrip(any()) } returns TripCompletionSuccess
+                coEvery { completeTrip(any()) } returns JustSuccess
             }
             val slot = slot<Map<String, String>>()
             val sdk: HyperTrack = mockk {

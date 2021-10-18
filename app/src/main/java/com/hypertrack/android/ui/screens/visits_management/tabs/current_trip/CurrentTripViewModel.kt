@@ -1,6 +1,7 @@
 package com.hypertrack.android.ui.screens.visits_management.tabs.current_trip
 
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.*
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.*
@@ -23,6 +24,8 @@ import com.hypertrack.android.ui.screens.visits_management.VisitsManagementFragm
 import com.hypertrack.android.ui.screens.visits_management.tabs.orders.OrdersAdapter
 import com.hypertrack.android.utils.DeviceLocationProvider
 import com.hypertrack.android.utils.HyperTrackService
+import com.hypertrack.android.utils.JustFailure
+import com.hypertrack.android.utils.JustSuccess
 import com.hypertrack.android.utils.formatters.DatetimeFormatter
 import com.hypertrack.android.utils.formatters.TimeFormatter
 import com.hypertrack.logistics.android.github.R
@@ -243,8 +246,12 @@ class CurrentTripViewModel(
     fun onCompleteClick() {
         loadingState.postValue(true)
         viewModelScope.launch {
-            tripsInteractor.completeTrip(tripData.value!!.trip.id)
-            loadingState.postValue(false)
+            tripsInteractor.completeTrip(tripData.value!!.trip.id).let {
+                if (it is JustFailure) {
+                    errorHandler.postException(it.exception)
+                }
+                loadingState.postValue(false)
+            }
         }
     }
 
@@ -315,6 +322,7 @@ class CurrentTripViewModel(
         val address = addressDelegate.shortAddress(order)
         val etaString = order.eta?.let { datetimeFormatter.formatTime(it) }
             ?: osUtilsProvider.stringFromResource(R.string.orders_list_eta_unavailable)
+        val etaAvailable = order.eta != null
         val awayText = order.awaySeconds?.let { seconds ->
             timeFormatter.formatSeconds(seconds.toInt())
         }

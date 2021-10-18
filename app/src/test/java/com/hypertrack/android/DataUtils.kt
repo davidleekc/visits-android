@@ -8,26 +8,17 @@ import com.hypertrack.android.models.Estimate
 import com.hypertrack.android.models.Order
 import com.hypertrack.android.models.local.OrderStatus
 import com.hypertrack.android.models.local.TripStatus
+import com.hypertrack.android.utils.MockData
 
+//todo replace with MockData
 fun createBaseOrder(
     id: String? = null,
-    status: OrderStatus? = null
+    status: OrderStatus = OrderStatus.ONGOING
 ): Order {
-    return Order(
-        id ?: ("order " + Math.random()),
-        TripDestination(
-            null,
-            Point(listOf(42.0, 42.0)),
-            0,
-            arrivedAt = "2020-02-02T20:20:02.020Z"
-        ),
-        status?.value ?: OrderStatus.ONGOING.value,
-        "2020-02-02T20:20:02.020Z",
-        Estimate("2020-02-02T20:20:02.020Z", null),
-        null,
-    )
+    return MockData.createOrder(id, status)
 }
 
+//todo replace with MockData
 fun createBaseTrip(id: String? = null): Trip {
     return Trip(
         id = id ?: "tripId " + Math.random(),

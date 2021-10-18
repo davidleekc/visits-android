@@ -120,6 +120,8 @@
 
     <string name="current_trip">Current trip</string>
     <string name="current_trip_add_order">Add order</string>
+    <string name="current_trip_complete">Complete</string>
+    <string name="current_trip_complete_confirmation">Are you sure you want to complete the trip?</string>
 
     <string name="add_order">Add order</string>
     <string name="add_order_create">@string/add_order</string>

@@ -17,6 +17,7 @@ import com.hypertrack.android.models.local.TripStatus
 import com.hypertrack.android.ui.base.Consumable
 import com.hypertrack.android.ui.common.util.toMap
 import com.hypertrack.android.utils.HyperTrackService
+import com.hypertrack.android.utils.SimpleResult
 import com.hypertrack.logistics.android.github.BuildConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.BufferOverflow
@@ -29,7 +30,7 @@ interface TripsRepository {
     suspend fun refreshTrips()
     suspend fun createTrip(latLng: LatLng, address: String?): TripCreationResult
     suspend fun updateLocalOrder(orderId: String, updateFun: (LocalOrder) -> Unit)
-    suspend fun completeTrip(tripId: String)
+    suspend fun completeTrip(tripId: String): SimpleResult
     suspend fun addOrderToTrip(tripId: String, orderParams: OrderCreationParams): Trip
 }
 
@@ -87,8 +88,8 @@ class TripsRepositoryImpl(
         }
     }
 
-    override suspend fun completeTrip(tripId: String) {
-        apiClient.completeTrip(tripId)
+    override suspend fun completeTrip(tripId: String): SimpleResult {
+        return apiClient.completeTrip(tripId)
     }
 
     override suspend fun updateLocalOrder(orderId: String, updateFun: (LocalOrder) -> Unit) {

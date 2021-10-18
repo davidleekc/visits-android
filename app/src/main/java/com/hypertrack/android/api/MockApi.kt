@@ -20,6 +20,11 @@ class MockApi(val remoteApi: ApiInterface) : ApiInterface by remoteApi {
 //                .fromJson(MockData.MOCK_GEOFENCES_JSON)!!.geofences)
         }
 
+    override suspend fun completeTrip(tripId: String): Response<Unit> {
+        delay(1000)
+        return Response.success(Unit)
+    }
+
     override suspend fun createGeofences(
         deviceId: String,
         params: GeofenceParams
@@ -171,10 +176,12 @@ class MockApi(val remoteApi: ApiInterface) : ApiInterface by remoteApi {
         deviceId: String,
         paginationToken: String
     ): Response<TripResponse> {
-        return Response.success(
-            Injector.getMoshi().adapter(TripResponse::class.java)
-                .fromJson(MockData.MOCK_TRIPS_JSON)
-        )
+        return Response.success(TripResponse(listOf(MockData.createTrip()), null))
+
+//        return Response.success(
+//            Injector.getMoshi().adapter(TripResponse::class.java)
+//                .fromJson(MockData.MOCK_TRIPS_JSON)
+//        )
     }
 
     override suspend fun completeOrder(tripId: String, orderId: String): Response<Void> {

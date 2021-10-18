@@ -1,6 +1,9 @@
 package com.hypertrack.android.ui.screens.visits_management.tabs.current_trip
 
+import android.app.AlertDialog
 import android.os.Bundle
+import android.util.Log
+import android.util.TypedValue
 import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -13,6 +16,7 @@ import com.hypertrack.android.ui.base.navigate
 import com.hypertrack.android.ui.common.select_destination.DestinationData
 import com.hypertrack.android.ui.common.util.*
 import com.hypertrack.android.utils.MyApplication
+import com.hypertrack.android.utils.stringFromResource
 import com.hypertrack.logistics.android.github.BuildConfig
 import com.hypertrack.logistics.android.github.R
 import kotlinx.android.synthetic.main.fragment_current_trip.*
@@ -147,13 +151,18 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
             vm.onAddOrderClick()
         }
 
-        endTripButton.setGoneState(BuildConfig.DEBUG.not())
-        endTripButton.setOnClickListener {
-            vm.onCompleteClick()
+        bCompleteTrip.setOnClickListener {
+            createCompleteTripDialog().show()
         }
 
         location_button.setOnClickListener {
             vm.onMyLocationClick()
+        }
+
+        if (MyApplication.DEBUG_MODE) {
+            trip_to.setOnClickListener {
+                vm.onCompleteClick()
+            }
         }
     }
 
@@ -167,17 +176,41 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
         vm.onResume()
     }
 
-    //todo to vm
     private fun displayTrip(trip: CurrentTripViewModel.TripData) {
         bAddOrder.setGoneState(trip.isLegacy)
 
-        trip.nextOrder?.let { order ->
-            order.address.toView(destination_address)
-            order.etaString.toView(destination_arrival)
-            listOf(destination_away, destination_away_title).forEach {
-                it.setGoneState(order.awayText == null)
+        trip.nextOrder.let { order ->
+            bCompleteTrip.setGoneState(order != null)
+            shareButton.setGoneState(order == null)
+            listOf(
+                shareButton,
+                destination_icon,
+                destination_address,
+                destination_arrival,
+                destination_arrival_title,
+                destination_away,
+                destination_away_title,
+            ).forEach { it.setGoneState(order == null) }
+
+            if (order != null) {
+                order.address.toView(destination_address)
+                order.etaString.toView(destination_arrival)
+                destination_arrival.setTextSize(
+                    TypedValue.COMPLEX_UNIT_DIP,
+                    if (order.etaAvailable) 18f else 14f
+                )
+                listOf(
+                    destination_arrival_title,
+                    destination_away,
+                    destination_away_title
+                ).forEach {
+                    it.setGoneState(!order.etaAvailable)
+                }
+                listOf(destination_away, destination_away_title).forEach {
+                    it.setGoneState(order.awayText == null)
+                }
+                order.awayText.toView(destination_away)
             }
-            order.awayText.toView(destination_away)
         }
 
         trip.ongoingOrders.let { orders ->
@@ -187,6 +220,18 @@ class CurrentTripFragment : ProgressDialogFragment(R.layout.fragment_current_tri
         }
     }
 
+    private fun createCompleteTripDialog(): AlertDialog {
+        return AlertDialog.Builder(requireContext())
+            .setMessage(
+                R.string.current_trip_complete_confirmation.stringFromResource()
+            )
+            .setPositiveButton(R.string.yes) { dialog, which ->
+                vm.onCompleteClick()
+            }
+            .setNegativeButton(R.string.no) { _, _ ->
+            }
+            .create()
+    }
 
     companion object {
         const val KEY_DESTINATION = "destination"
