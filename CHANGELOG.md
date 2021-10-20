@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.10.8] - 2021-10-20
+### Added
+- Snoozing orders
+- Complete trip button
+
 ## [0.10.7] - 2021-10-6
 - Changed orders sorting on Orders tab
 
