@@ -144,7 +144,17 @@ open class TripsInteractorImpl(
         return try {
             onlyWhenClockedIn {
                 currentTrip.value!!.let { trip ->
-                    apiClient.unsnoozeOrder(tripId = trip.id, orderId = orderId)
+                    apiClient.unsnoozeOrder(tripId = trip.id, orderId = orderId).let { res ->
+                        if (res is JustSuccess) {
+                            tripsRepository.updateLocalOrder(orderId) {
+                                it.status = OrderStatus.ONGOING
+                            }
+                        }
+                        globalScope.launch {
+                            refreshTrips()
+                        }
+                        res
+                    }
                 }
             }
         } catch (e: Exception) {

@@ -23,6 +23,7 @@ import com.hypertrack.android.utils.JustSuccess
 import com.hypertrack.android.utils.OsUtilsProvider
 import com.hypertrack.android.utils.formatters.DatetimeFormatter
 import com.hypertrack.logistics.android.github.R
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.launch
 import java.util.*
 import kotlin.Exception
@@ -165,7 +166,7 @@ class OrderDetailsViewModel(
     }
 
     fun onSnoozeClicked() {
-        viewModelScope.launch {
+        withLoadingStateAndErrorHandler {
             ordersInteractor.snoozeOrder(orderId).let {
                 when (it) {
                     JustSuccess -> {
@@ -177,7 +178,7 @@ class OrderDetailsViewModel(
     }
 
     fun onUnsnoozeClicked() {
-        viewModelScope.launch {
+        withLoadingStateAndErrorHandler {
             ordersInteractor.unsnoozeOrder(orderId).let {
                 when (it) {
                     JustSuccess -> {
@@ -309,3 +310,4 @@ class OrderDetailsViewModel(
     }
 
 }
+

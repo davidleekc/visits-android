@@ -9,6 +9,8 @@ import androidx.navigation.NavDirections
 import com.hypertrack.android.utils.*
 import retrofit2.HttpException
 import com.hypertrack.logistics.android.github.R
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.launch
 
 @Suppress("LeakingThis")
 open class BaseViewModel(
@@ -30,6 +32,21 @@ open class BaseViewModel(
     protected fun <T> LiveData<T>.observeManaged(observer: Observer<T>) {
         observeForever(observer)
         observers.add(Pair(this, observer))
+    }
+
+    fun withLoadingStateAndErrorHandler(code: (suspend () -> Unit)) {
+        loadingState.postValue(true)
+        viewModelScope.launch(CoroutineExceptionHandler { _, e ->
+            if (e is Exception) {
+                errorHandler.postException(e)
+                loadingState.postValue(false)
+            } else {
+                crashReportsProvider.logException(e)
+            }
+        }) {
+            code.invoke()
+            loadingState.postValue(false)
+        }
     }
 
     @Suppress("UNCHECKED_CAST")
