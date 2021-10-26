@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.10.9] - 2021-10-26
+### Fixed
+- Crash on Summary tab
+
 ## [0.10.8] - 2021-10-20
 ### Added
 - Snoozing orders
