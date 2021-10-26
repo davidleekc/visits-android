@@ -2,7 +2,9 @@ package com.hypertrack.android.ui.screens.visits_management.tabs.summary
 
 import androidx.lifecycle.*
 import com.hypertrack.android.interactors.HistoryInteractor
+import com.hypertrack.android.models.EMPTY_HISTORY
 import com.hypertrack.android.models.HistoryError
+import com.hypertrack.android.models.Summary
 import com.hypertrack.android.ui.base.BaseViewModel
 import com.hypertrack.android.ui.base.BaseViewModelDependencies
 import com.hypertrack.android.utils.formatters.DistanceFormatter
@@ -18,7 +20,7 @@ class SummaryViewModel(
 ) : BaseViewModel(baseDependencies) {
 
     val summary: LiveData<List<SummaryItem>> = Transformations.map(historyInteractor.todayHistory) {
-        it?.summary?.let { summary ->
+        (it ?: EMPTY_HISTORY).summary.let { summary ->
             listOf(
                 SummaryItem(
                     R.drawable.ic_ht_eta,
